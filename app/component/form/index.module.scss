@@ -1,0 +1,122 @@
+.spinner {
+  position: absolute;
+  top: 50%;
+  // left: 48%;
+  width: 100%;
+  text-align: center;
+}
+
+.none {
+  display: none;
+}
+
+.cropBtn {
+  cursor: pointer;
+  display: block;
+  padding: 4px;
+  color: #fff;
+  background-color: rgba(3, 115, 14, 0.5);
+  text-align: center;
+  width: 220px;
+  margin: auto;
+}
+
+.croppedImage {
+  margin: 6px auto;
+}
+
+.form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 8px;
+  margin-top: 40px;
+}
+
+.formContent {
+  width: 640px;
+  margin: 0.5rem 0;
+}
+
+.formContent p {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.formInput {
+  width: 100%;
+  height: 30px;
+  border: solid 1px grey;
+  font-size: 16px;
+  color: #333 !important;
+  margin-bottom: 8px;
+}
+
+.formInner {
+  margin-bottom: 40px;
+}
+
+.formContent {
+  background-color: #fff;
+  padding: 12px;
+}
+.formH2 {
+  padding: 0.25em 0.5em; /*上下 左右の余白*/
+  color: #494949; /*文字色*/
+  font-size: 16px;
+  font-weight: bold;
+  background: transparent; /*背景透明に*/
+  border-left: solid 5px #de7c7d; /*左線*/
+}
+
+.tagRequire {
+  padding: 4px;
+  margin-left: 4px;
+  font-size: 11px;
+  border-radius: 5px;
+  background-color: #af1740;
+  color: #fff;
+}
+.tagNoRequire {
+  padding: 4px;
+  margin-left: 4px;
+  font-size: 11px;
+  border-radius: 5px;
+  background-color: #1daccc;
+  color: #fff;
+}
+
+.scheduleInput {
+  display: flex;
+}
+.formInputDate {
+  width: 240px;
+  color: #333;
+  border: 1px solid #333;
+  border-radius: 2px;
+}
+
+.fromInputTime {
+  width: 180px;
+  color: #333;
+  border: 1px solid #333;
+  border-radius: 2px;
+  margin-left: 24px;
+}
+
+.timeFrom {
+  color: #333;
+}
+
+.scheduleRemove {
+  color: #cc2b52;
+  cursor: pointer;
+  margin-left: 32px;
+}
+
+.addSchedule {
+  color: #2b71cc;
+  cursor: pointer;
+  font-weight: bold;
+}
+//https://colorhunt.co/palette/740938af1740cc2b52de7c7d
