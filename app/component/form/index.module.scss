@@ -15,14 +15,16 @@
   display: block;
   padding: 4px;
   color: #fff;
-  background-color: rgba(3, 115, 14, 0.5);
+  background-color: #AF1740;
   text-align: center;
   width: 220px;
-  margin: auto;
 }
 
 .croppedImage {
-  margin: 6px auto;
+  margin-top: 6px;
+  border: #de7c7d solid 2px;
+  border-radius: 9999;
+
 }
 
 .form {
@@ -52,6 +54,13 @@
   margin-bottom: 8px;
 }
 
+.formTextarea{
+  width: 100%;
+  height: 120px;
+  border: solid 1px grey;
+  color: #333 !important;
+}
+
 .formInner {
   margin-bottom: 40px;
 }
@@ -67,6 +76,7 @@
   font-weight: bold;
   background: transparent; /*背景透明に*/
   border-left: solid 5px #de7c7d; /*左線*/
+  margin-bottom: 6px;
 }
 
 .tagRequire {
@@ -88,6 +98,8 @@
 
 .scheduleInput {
   display: flex;
+  margin-bottom: 12px;
+  align-items: center;
 }
 .formInputDate {
   width: 240px;
@@ -111,12 +123,48 @@
 .scheduleRemove {
   color: #cc2b52;
   cursor: pointer;
-  margin-left: 32px;
+  margin-left: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
 }
 
 .addSchedule {
   color: #2b71cc;
   cursor: pointer;
   font-weight: bold;
+  display: flex;
+  align-items: center;
 }
 //https://colorhunt.co/palette/740938af1740cc2b52de7c7d
+
+
+.formInputDate::-webkit-calendar-picker-indicator {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+
+.formInputDate::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+}
+
+.formInputDate::-webkit-clear-button{
+  -webkit-appearance: none;
+}
+
+.formInputDate{
+  position: relative;
+}
+
+.formSubmit{
+  width: 100%;
+  color: white;
+  background-color: #740938;
+  transition: .3s;
+  padding: 12px;
+}
+

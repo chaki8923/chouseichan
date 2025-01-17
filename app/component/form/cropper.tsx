@@ -12,6 +12,7 @@ type onDataChange = {
 const CropImg = (props: onDataChange) => {
   const [fileData, setFileData] = useState<File | undefined>();
   const [objectUrl, setObjectUrl] = useState<string | undefined>();
+  const [isCrop, setIsCrop] = useState<boolean>(false);
 
   //プロフィールイメージ
   const [profileImg, setProfileImg] = useState<string>("");
@@ -56,7 +57,6 @@ const CropImg = (props: onDataChange) => {
       ctx.clip();
 
       const img = await loadImage(objectUrl);
-      console.log(img.width, img.naturalWidth);
       ctx.drawImage(
         img,
         crop.x,
@@ -72,6 +72,7 @@ const CropImg = (props: onDataChange) => {
       canvas.toBlob((result) => {
         if (result instanceof Blob) {
           setProfileImg(URL.createObjectURL(result));
+          setIsCrop(true)
           props.onDataChange(URL.createObjectURL(result))
         }
       });
@@ -100,11 +101,13 @@ const CropImg = (props: onDataChange) => {
           if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             setFileData(file); // File を確実にセット
+            setIsCrop(false)
           }
         }}
       />
+      
       <div>
-        {(objectUrl && !props.isSubmit) && (
+        {(objectUrl && !props.isSubmit && !isCrop) && (
           <ReactCrop
             crop={crop}
             onChange={(c) => setCrop(c)}
@@ -116,7 +119,7 @@ const CropImg = (props: onDataChange) => {
           </ReactCrop>
         )}
       </div>
-      {(objectUrl && !props.isSubmit) && (
+      {(objectUrl && !props.isSubmit && !isCrop) && (
         <span className={`${styles.cropBtn}`} onClick={() => { makeProfileImgObjectUrl(); }}>切り取り</span>
       )}
       <div>

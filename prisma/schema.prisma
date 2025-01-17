@@ -12,3 +12,43 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+
+model User {
+  id        Int       @id @default(autoincrement()) // ユーザーの一意識別子
+  name      String    @db.VarChar(50)              // ユーザー名
+  comment   String?                        // コメント
+  status    String                         // 丸三角ばつ
+  createdAt DateTime  @default(now())              // 作成日時
+  updatedAt DateTime  @updatedAt                   // 更新日時
+
+  // リレーション
+  events    Event[]                                // ユーザーが作成したイベント
+}
+
+model Event {
+  id        String       @id @default(cuid())
+  name      String    @db.VarChar(30)              // イベント名
+  image     String?
+  memo   String?
+  userId    Int?                              // ユーザーID（外部キー）
+  createdAt DateTime  @default(now())              // 作成日時
+  updatedAt DateTime  @updatedAt                   // 更新日時
+
+  // リレーション
+  user      User?    @relation(fields: [userId], references: [id]) // ユーザーとのリレーション
+  schedules Schedule[]                                // イベントに紐づくスケジュール
+}
+
+model Schedule {
+  id        Int       @id @default(autoincrement()) // スケジュールの一意識別子
+  eventId   String                                     // イベントID（外部キー）
+  date      DateTime                               // 日付（DATE型を使用する場合はDBに依存）
+  time      String    @db.VarChar(10)              // 時間（フォーマット例: "HH:MM"）
+  createdAt DateTime  @default(now())              // 作成日時
+  updatedAt DateTime  @updatedAt                   // 更新日時
+
+  // リレーション
+  event     Event     @relation(fields: [eventId], references: [id]) // イベントとのリレーション
+}
