@@ -2,8 +2,13 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+
 import Image from "next/image";
 import styles from "./index.module.scss"
+import { FaRegCircle } from "react-icons/fa";
+import { RxCross2 } from "react-icons/rx";
+import { IoTriangleOutline } from "react-icons/io5";
+import Form from "./form";
 
 export default function EventDetails() {
   const [eventData, setEventData] = useState<any>(null);
@@ -11,14 +16,6 @@ export default function EventDetails() {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId"); // クエリパラメーターからeventIdを取得
-  const [isCardVisible, setIsCardVisible] = useState(false);
-
-  const openEvent = async () => {
-    setIsCardVisible(true);
-  }
-  const closeEvent = async () => {
-    setIsCardVisible(false);
-  }
 
   async function fetchEventWithSchedules(eventId: string) {
     try {
@@ -56,6 +53,7 @@ export default function EventDetails() {
     getEventData();
   }, [eventId]);
 
+
   if (loading) {
     return <p>読み込み中...</p>;
   }
@@ -69,33 +67,58 @@ export default function EventDetails() {
   }
 
   return (
-    <div>
-      <h1>{eventData.name}</h1>
-      {eventData.image && (
-        <Image src={eventData.image}
-          width={50}
-          height={50}
-          alt="Event Crop Image" />
-      )}
-      <h2>スケジュール</h2>
-      <ul>
-        {eventData.schedules.map((schedule: any) => {
-          // 日付と時刻のフォーマット
-          const formattedDate = new Date(schedule.date).toLocaleDateString("ja-JP", {
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-            weekday: "short", // 曜日を短縮形で表示
-          });
+    <>
+      <div className={styles.eventContainer}>
+        <div>
+          <section className={styles.eventTitleSection}>
+            {eventData.image && (
+              <Image src={eventData.image}
+                width={50}
+                height={50}
+                alt="Event Crop Image" />
+            )}
+            <h1 className={styles.eventName}>{eventData.name}</h1>
+          </section>
+          <h2 className={styles.h2Title}>スケジュール</h2>
 
-          return (
-            <li key={schedule.id}>
-              {formattedDate} - {schedule.time}
-            </li>
-          );
-        })}
-      </ul>
-    
-    </div>
+
+          <div className={`relative overflow-x-auto shadow-md sm:rounded-lg ${styles.table}`}>
+            <table className={styles.tableDesign}>
+              <tbody>
+                <tr>
+                  <th>候補日</th>
+                  <th><FaRegCircle className={styles.reactIcon} /></th>
+                  <th><IoTriangleOutline className={styles.reactIcon} /></th>
+                  <th><RxCross2 className={styles.reactIcon} /></th>
+                  <th>合計人数</th>
+                </tr>
+                {eventData.schedules.map((schedule: any) => {
+                  // 日付と時刻のフォーマット
+                  const formattedDate = new Date(schedule.date).toLocaleDateString("ja-JP", {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    weekday: "short", // 曜日を短縮形で表示
+                  });
+                  return (
+                    <tr key={schedule.id}>
+                      <td>{formattedDate} - {schedule.time}</td>
+                      <td>0人</td>
+                      <td>0人</td>
+                      <td>0人</td>
+                      <td>0人</td>
+                    </tr>
+                  )
+                })}
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div className={styles.eventContainer}>
+        <Form schedules={eventData.schedules} />
+      </div>
+    </>
   );
 }

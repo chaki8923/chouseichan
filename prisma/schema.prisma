@@ -13,8 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model User {
   id        Int       @id @default(autoincrement()) // ユーザーの一意識別子
   name      String    @db.VarChar(50)              // ユーザー名

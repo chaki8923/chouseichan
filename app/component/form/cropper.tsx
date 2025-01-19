@@ -71,9 +71,13 @@ const CropImg = (props: onDataChange) => {
 
       canvas.toBlob((result) => {
         if (result instanceof Blob) {
-          setProfileImg(URL.createObjectURL(result));
-          setIsCrop(true)
-          props.onDataChange(URL.createObjectURL(result))
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Data = reader.result as string;
+            setProfileImg(base64Data); // Base64 データを状態に保存
+            props.onDataChange(base64Data); // 親コンポーネントに渡す
+          };
+          reader.readAsDataURL(result);
         }
       });
 
@@ -106,7 +110,7 @@ const CropImg = (props: onDataChange) => {
         }}
       />
       
-      <div>
+      <div className={styles.cropArea}>
         {(objectUrl && !props.isSubmit && !isCrop) && (
           <ReactCrop
             crop={crop}

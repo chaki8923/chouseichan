@@ -11,9 +11,6 @@ import styles from "./index.module.scss"
 
 export default function Form() {
   const [isSubmit, setIsSubmit] = useState(false);
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [time, setTime] = useState("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [schedules, setSchedules] = useState([
     { id: Date.now(), date: '', time: '' }, // 初期のスケジュールデータ
   ]);
