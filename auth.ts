@@ -18,7 +18,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             if(pathname === "/protected-page") return !!auth;
             return true
         }catch(err){
-            console.log(err);
+            console.log("エラー",err);
         }
     },
     jwt({token, trigger, session}){

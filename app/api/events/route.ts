@@ -5,10 +5,7 @@ import { prisma } from "@/prisma";
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get("eventId");
-
-    console.log("eventId", eventId);
-    
-  
+      
     if (!eventId) {
       return NextResponse.json(
         { error: "eventIdは必須です" },
@@ -20,7 +17,17 @@ export async function GET(request: NextRequest) {
       const event = await prisma.event.findUnique({
         where: { id: eventId },
         include: {
-          schedules: true, // スケジュールを取得
+          schedules: {
+            include: {
+              responses: {
+                select: {
+                  id: true,
+                  userId: true,
+                  response: true,
+                },
+              },
+            },
+          },
         },
       });
   

@@ -1,57 +1,54 @@
 'use client'
 
 import { useState } from "react";
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserResponseSchema, UserResponseSchemaType } from '@/schemas/UserResponse';
+import { FaRegCircle } from "react-icons/fa";
+import { LuTriangle } from "react-icons/lu";
+import { RxCross2 } from "react-icons/rx";
 import styles from "./index.module.scss";
 
-// Props の型定義
-type Schedules = {
+type SchedulesProp = {
   schedules: Array<{
     id: number;
     date: string;
     time: string;
+    response: string;
   }>;
 };
 
-export default function Form(props: Schedules) {
+export default function Form(props: SchedulesProp) {
   const [isSubmit, setIsSubmit] = useState(false);
   const methods = useForm<UserResponseSchemaType>({
-    mode: 'onBlur',
-    resolver: zodResolver(UserResponseSchema)
+    mode: 'onChange', // バリデーションのタイミングを変更
+    resolver: zodResolver(UserResponseSchema),
+    defaultValues: {
+      user_name: '',
+      schedules: props.schedules.map((schedule) => ({
+        id: schedule.id,
+        response: schedule.response || 'ATTEND',
+      })),
+    },
   });
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isValid, isSubmitting },
-  } = methods
+  const { register, handleSubmit, setValue, reset, formState: { errors, isValid, isSubmitting } } = methods;
 
+  const handleIconClick = (index: number, value: string) => {
+    setValue(`schedules.${index}.response`, value, { shouldValidate: true });
+  };
 
-  interface FormData {
-    user_name: string;
-    response: string;
-    schedules: {
-      id: number;
-      response: string;
-    }[];
-    // image: any
-  }
-
-  const onSubmit = async (params: FormData) => {
+  const onSubmit = async (params: UserResponseSchemaType) => {
     setIsSubmit(true);
     const data = {
       user_name: params.user_name,
       schedules: params.schedules,
-      response: params.response
     };
 
     reset();
 
     try {
-      const response = await fetch(`/api/schedule/`, {
+      const response = await fetch(`/api/response/`, {
         method: "POST",
         headers: {
           Accept: "application/json, text/plain",
@@ -64,21 +61,17 @@ export default function Form(props: Schedules) {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
 
-        console.log("Event ID:", eventId);
-
-        // 必要に応じてページ遷移
       } else {
         console.error("Error:", response.status, response.statusText);
       }
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.log("Fetch エラー:", error);
     } finally {
       setIsSubmit(false);
     }
   };
 
   return (
-
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className={styles.formContent}>
@@ -93,49 +86,39 @@ export default function Form(props: Schedules) {
               <span className="self-start text-xs text-red-500">{errors.user_name.message}</span>
             )}
           </div>
-
           <div>
-            <h2 className={styles.formH2}>STEP2: 日程登録<span className={styles.tagRequire}>必須</span></h2>
             <div className={styles.formInner}>
-              {props.schedules.map((schedule: any, index) => {
-                // 日付と時刻のフォーマット
+              {props.schedules.map((schedule, index) => {
                 const formattedDate = new Date(schedule.date).toLocaleDateString("ja-JP", {
                   year: "numeric",
                   month: "numeric",
                   day: "numeric",
-                  weekday: "short", // 曜日を短縮形で表示
+                  weekday: "short",
                 });
                 return (
-                  <div key={schedule.id} >
-                    <p>{formattedDate} - {schedule.time}</p>
+                  <div key={schedule.id} className={styles.flex}>
+                    <p className={styles.date}>{formattedDate} - {schedule.time}</p>
                     <input type="hidden" {...register(`schedules.${index}.id`)} />
-                    <input type="hidden" {...register(`schedules.${index}.response`)} />
-                    <label>
-                      <input
-                        type="image"
-                        value=""
-                        {...register(`schedules.${index}.response`)}
-                      />
-                      
-                    </label>
-                    <label>
-                      <input
-                        type="image"
-                        value=""
-                        {...register(`schedules.${index}.response`)}
-                      />
-                      
-                    </label>
-                    <label>
-                      <input
-                        type="image"
-                        value="×"
-                        {...register(`schedules.${index}.response`)}
-                      />
-                      ×
-                    </label>
+
+                    <FaRegCircle
+                      className={`${styles.reactIcon} ${methods.getValues(`schedules.${index}.response`) === "ATTEND" ? styles.selected : ''
+                        }`}
+                      onClick={() => handleIconClick(index, "ATTEND")}
+                    />
+
+                    <LuTriangle
+                      className={`${styles.reactIcon} ${methods.getValues(`schedules.${index}.response`) === "UNDECIDED" ? styles.selected : ''
+                        }`}
+                      onClick={() => handleIconClick(index, "UNDECIDED")}
+                    />
+
+                    <RxCross2
+                      className={`${styles.reactIcon} ${methods.getValues(`schedules.${index}.response`) === "ABSENT" ? styles.selected : ''
+                        }`}
+                      onClick={() => handleIconClick(index, "ABSENT")}
+                    />
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -143,12 +126,11 @@ export default function Form(props: Schedules) {
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className={`${styles.formSubmit} ${!isValid || isSubmitting ? "cursor-not-allowed opacity-60" : "hover:bg-rose-700"
-            }`}
+          className={`${styles.formSubmit} ${!isValid || isSubmitting ? "cursor-not-allowed opacity-60" : "hover:bg-rose-700"}`}
         >
           登録
         </button>
       </form>
     </FormProvider>
-  )
+  );
 }

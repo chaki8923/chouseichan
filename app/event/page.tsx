@@ -8,6 +8,7 @@ import styles from "./index.module.scss"
 import { FaRegCircle } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { IoTriangleOutline } from "react-icons/io5";
+import { Schedule } from "@/types/schedule";
 import Form from "./form";
 
 export default function EventDetails() {
@@ -40,6 +41,7 @@ export default function EventDetails() {
       setLoading(true);
       try {
         const data = await fetchEventWithSchedules(eventId!);
+        console.log("data", data);
 
         setEventData(data);
         setError(null); // エラーをリセット
@@ -92,7 +94,7 @@ export default function EventDetails() {
                   <th><RxCross2 className={styles.reactIcon} /></th>
                   <th>合計人数</th>
                 </tr>
-                {eventData.schedules.map((schedule: any) => {
+                {eventData.schedules.map((schedule: Schedule) => {
                   // 日付と時刻のフォーマット
                   const formattedDate = new Date(schedule.date).toLocaleDateString("ja-JP", {
                     year: "numeric",
@@ -100,13 +102,19 @@ export default function EventDetails() {
                     day: "numeric",
                     weekday: "short", // 曜日を短縮形で表示
                   });
+
+                  // responses のカウント
+                  const attendCount = schedule.responses.filter((res) => res.response === "ATTEND").length;
+                  const undecidedCount = schedule.responses.filter((res) => res.response === "UNDECIDED").length;
+                  const declineCount = schedule.responses.filter((res) => res.response === "DECLINE").length;
+                  const totalCount = schedule.responses.length;
                   return (
                     <tr key={schedule.id}>
                       <td>{formattedDate} - {schedule.time}</td>
-                      <td>0人</td>
-                      <td>0人</td>
-                      <td>0人</td>
-                      <td>0人</td>
+                      <td>{attendCount}人</td>
+                      <td>{undecidedCount}人</td>
+                      <td>{declineCount}人</td>
+                      <td>{totalCount}人</td>
                     </tr>
                   )
                 })}

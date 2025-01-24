@@ -4,8 +4,7 @@ import { prisma } from "@/prisma";
 export async function POST(request: NextRequest) {
     try {
       const { event_name, schedules, image, memo } = await request.json();
-      console.log("memo----------" , memo);
-      
+    
   
       // バリデーション
       if (!event_name || !schedules || schedules.length === 0) {
@@ -31,10 +30,7 @@ export async function POST(request: NextRequest) {
         include: {
           schedules: true, // 登録されたスケジュールも含めて返す
         },
-      });
-
-      console.log("newEvent", newEvent);
-      
+      });      
   
       return NextResponse.json(newEvent, { status: 201 });
     } catch (error) {

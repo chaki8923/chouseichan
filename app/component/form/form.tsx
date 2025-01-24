@@ -110,8 +110,6 @@ export default function Form() {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
   
-        console.log("Event ID:", eventId);
-  
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {

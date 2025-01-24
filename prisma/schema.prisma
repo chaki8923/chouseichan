@@ -13,40 +13,56 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int       @id @default(autoincrement()) // ユーザーの一意識別子
-  name      String    @db.VarChar(50)              // ユーザー名
-  comment   String?                        // コメント
-  status    String                         // 丸三角ばつ
-  createdAt DateTime  @default(now())              // 作成日時
-  updatedAt DateTime  @updatedAt                   // 更新日時
 
-  // リレーション
-  events    Event[]                                // ユーザーが作成したイベント
+enum ResponseStatus {
+  ATTEND    // 出席
+  UNDECIDED // 未定
+  ABSENT    // 欠席
+}
+
+model User {
+  id        Int          @id @default(autoincrement())
+  name      String       @db.VarChar(50)
+  comment   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  events    Event[]
+  responses Response[]
 }
 
 model Event {
   id        String       @id @default(cuid())
-  name      String    @db.VarChar(30)              // イベント名
+  name      String       @db.VarChar(30)
   image     String?
-  memo   String?
-  userId    Int?                              // ユーザーID（外部キー）
-  createdAt DateTime  @default(now())              // 作成日時
-  updatedAt DateTime  @updatedAt                   // 更新日時
-
-  // リレーション
-  user      User?    @relation(fields: [userId], references: [id]) // ユーザーとのリレーション
-  schedules Schedule[]                                // イベントに紐づくスケジュール
+  memo      String?
+  userId    Int?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User?        @relation(fields: [userId], references: [id])
+  schedules Schedule[]
 }
 
 model Schedule {
-  id        Int       @id @default(autoincrement()) // スケジュールの一意識別子
-  eventId   String                                     // イベントID（外部キー）
-  date      DateTime                               // 日付（DATE型を使用する場合はDBに依存）
-  time      String    @db.VarChar(10)              // 時間（フォーマット例: "HH:MM"）
-  createdAt DateTime  @default(now())              // 作成日時
-  updatedAt DateTime  @updatedAt                   // 更新日時
+  id        Int       @id @default(autoincrement())
+  eventId   String
+  date      DateTime
+  time      String    @db.VarChar(10)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  event     Event     @relation(fields: [eventId], references: [id])
+  responses Response[]
+}
 
-  // リレーション
-  event     Event     @relation(fields: [eventId], references: [id]) // イベントとのリレーション
+model Response {
+  id          Int            @id @default(autoincrement())
+  userId      Int
+  scheduleId  Int
+  response    ResponseStatus
+  comment     String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id])
+  schedule    Schedule       @relation(fields: [scheduleId], references: [id])
+
+  @@unique([scheduleId, userId]) // 複合一意キー制約
 }
