@@ -9,7 +9,9 @@ import { FaRegCircle } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { IoTriangleOutline } from "react-icons/io5";
 import { Schedule } from "@/types/schedule";
+import { User } from "@/types/user";
 import Form from "./form";
+
 
 export default function EventDetails() {
   const [eventData, setEventData] = useState<any>(null);
@@ -35,14 +37,18 @@ export default function EventDetails() {
     }
   }
 
+  const changeUpdate = (userId: number) => {
+    console.log(userId);
+    
+  };
+
+
   useEffect(() => {
     // データ取得
     const getEventData = async () => {
       setLoading(true);
       try {
         const data = await fetchEventWithSchedules(eventId!);
-        console.log("data", data);
-
         setEventData(data);
         setError(null); // エラーをリセット
       } catch (err: any) {
@@ -92,7 +98,24 @@ export default function EventDetails() {
                   <th><FaRegCircle className={styles.reactIcon} /></th>
                   <th><IoTriangleOutline className={styles.reactIcon} /></th>
                   <th><RxCross2 className={styles.reactIcon} /></th>
-                  <th>合計人数</th>
+                  {/** `userId` をキーとして利用 */}
+                  {Array.from(
+                    new Map<number, { id: number; name: string; response: string }>(
+                      eventData.schedules
+                        .flatMap((schedule: Schedule) =>
+                          schedule.responses.map((response) => ({
+                            id: response.user.id,
+                            name: response.user.name,
+                            response: response.response, // 必須プロパティ response を含める
+                          }))
+                        )
+                        .map((user: User) => [user.id, user]) // Map のキーとして user.id を指定
+                    ).values()
+                  ).map((user) => (
+                    <th key={user.id} onClick={() => changeUpdate(user.id)}>
+                      {user.name}
+                    </th>
+                  ))}
                 </tr>
                 {eventData.schedules.map((schedule: Schedule) => {
                   // 日付と時刻のフォーマット
@@ -106,15 +129,34 @@ export default function EventDetails() {
                   // responses のカウント
                   const attendCount = schedule.responses.filter((res) => res.response === "ATTEND").length;
                   const undecidedCount = schedule.responses.filter((res) => res.response === "UNDECIDED").length;
-                  const declineCount = schedule.responses.filter((res) => res.response === "DECLINE").length;
-                  const totalCount = schedule.responses.length;
+                  const declineCount = schedule.responses.filter((res) => res.response === "ABSENT").length;
+                  // const totalCount = schedule.responses.length;
+                  // ユーザーごとの response を取得
+                  const userResponses = schedule.responses.reduce((acc, res) => {
+                    if (res.user) {
+                      acc[res.user.name] = res.response;
+                    }
+                    return acc;
+                  }, {} as Record<string, string>);
                   return (
                     <tr key={schedule.id}>
                       <td>{formattedDate} - {schedule.time}</td>
                       <td>{attendCount}人</td>
                       <td>{undecidedCount}人</td>
                       <td>{declineCount}人</td>
-                      <td>{totalCount}人</td>
+                      {Array.from(
+                        new Set<string>(
+                          eventData.schedules.flatMap((schedule: Schedule) =>
+                            schedule.responses.map((response) => response.user?.name)
+                          )
+                        )
+                      ).map((userName) => (
+                        <td key={`${schedule.id}-${userName}`}>
+                          {userResponses[userName] === "ATTEND" && <FaRegCircle className={styles.reactIcon} />}
+                          {userResponses[userName] === "UNDECIDED" && <IoTriangleOutline className={styles.reactIcon} />}
+                          {userResponses[userName] === "ABSENT" && <RxCross2 className={styles.reactIcon} />}
+                        </td>
+                      ))}
                     </tr>
                   )
                 })}
