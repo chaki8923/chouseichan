@@ -4,11 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const { user_name, schedules } = await request.json();
-
-    console.log("user_name", user_name);
-    console.log("schedules", schedules);
-    
-
     // バリデーション
     if (!user_name || !schedules || schedules.length === 0) {
       return NextResponse.json(
@@ -19,13 +14,14 @@ export async function POST(request: NextRequest) {
 
     // トランザクションでユーザーとレスポンスを作成
     const result = await prisma.$transaction(async (tx) => {
+      console.log("ユーザー作成");
+      
       // ユーザーを作成
       const newUser = await tx.user.create({
         data: {
           name: user_name
         },
       });
-
       // レスポンスを作成
       await tx.response.createMany({
         data: schedules.map((response: { id: number; response: string; comment?: string }) => ({
@@ -48,29 +44,48 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export default async function UPADATE(request: NextRequest, res: NextResponse) {
-  if (request.method === "PUT") {
-    const { scheduleId, userId, response } = await request.json();
+export async function PUT(request: NextRequest) {
+  try {
+    const { userId, schedules, user_name } = await request.json();
 
-    try {
-      // 対象のレスポンスを更新
-      await prisma.response.upsert({
-        where: {
-          scheduleId_userId: {
-            scheduleId,
-            userId,
-          },
-        },
-        update: { response }, // 更新
-        create: { scheduleId, userId, response }, // 新規作成
+    if (!userId || !schedules || schedules.length === 0) {
+      return NextResponse.json(
+        { error: "ユーザーIDとレスポンスは必須です" },
+        { status: 400 }
+      );
+    }
+
+    // トランザクションでレスポンスを更新
+    const updatedResponses = await prisma.$transaction(async (tx) => {
+      // 既存のレスポンスを削除してから新しいレスポンスを作成
+      await tx.response.deleteMany({
+        where: { userId },
       });
 
-      res.status(200).json({ message: "Response updated successfully." });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Failed to update response." });
-    }
-  } else {
-    res.status(405).json({ message: "Method not allowed." });
+      const updateUser = await tx.user.update({
+        where: { id: userId }, // 更新するユーザーを特定
+        data: {
+          name: user_name,
+        },
+      });
+
+      const newResponses = await tx.response.createMany({
+        data: schedules.map((response: { id: number; response: string; comment?: string }) => ({
+          userId,
+          scheduleId: response.id,
+          response: response.response,
+        })),
+      });
+
+      return newResponses;
+    });
+
+    return NextResponse.json({ success: true, updatedResponses }, { status: 200 });
+  } catch (error) {
+    console.error("Error updating responses:", error);
+    return NextResponse.json(
+      { error: "レスポンスの更新に失敗しました" },
+      { status: 500 }
+    );
   }
 }

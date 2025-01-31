@@ -153,8 +153,19 @@
 
 .date{
   width: 240px;
+  white-space: nowrap;
 }
 
 .selected{
   color: #0491279c;
+}
+
+.userName{
+  cursor: pointer;
+  text-decoration: underline;
+  transition: .2s;
+}
+.userName:hover{
+  color: #f7cad6;
+  transition: .2s;
 }

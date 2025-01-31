@@ -2,3 +2,36 @@
   display: flex;
   justify-content: center;
 }
+
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background-color: #de3163;
+  color: white;
+  margin-bottom: 48px;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  margin-right: 10px;
+}
+
+.serviceName {
+  font-size: 44px;
+  font-weight: bold;
+}
+
+.serviceDescription {
+  font-size: 14px;
+  margin-left: 8px;
+  font-weight: 700;
+}

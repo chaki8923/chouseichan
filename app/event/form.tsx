@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserResponseSchema, UserResponseSchemaType } from '@/schemas/UserResponse';
@@ -9,38 +9,105 @@ import { LuTriangle } from "react-icons/lu";
 import { RxCross2 } from "react-icons/rx";
 import styles from "./index.module.scss";
 
-type SchedulesProp = {
-  schedules: Array<{
-    id: number;
-    date: string;
-    time: string;
+type Schedule = {
+  id: number;
+  date: string;
+  time: string;
+  responses: Array<{
+    user: {
+      id: string;
+      name: string;
+    };
     response: string;
   }>;
 };
 
+type SchedulesProp = {
+  onCreate: () => void;
+  schedules: Array<Schedule>;
+  userId?: string;
+  userName?: string;
+};
+
 export default function Form(props: SchedulesProp) {
   const [isSubmit, setIsSubmit] = useState(false);
+  const { userId, userName, schedules } = props;
+  
   const methods = useForm<UserResponseSchemaType>({
     mode: 'onChange', // バリデーションのタイミングを変更
     resolver: zodResolver(UserResponseSchema),
     defaultValues: {
       user_name: '',
-      schedules: props.schedules.map((schedule) => ({
-        id: schedule.id,
-        response: schedule.response || 'ATTEND',
-      })),
+      schedules: props.schedules.map((schedule) => {
+        const userResponse = schedule.responses.find(
+          (response) => response.user.id === props.userId
+        );
+
+        return {
+          id: schedule.id,
+          response: userResponse ? userResponse.response : 'ATTEND', // 該当レスポンスがなければデフォルト値
+        };
+      }),
     },
   });
 
+  useEffect(() => {
+    if (userId) {
+      // スケジュールを更新
+      const updatedSchedules = schedules.map((schedule) => {
+        // 該当ユーザーのレスポンスを取得
+        const userResponse = schedule.responses.find(
+          (response) => response.user.id === userId
+        );
+
+        return {
+          ...schedule,
+          response: userResponse ? userResponse.response : "ATTEND", // 該当レスポンスがない場合デフォルト値を設定
+        };
+      });
+
+      // フォームをリセット
+      methods.reset({
+        schedules: updatedSchedules.map((schedule) => ({
+          id: schedule.id,
+          response: schedule.response, // 必須プロパティ
+        })),
+      });
+    }
+  }, [userId, schedules, methods]);
+
+
   const { register, handleSubmit, setValue, reset, formState: { errors, isValid, isSubmitting } } = methods;
+
+  useEffect(() => {
+    if (userId && userName) {
+      // userIdがある場合は名前を設定      
+      setValue("user_name", userName);
+    }
+  }, [userId, userName, setValue]);
+
 
   const handleIconClick = (index: number, value: string) => {
     setValue(`schedules.${index}.response`, value, { shouldValidate: true });
   };
 
+  const handleClickCreate =() => {
+    setValue("user_name", '');
+     // スケジュールのレスポンスを初期値に戻す
+    props.schedules.forEach((schedule, index) => {
+      setValue(`schedules.${index}.response`, 'ATTEND', { shouldValidate: true });
+    });
+
+    props.onCreate();
+  }
+
+
   const onSubmit = async (params: UserResponseSchemaType) => {
     setIsSubmit(true);
+
+    // APIに送信するデータ
     const data = {
+      userId: userId, // userIdを追加して送信
       user_name: params.user_name,
       schedules: params.schedules,
     };
@@ -48,8 +115,11 @@ export default function Form(props: SchedulesProp) {
     reset();
 
     try {
+      // userIdの有無でHTTPメソッドを切り替え
+      const method = userId ? "PUT" : "POST";
+
       const response = await fetch(`/api/response/`, {
-        method: "POST",
+        method: method,
         headers: {
           Accept: "application/json, text/plain",
           "Content-Type": "application/json",
@@ -58,9 +128,8 @@ export default function Form(props: SchedulesProp) {
       });
 
       if (response.ok) {
-        const result = await response.json(); // レスポンスをJSONとしてパース
-        const eventId = result.id; // レスポンスに含まれるIDを取得
-
+        const result = await response.json();
+        console.log("成功:", result);
       } else {
         console.error("Error:", response.status, response.statusText);
       }
@@ -123,12 +192,13 @@ export default function Form(props: SchedulesProp) {
             </div>
           </div>
         </div>
+        <span onClick={() => handleClickCreate()}>新規登録</span>
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
           className={`${styles.formSubmit} ${!isValid || isSubmitting ? "cursor-not-allowed opacity-60" : "hover:bg-rose-700"}`}
         >
-          登録
+          {userId ? "編集" : "登録"}
         </button>
       </form>
     </FormProvider>

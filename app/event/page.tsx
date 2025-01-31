@@ -16,7 +16,10 @@ import Form from "./form";
 export default function EventDetails() {
   const [eventData, setEventData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isCreateForm, setIsCreateForm] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>();
+  const [userName, setUserName] = useState<string>();
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId"); // クエリパラメーターからeventIdを取得
 
@@ -37,10 +40,21 @@ export default function EventDetails() {
     }
   }
 
-  const changeUpdate = (userId: number) => {
+  const changeUpdate = (userId: string, userName: string) => {
     console.log(userId);
+    setUserId(userId)
+    setUserName(userName)
+    setIsCreateForm(false)
     
   };
+
+  const handleCreate = () => {
+    console.log("子が押した");
+    
+    setUserId('');
+    setUserName('');
+    setIsCreateForm(true);
+  }
 
 
   useEffect(() => {
@@ -87,6 +101,7 @@ export default function EventDetails() {
             )}
             <h1 className={styles.eventName}>{eventData.name}</h1>
           </section>
+          <h2>{eventData.memo}</h2>
           <h2 className={styles.h2Title}>スケジュール</h2>
 
 
@@ -100,7 +115,7 @@ export default function EventDetails() {
                   <th><RxCross2 className={styles.reactIcon} /></th>
                   {/** `userId` をキーとして利用 */}
                   {Array.from(
-                    new Map<number, { id: number; name: string; response: string }>(
+                    new Map<number, { id: string; name: string; response: string }>(
                       eventData.schedules
                         .flatMap((schedule: Schedule) =>
                           schedule.responses.map((response) => ({
@@ -112,7 +127,7 @@ export default function EventDetails() {
                         .map((user: User) => [user.id, user]) // Map のキーとして user.id を指定
                     ).values()
                   ).map((user) => (
-                    <th key={user.id} onClick={() => changeUpdate(user.id)}>
+                    <th key={user.id} onClick={() => changeUpdate(user.id, user.name)} className={styles.userName}>
                       {user.name}
                     </th>
                   ))}
@@ -167,7 +182,11 @@ export default function EventDetails() {
         </div>
       </div>
       <div className={styles.eventContainer}>
-        <Form schedules={eventData.schedules} />
+      {isCreateForm ? (
+          <Form onCreate={handleCreate} schedules={eventData.schedules} />
+        ) : (
+          <Form onCreate={handleCreate} schedules={eventData.schedules} userId={userId} userName={userName}/>
+        )}
       </div>
     </>
   );

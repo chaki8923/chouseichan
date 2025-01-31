@@ -126,7 +126,7 @@ export default function Form() {
   return (
 
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 ${styles.scheduleForm}`}>
         <div className={styles.formContent}>
           <h2 className={styles.formH2}>STEP1: イベント名登録</h2>
           <div className={styles.formInner}>
@@ -208,7 +208,7 @@ export default function Form() {
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className={`${styles.formSubmit} ${!isValid || isSubmitting ? "cursor-not-allowed opacity-60" : "hover:bg-rose-700"
+          className={`${styles.formSubmit} ${!isValid || isSubmitting ? `${styles.disabled}` : `${styles.enableSubmit}`
             }`}
         >
           登録

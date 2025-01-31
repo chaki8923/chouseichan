@@ -1,11 +1,8 @@
-.spinner {
-  position: absolute;
-  top: 50%;
-  // left: 48%;
-  width: 100%;
-  text-align: center;
-}
 
+.scheduleForm{
+  // border: #ed9ad6 solid 2px;
+  position: relative;
+}
 .none {
   display: none;
 }
@@ -38,7 +35,8 @@
 
 .formContent {
   width: 640px;
-  margin: 0.5rem 0;
+  background-color: #FFEDFA;
+  padding: 12px;
 }
 
 .formContent p {
@@ -66,10 +64,6 @@
   margin-bottom: 40px;
 }
 
-.formContent {
-  background-color: #fff;
-  padding: 12px;
-}
 .formH2 {
   padding: 0.25em 0.5em; /*上下 左右の余白*/
   color: #494949; /*文字色*/
@@ -93,8 +87,8 @@
   margin-left: 4px;
   font-size: 11px;
   border-radius: 5px;
-  background-color: #1daccc;
-  color: #fff;
+  background-color: #CCDF92;
+  color: #333;
 }
 
 .scheduleInput {
@@ -166,10 +160,27 @@
 }
 
 .formSubmit{
+  position: absolute;
+  border-radius: 9999;
+  bottom: -6rem;
   width: 100%;
   color: white;
-  background-color: #740938;
+  background-color: #DE3163;
   transition: .3s;
-  padding: 12px;
+  padding: 24px 12px;
+  cursor: pointer;
+  transition: .3s;
 }
 
+
+.disabled{
+  cursor: default;
+  background-color: #cccacb;
+  color: #333;
+}
+
+.enableSubmit:hover{
+  transition: .3s;
+  background-color: #E195AB;
+
+}
