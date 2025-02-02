@@ -4,9 +4,6 @@ import { useState, useEffect } from "react";
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserResponseSchema, UserResponseSchemaType } from '@/schemas/UserResponse';
-import { FaRegCircle } from "react-icons/fa";
-import { LuTriangle } from "react-icons/lu";
-import { RxCross2 } from "react-icons/rx";
 import styles from "./index.module.scss";
 
 type Schedule = {
@@ -17,12 +14,14 @@ type Schedule = {
     user: {
       id: string;
       name: string;
+      comment: string;
     };
     response: string;
   }>;
 };
 
 type SchedulesProp = {
+  onSuccess: () => void;
   onCreate: () => void;
   schedules: Array<Schedule>;
   userId?: string;
@@ -32,7 +31,6 @@ type SchedulesProp = {
 export default function Form(props: SchedulesProp) {
   const [isSubmit, setIsSubmit] = useState(false);
   const { userId, userName, schedules } = props;
-  
   const methods = useForm<UserResponseSchemaType>({
     mode: 'onChange', // バリデーションのタイミングを変更
     resolver: zodResolver(UserResponseSchema),
@@ -60,11 +58,15 @@ export default function Form(props: SchedulesProp) {
           (response) => response.user.id === userId
         );
 
+
         return {
           ...schedule,
           response: userResponse ? userResponse.response : "ATTEND", // 該当レスポンスがない場合デフォルト値を設定
+          comment: userResponse ? userResponse.user.comment : "ああああ",
         };
       });
+
+      console.log("updatedSchedules", updatedSchedules);
 
       // フォームをリセット
       methods.reset({
@@ -81,8 +83,14 @@ export default function Form(props: SchedulesProp) {
 
   useEffect(() => {
     if (userId && userName) {
-      // userIdがある場合は名前を設定      
-      setValue("user_name", userName);
+      const userResponse = schedules
+        .flatMap((schedule) => schedule.responses)
+        .find((response) => response.user.id === userId);
+
+      if (userResponse) {
+        setValue("comment", userResponse.user.comment || ""); // コメントを直接設定
+        setValue("user_name", userResponse.user.name);        // ユーザー名も設定
+      }
     }
   }, [userId, userName, setValue]);
 
@@ -91,9 +99,10 @@ export default function Form(props: SchedulesProp) {
     setValue(`schedules.${index}.response`, value, { shouldValidate: true });
   };
 
-  const handleClickCreate =() => {
+  const handleClickCreate = () => {
+    setValue("comment", '');
     setValue("user_name", '');
-     // スケジュールのレスポンスを初期値に戻す
+    // スケジュールのレスポンスを初期値に戻す
     props.schedules.forEach((schedule, index) => {
       setValue(`schedules.${index}.response`, 'ATTEND', { shouldValidate: true });
     });
@@ -110,6 +119,7 @@ export default function Form(props: SchedulesProp) {
       userId: userId, // userIdを追加して送信
       user_name: params.user_name,
       schedules: params.schedules,
+      comment: params.comment,
     };
 
     reset();
@@ -130,6 +140,7 @@ export default function Form(props: SchedulesProp) {
       if (response.ok) {
         const result = await response.json();
         console.log("成功:", result);
+        props.onSuccess();
       } else {
         console.error("Error:", response.status, response.statusText);
       }
@@ -142,7 +153,7 @@ export default function Form(props: SchedulesProp) {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className={styles.formContent}>
           <div className={styles.formInner}>
             <p className="text-gray-600">お名前<span className={styles.tagRequire}>必須</span></p>
@@ -169,37 +180,39 @@ export default function Form(props: SchedulesProp) {
                     <p className={styles.date}>{formattedDate} - {schedule.time}</p>
                     <input type="hidden" {...register(`schedules.${index}.id`)} />
 
-                    <FaRegCircle
-                      className={`${styles.reactIcon} ${methods.getValues(`schedules.${index}.response`) === "ATTEND" ? styles.selected : ''
-                        }`}
-                      onClick={() => handleIconClick(index, "ATTEND")}
-                    />
+                    <img src={`${methods.getValues(`schedules.${index}.response`) === "ATTEND" ? 'circle_selected.png' : 'circle_no.png'
+                      }`} alt="Service Logo" className={styles.userResponse} onClick={() => handleIconClick(index, "ATTEND")} />
 
-                    <LuTriangle
-                      className={`${styles.reactIcon} ${methods.getValues(`schedules.${index}.response`) === "UNDECIDED" ? styles.selected : ''
-                        }`}
-                      onClick={() => handleIconClick(index, "UNDECIDED")}
-                    />
+                    <img src={`${methods.getValues(`schedules.${index}.response`) === "UNDECIDED" ? 'triangle_selected.png' : 'triangle_no.png'
+                      }`} alt="Service Logo" className={styles.userResponse_triangle} onClick={() => handleIconClick(index, "UNDECIDED")} />
 
-                    <RxCross2
-                      className={`${styles.reactIcon} ${methods.getValues(`schedules.${index}.response`) === "ABSENT" ? styles.selected : ''
-                        }`}
-                      onClick={() => handleIconClick(index, "ABSENT")}
-                    />
+                    <img src={`${methods.getValues(`schedules.${index}.response`) === "ABSENT" ? 'batu_selected.png' : 'batu_no.png'
+                      }`} alt="Service Logo" className={styles.userResponse_batu} onClick={() => handleIconClick(index, "ABSENT")} />
                   </div>
                 );
               })}
+              <p className="text-gray-600">コメント<span className={styles.tagNoRequire}>必須</span></p>
+              <textarea
+                className={styles.formTextarea}
+                {...register('comment')}
+              />
+              {errors.comment && (
+                <span className="self-start text-xs text-red-500">{errors.comment.message}</span>
+              )}
             </div>
           </div>
         </div>
-        <span onClick={() => handleClickCreate()}>新規登録</span>
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className={`${styles.formSubmit} ${!isValid || isSubmitting ? "cursor-not-allowed opacity-60" : "hover:bg-rose-700"}`}
+          className={`${styles.formSubmit} ${!isValid || isSubmitting ? `${styles.disabled}` : `${styles.enableSubmit}`
+            }`}
         >
-          {userId ? "編集" : "登録"}
+          {userId ? "編集完了" : "登録"}
         </button>
+        {userId && (
+          <span onClick={() => handleClickCreate()} className={styles.createBtn}>新規登録</span>
+        )}
       </form>
     </FormProvider>
   );

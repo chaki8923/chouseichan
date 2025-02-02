@@ -33,10 +33,24 @@
   margin-top: 40px;
 }
 
+
+@media (max-width: 428px) {
+  .form {
+    display: block;
+  }
+}
+
 .formContent {
   width: 640px;
   background-color: #FFEDFA;
   padding: 12px;
+}
+
+
+@media (max-width: 428px) {
+  .formContent {
+    width: 100%;
+  }
 }
 
 .formContent p {
@@ -47,17 +61,19 @@
 .formInput {
   width: 100%;
   height: 30px;
-  border: solid 1px grey;
+  border: solid 1px #b5b1b1;
   font-size: 16px;
   color: #333 !important;
   margin-bottom: 8px;
+  padding: 6px;
 }
 
 .formTextarea{
   width: 100%;
   height: 120px;
-  border: solid 1px grey;
+  border: solid 1px #b5b1b1;
   color: #333 !important;
+  padding: 6px;
 }
 
 .formInner {
@@ -95,20 +111,23 @@
   display: flex;
   margin-bottom: 12px;
   align-items: center;
+  border-color: #b5b1b1;
 }
 .formInputDate {
+  padding: 6px;
   width: 240px;
   color: #333;
-  border: 1px solid #333;
+  border: 1px solid #b5b1b1;
   border-radius: 2px;
 }
 
 .fromInputTime {
   width: 180px;
   color: #333;
-  border: 1px solid #333;
+  border: 1px solid #b5b1b1;
   border-radius: 2px;
   margin-left: 24px;
+  padding: 6px;
 }
 
 .timeFrom {
@@ -124,6 +143,14 @@
   align-items: center;
   font-size: 11px;
 }
+
+@media (max-width: 428px) {
+  .scheduleRemove {
+    width: 50px;
+    margin-left: 10px;
+  }
+}
+
 
 .addSchedule {
   color: #2b71cc;
@@ -170,6 +197,20 @@
   padding: 24px 12px;
   cursor: pointer;
   transition: .3s;
+}
+
+
+@media (max-width: 428px) {
+  .formSubmit {
+    bottom: -20px;
+  }
+}
+
+.memoCount{
+  color: #333;
+}
+.memoCount__valid{
+  color: #e34c4c;
 }
 
 

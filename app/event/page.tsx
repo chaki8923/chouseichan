@@ -16,6 +16,7 @@ import Form from "./form";
 export default function EventDetails() {
   const [eventData, setEventData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isCreateForm, setIsCreateForm] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>();
@@ -41,16 +42,13 @@ export default function EventDetails() {
   }
 
   const changeUpdate = (userId: string, userName: string) => {
-    console.log(userId);
     setUserId(userId)
     setUserName(userName)
     setIsCreateForm(false)
-    
+
   };
 
   const handleCreate = () => {
-    console.log("子が押した");
-    
     setUserId('');
     setUserName('');
     setIsCreateForm(true);
@@ -75,6 +73,16 @@ export default function EventDetails() {
     getEventData();
   }, [eventId]);
 
+  // 初回と更新時にデータ取得
+  const fetchSchedules = async () => {
+    const data = await fetchEventWithSchedules(eventId!);
+    setEventData(data);
+  };
+
+  useEffect(() => {
+    fetchSchedules(); // 初回ロード時に取得
+  }, []);
+
 
   if (loading) {
     return <p>読み込み中...</p>;
@@ -92,6 +100,7 @@ export default function EventDetails() {
     <>
       <div className={styles.eventContainer}>
         <div>
+          <h1 className={styles.eventName}>{eventData.name}</h1>
           <section className={styles.eventTitleSection}>
             {eventData.image && (
               <Image src={eventData.image}
@@ -99,20 +108,17 @@ export default function EventDetails() {
                 height={50}
                 alt="Event Crop Image" />
             )}
-            <h1 className={styles.eventName}>{eventData.name}</h1>
+            <h2 className={styles.memo}>{eventData.memo}</h2>
           </section>
-          <h2>{eventData.memo}</h2>
-          <h2 className={styles.h2Title}>スケジュール</h2>
 
-
-          <div className={`relative overflow-x-auto shadow-md sm:rounded-lg ${styles.table}`}>
+          <div className={`relative overflow-x-auto ${styles.table}`}>
             <table className={styles.tableDesign}>
               <tbody>
                 <tr>
                   <th>候補日</th>
-                  <th><FaRegCircle className={styles.reactIcon} /></th>
-                  <th><IoTriangleOutline className={styles.reactIcon} /></th>
-                  <th><RxCross2 className={styles.reactIcon} /></th>
+                  <th><FaRegCircle className={styles.reactIconTable} /></th>
+                  <th><IoTriangleOutline className={styles.reactIconTable} /></th>
+                  <th><RxCross2 className={styles.reactIconTable} /></th>
                   {/** `userId` をキーとして利用 */}
                   {Array.from(
                     new Map<number, { id: string; name: string; response: string }>(
@@ -171,21 +177,42 @@ export default function EventDetails() {
                           {userResponses[userName] === "UNDECIDED" && <IoTriangleOutline className={styles.reactIcon} />}
                           {userResponses[userName] === "ABSENT" && <RxCross2 className={styles.reactIcon} />}
                         </td>
+
                       ))}
                     </tr>
                   )
                 })}
+                <tr>
+                  <td colSpan={4} className={styles.colspan1}>コメント</td>
 
+                  {Array.from(
+                    new Map<number, { id: string; name: string; comment?: string }>(
+                      eventData.schedules
+                        .flatMap((schedule: Schedule) =>
+                          schedule.responses.map((response) => ({
+                            id: response.user.id,
+                            name: response.user.name,
+                            comment: response.user.comment || "",
+                          }))
+                        )
+                        .map((user: User) => [user.id, user])
+                    ).values()
+                  ).map((user) => (
+                    <td key={`comment-${user.id}`} colSpan={1} className={styles.userComment}>
+                      {user.comment}
+                    </td>
+                  ))}
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
-      <div className={styles.eventContainer}>
-      {isCreateForm ? (
-          <Form onCreate={handleCreate} schedules={eventData.schedules} />
+      <div className={styles.eventFormContainer}>
+        {isCreateForm ? (
+          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules} />
         ) : (
-          <Form onCreate={handleCreate} schedules={eventData.schedules} userId={userId} userName={userName}/>
+          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules} userId={userId} userName={userName} />
         )}
       </div>
     </>

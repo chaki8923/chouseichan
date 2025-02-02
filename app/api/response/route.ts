@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { user_name, schedules } = await request.json();
+    const { user_name, schedules, comment } = await request.json();
     // バリデーション
     if (!user_name || !schedules || schedules.length === 0) {
       return NextResponse.json(
@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
       // ユーザーを作成
       const newUser = await tx.user.create({
         data: {
-          name: user_name
+          name: user_name,
+          comment: comment
         },
       });
       // レスポンスを作成
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { userId, schedules, user_name } = await request.json();
+    const { userId, schedules, user_name, comment } = await request.json();
 
     if (!userId || !schedules || schedules.length === 0) {
       return NextResponse.json(
@@ -66,6 +67,7 @@ export async function PUT(request: NextRequest) {
         where: { id: userId }, // 更新するユーザーを特定
         data: {
           name: user_name,
+          comment: comment
         },
       });
 
@@ -74,6 +76,7 @@ export async function PUT(request: NextRequest) {
           userId,
           scheduleId: response.id,
           response: response.response,
+          comment: response.comment
         })),
       });
 

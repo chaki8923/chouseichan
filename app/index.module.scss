@@ -19,6 +19,34 @@
   align-items: center;
 }
 
+.flex{
+  display: flex;
+}
+
+@media (max-width: 428px) {
+  .flex {
+    display: block;
+  }
+}
+
+.serviceDescription {
+  font-size: 14px;
+  margin-left: 8px;
+  font-weight: 700;
+}
+
+@media (max-width: 428px) {
+  .serviceDescription {
+    font-size: 21px;
+  }
+  
+  .logoContainer {
+    display: block;
+    align-items: center;
+  }
+}
+
+
 .logo {
   width: 60px;
   height: 60px;
@@ -28,10 +56,4 @@
 .serviceName {
   font-size: 44px;
   font-weight: bold;
-}
-
-.serviceDescription {
-  font-size: 14px;
-  margin-left: 8px;
-  font-weight: 700;
 }

@@ -25,9 +25,13 @@ export default function Form() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isValid, isSubmitting },
   } = methods
 
+  // 本文の文字数を監視
+  const memoValue = watch("memo", "")
+  const memoLength = memoValue.length
   const AddSchedule = () => {
     setSchedules((prevSchedules) => [
       ...prevSchedules,
@@ -84,7 +88,6 @@ export default function Form() {
     setChildCropData(data);
   };
 
-
   const onSubmit = async (params: FormData) => {
     setIsSubmit(true);
     const data = {
@@ -93,9 +96,9 @@ export default function Form() {
       memo: params.memo,
       image: childCropData,
     };
-  
+
     reset();
-  
+
     try {
       const response = await fetch(`/api/schedule/`, {
         method: "POST",
@@ -105,11 +108,11 @@ export default function Form() {
         },
         body: JSON.stringify(data),
       });
-  
+
       if (response.ok) {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
-  
+
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {
@@ -122,6 +125,7 @@ export default function Form() {
     }
   };
 
+  console.log("error", errors.schedules);
 
   return (
 
@@ -140,11 +144,12 @@ export default function Form() {
             {errors.event_name && (
               <span className="self-start text-xs text-red-500">{errors.event_name.message}</span>
             )}
-             <p className="text-gray-600">メモ<span className={styles.tagNoRequire}>任意</span></p>
-            <textarea 
+            <p className="text-gray-600">メモ<span className={styles.tagNoRequire}>任意</span></p>
+            <textarea
               className={styles.formTextarea}
               {...register('memo')}
             />
+            <span className={`${styles.memoCount} ${memoLength > 300 ? styles.memoCount__valid : ''}`}>{memoLength}/300</span>
             {errors.memo && (
               <span className="self-start text-xs text-red-500">{errors.memo.message}</span>
             )}
@@ -200,9 +205,13 @@ export default function Form() {
                 </div>
               ))}
               <span className={styles.addSchedule} onClick={AddSchedule}>
-              <CgAddR />候補日を追加
+                <CgAddR />候補日を追加
               </span>
+              {errors.schedules && (
+                <span className="self-start text-xs text-red-500">空白の日付は登録できません</span>
+              )}
             </div>
+
           </div>
         </div>
         <button
