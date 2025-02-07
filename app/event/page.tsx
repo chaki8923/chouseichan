@@ -10,10 +10,20 @@ import { RxCross2 } from "react-icons/rx";
 import { IoTriangleOutline } from "react-icons/io5";
 import { Schedule } from "@/types/schedule";
 import { User } from "@/types/user";
+import { SessionProvider } from "next-auth/react";
+import { BASE_PATH, auth } from "@/auth";
 import Form from "./form";
+import SyncButton from "../component/calendar/SignInButton";
+
+type maxAttend = {
+  id: number;
+  attendCount: number
+}
+
 
 
 export default function EventDetails() {
+  // const session = await auth();
   const [eventData, setEventData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -23,6 +33,7 @@ export default function EventDetails() {
   const [userName, setUserName] = useState<string>();
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId"); // クエリパラメーターからeventIdを取得
+
 
   async function fetchEventWithSchedules(eventId: string) {
     try {
@@ -96,6 +107,18 @@ export default function EventDetails() {
     return <p>データが見つかりません</p>;
   }
 
+  const schedulesWithAttendCount = eventData.schedules.map((schedule: Schedule) => ({
+    ...schedule,
+    attendCount: schedule.responses.filter((res) => res.response === "ATTEND").length,
+  }));
+
+  // ✅ ATTEND数が最も多いスケジュールを取得
+  const maxAttendCount = Math.max(...schedulesWithAttendCount.map((s: maxAttend) => s.attendCount));
+  const highlightScheduleIds = schedulesWithAttendCount
+    .filter((s: maxAttend) => s.attendCount === maxAttendCount)
+    .map((s: maxAttend) => s.id);
+
+
   return (
     <>
       <div className={styles.eventContainer}>
@@ -151,6 +174,8 @@ export default function EventDetails() {
                   const attendCount = schedule.responses.filter((res) => res.response === "ATTEND").length;
                   const undecidedCount = schedule.responses.filter((res) => res.response === "UNDECIDED").length;
                   const declineCount = schedule.responses.filter((res) => res.response === "ABSENT").length;
+                  // ✅ ハイライトの適用
+                  const isHighlighted = highlightScheduleIds.includes(schedule.id);
                   // const totalCount = schedule.responses.length;
                   // ユーザーごとの response を取得
                   const userResponses = schedule.responses.reduce((acc, res) => {
@@ -160,7 +185,7 @@ export default function EventDetails() {
                     return acc;
                   }, {} as Record<string, string>);
                   return (
-                    <tr key={schedule.id}>
+                    <tr key={schedule.id} className={attendCount > 0 && isHighlighted ? styles.highlight : ""}>
                       <td>{formattedDate} - {schedule.time}</td>
                       <td>{attendCount}人</td>
                       <td>{undecidedCount}人</td>
@@ -215,6 +240,7 @@ export default function EventDetails() {
           <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules} userId={userId} userName={userName} />
         )}
       </div>
+
     </>
   );
 }
