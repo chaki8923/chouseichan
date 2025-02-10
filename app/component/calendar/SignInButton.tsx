@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 
 export default function SignInButton() {
   const handleSignIn = async () => {
-    await signIn("google", { callbackUrl: "http://localhost:3000" });
+    await signIn("google", { callbackUrl: "http://localhost:3000/calendar" });
   };
 
   return (

@@ -63,6 +63,8 @@ model User {
   responses Response[]
   accounts      Account[]
   sessions      Session[]
+
+  role          String       @default("user") @db.VarChar(20)
 }
 
 model VerificationToken {
