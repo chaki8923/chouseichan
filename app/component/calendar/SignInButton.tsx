@@ -19,7 +19,7 @@ export default function SignInButton() {
         cursor: "pointer",
       }}
     >
-      Googleでサインイン
+      Googleでサインインしてカレンダー登録
     </button>
   );
 }

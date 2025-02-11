@@ -1,53 +1,55 @@
 import { google } from "googleapis";
-import { OAuth2Client } from "google-auth-library";
-import { BASE_PATH, auth } from "@/auth";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 
-declare module "next-auth" {
-    interface Session {
-      accessToken?: string;
-    }
-  }
+// Google OAuth 認証設定
+const oauth2Client = new google.auth.OAuth2({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: "http://localhost:3000/calendar",
+});
 
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
-  const session = await auth();
-  console.log("カレンダーはった");
+// 📌 APIエンドポイント
+export async function POST(req: Request) {
   
-
-  if (!session?.accessToken) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  // ✅ OAuth2 クライアントのセットアップ
-  const oAuth2Client = new OAuth2Client();
-  oAuth2Client.setCredentials({ access_token: session.accessToken });
-
-  const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
-
   try {
-    const event = {
-      summary: "ミーティング",
-      description: "重要な打ち合わせ",
-      start: {
-        dateTime: "2025-02-10T10:00:00+09:00",
-        timeZone: "Asia/Tokyo",
-      },
-      end: {
-        dateTime: "2025-02-10T11:00:00+09:00",
-        timeZone: "Asia/Tokyo",
-      },
-    };
+    const { accessToken,refreshToken, eventData } = await req.json();
+    console.log("eventData", eventData);
+    console.log("accessToken", accessToken);
+    console.log("refreshToken", refreshToken);
 
-    // ✅ auth に OAuth2 クライアントを渡す
+    if (!accessToken) {
+      return NextResponse.json({ error: "Access token is required" }, { status: 401 });
+    }
+
+    // Google OAuth2 クライアントを作成
+    oauth2Client.setCredentials({ access_token: accessToken, refresh_token: refreshToken });
+
+    // ✅ アクセストークンが無効なら自動更新
+    await oauth2Client.getAccessToken();
+
+    // Google カレンダー API のインスタンスを作成
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+    // 📌 イベントの作成
     const response = await calendar.events.insert({
-      calendarId: "primary",
-      requestBody: event,
+      calendarId: "primary", // ユーザーのデフォルトカレンダー
+      requestBody: {
+        summary: eventData.title, // タイトル
+        description: eventData.description, // 説明
+        start: {
+          dateTime: eventData.start, // 開始時刻（ISOフォーマット）
+          timeZone: "Asia/Tokyo",
+        },
+        end: {
+          dateTime: eventData.end, // 終了時刻
+          timeZone: "Asia/Tokyo",
+        },
+      },
     });
 
-    // ✅ response そのものにデータが含まれる
-    res.status(200).json(response.data);
+    return NextResponse.json({ success: true, event: response.data });
   } catch (error) {
-    console.error("Google Calendar API Error:", error);
-    res.status(500).json({ error: "Failed to create event" });
+    console.error("Error creating event:", error);
+    return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
   }
 }

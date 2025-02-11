@@ -47,3 +47,31 @@ async function getAllUser() {
   const user = await prisma.user.findMany();
   return user;
 }
+
+
+export async function PUT(req: Request) {
+  try {
+    const { scheduleId, eventId } = await req.json();
+
+    if (!scheduleId || !eventId) {
+      return NextResponse.json({ error: "scheduleId と eventId は必須です" }, { status: 400 });
+    }
+
+    // ✅ 既存の「決定済み」スケジュールをリセット（isConfirmed を false にする）
+    await prisma.schedule.updateMany({
+      where: { eventId },
+      data: { isConfirmed: false },
+    });
+
+    // ✅ 指定したスケジュールを「決定済み」にする
+    const updatedSchedule = await prisma.schedule.update({
+      where: { id: scheduleId },
+      data: { isConfirmed: true },
+    });
+
+    return NextResponse.json({ success: true, schedule: updatedSchedule });
+  } catch (error) {
+    console.error("Error confirming schedule:", error);
+    return NextResponse.json({ error: "スケジュールの更新に失敗しました" }, { status: 500 });
+  }
+}

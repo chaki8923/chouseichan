@@ -93,10 +93,13 @@ model Schedule {
   eventId   String
   date      DateTime
   time      String    @db.VarChar(10)
+  isConfirmed Boolean @default(false) // ✅ 追加: スケジュールが決定されたかどうか
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   event     Event     @relation(fields: [eventId], references: [id])
   responses Response[]
+
+  @@unique([eventId, isConfirmed], map: "unique_confirmed_schedule")
 }
 
 model Response {
