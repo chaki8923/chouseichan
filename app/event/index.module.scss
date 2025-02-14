@@ -311,8 +311,45 @@
   font-weight: normal;
 }
 
-.highlight{
+.attend{
   background-color: rgba(#f2e462, .3);
   position: relative;
-  border: dashed 3px #f2e462!important;
+  // border: dashed 3px #f2e462!important;
+}
+
+.confirmed{
+  background-color: rgba(#f262a8, .3);
+  position: relative;
+
+}
+.attendText{
+  background-color: rgba(#f2e462, .3);
+  color: #333;
+  font-size: 12px;
+  padding: 4px;
+  margin-left: 8px;
+  // border: dashed 3px #f2e462!important;
+}
+
+.confirmedText{
+  background-color: rgba(#f262a8, .3);
+  color: #333;
+  font-size: 12px;
+  padding: 4px;
+
+}
+
+.modalTitle{
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+}
+.modalText{
+  text-align: center;
+  color: #333;
+
+}
+.confirmText{
+  color: #DE3163;
+  font-weight: bold;
 }

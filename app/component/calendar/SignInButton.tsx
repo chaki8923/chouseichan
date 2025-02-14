@@ -3,8 +3,9 @@
 import { signIn } from "next-auth/react";
 
 export default function SignInButton() {
+  const currentUrl = window.location.href; // 
   const handleSignIn = async () => {
-    await signIn("google", { callbackUrl: "http://localhost:3000/calendar" });
+    await signIn("google", { callbackUrl: currentUrl });
   };
 
   return (
@@ -19,7 +20,7 @@ export default function SignInButton() {
         cursor: "pointer",
       }}
     >
-      Googleでサインインしてカレンダー登録
+      Google同期してカレンダー登録
     </button>
   );
 }

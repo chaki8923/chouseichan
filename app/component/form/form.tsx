@@ -12,7 +12,7 @@ import styles from "./index.module.scss"
 export default function Form() {
   const [isSubmit, setIsSubmit] = useState(false);
   const [schedules, setSchedules] = useState([
-    { id: Date.now(), date: '', time: '' }, // 初期のスケジュールデータ
+    { id: Date.now(), date: '', time: '17:00' }, // 初期のスケジュールデータ
   ]);
   const router = useRouter();
 
@@ -35,7 +35,7 @@ export default function Form() {
   const AddSchedule = () => {
     setSchedules((prevSchedules) => [
       ...prevSchedules,
-      { id: Date.now(), date: '', time: '' },
+      { id: Date.now(), date: '', time: '17:00' },
     ]);
   };
 
@@ -78,6 +78,7 @@ export default function Form() {
     schedules: {
       date: string;
       time: string;
+      isConfirmed: boolean;
     }[];
     // image: any
   }
