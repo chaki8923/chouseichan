@@ -10,5 +10,38 @@
     color: #fff;
     padding: 13px;
     cursor: pointer;
-    margin-left: 24pxx;
+    margin-top: 8px;
+    transition: .3s;
+
+}
+.createEventBtn:hover{
+    background-color: rgb(182, 36, 58, .7);
+    transition: .3s;
+}
+
+.addEvent{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.syncGoogle{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.google{
+    font-size: 18px;
+    margin-right: 4px;
+}
+
+
+.modalTitle{
+    color: #333;
+    font-weight: bold;
+}
+
+.spinner{
+    // text-align: center;
+    width: 60px;
 }

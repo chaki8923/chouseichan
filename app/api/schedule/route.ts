@@ -13,10 +13,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { event_name, schedules, image, memo } = body;
-
-    console.log("schedules>>>>>>>", schedules);
-    console.log("event_name>>>>>>>", event_name);
-
     // バリデーション
     if (!event_name || !schedules || schedules.length === 0) {
       return NextResponse.json(
@@ -35,8 +31,6 @@ export async function POST(request: NextRequest) {
           memo: memo,
         },
       });
-
-      console.log("newEvent>>>>>>>", newEvent.id);
 
       // ② 取得した event の id を Schedule に渡して一括作成
       await prisma.schedule.createMany({
@@ -68,8 +62,12 @@ export async function POST(request: NextRequest) {
 export async function PUT(req: Request) {
   try {
     const { scheduleId, eventId } = await req.json();
-
-    if (!scheduleId || !eventId) {
+    console.log("scheduleId",scheduleId);
+    console.log("eventId",eventId);
+    
+    
+    if (scheduleId === undefined || scheduleId === null || !eventId) {
+      console.log("エラー??");
       return NextResponse.json({ error: "scheduleId と eventId は必須です" }, { status: 400 });
     }
 
@@ -79,6 +77,10 @@ export async function PUT(req: Request) {
       data: { isConfirmed: false },
     });
 
+
+    if(scheduleId === 0){
+      return NextResponse.json({ success: true, schedule: "キャンセル" });
+    }
     // ✅ 指定したスケジュールを「決定済み」にする
     const updatedSchedule = await prisma.schedule.update({
       where: { id: scheduleId },

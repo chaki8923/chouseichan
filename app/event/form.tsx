@@ -58,15 +58,12 @@ export default function Form(props: SchedulesProp) {
           (response) => response.user.id === userId
         );
 
-
         return {
           ...schedule,
           response: userResponse ? userResponse.response : "ATTEND", // 該当レスポンスがない場合デフォルト値を設定
           comment: userResponse ? userResponse.user.comment : "ああああ",
         };
       });
-
-      console.log("updatedSchedules", updatedSchedules);
 
       // フォームをリセット
       methods.reset({
@@ -139,7 +136,7 @@ export default function Form(props: SchedulesProp) {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("成功:", result);
+        
         props.onSuccess();
       } else {
         console.error("Error:", response.status, response.statusText);

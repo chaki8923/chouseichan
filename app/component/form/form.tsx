@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import CropImg from "./cropper";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
+import { setEventIdCookie } from "@/app/utils/cookies"; 
 import { CgAddR, CgCloseO } from "react-icons/cg";
 import styles from "./index.module.scss"
 
@@ -17,7 +18,7 @@ export default function Form() {
   const router = useRouter();
 
   const methods = useForm<ScheduleSchemaType>({
-    mode: 'onBlur',
+    mode: 'onChange',
     resolver: zodResolver(ScheduleSchema)
   });
 
@@ -26,6 +27,8 @@ export default function Form() {
     handleSubmit,
     reset,
     watch,
+    setValue,  // ✅ react-hook-form の値を更新するための関数
+    trigger,   // ✅ バリデーションを手動で実行
     formState: { errors, isValid, isSubmitting },
   } = methods
 
@@ -78,7 +81,7 @@ export default function Form() {
     schedules: {
       date: string;
       time: string;
-      isConfirmed: boolean;
+      // isConfirmed: boolean;
     }[];
     // image: any
   }
@@ -113,7 +116,7 @@ export default function Form() {
       if (response.ok) {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
-
+        setEventIdCookie(eventId)
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {
@@ -126,7 +129,17 @@ export default function Form() {
     }
   };
 
-  console.log("error", errors.schedules);
+
+  // 📌 日付が入力されたら `isValid` を更新する処理
+  const handleDateChange = (index: number, value: string) => {
+    const updatedSchedules = [...schedules];
+    updatedSchedules[index].date = value;
+    setSchedules(updatedSchedules);
+
+    // ✅ react-hook-form に値をセットし、バリデーションをトリガー
+    setValue(`schedules.${index}.date`, value);
+    trigger(`schedules.${index}.date`);  // ✅ 強制的にバリデーションを再評価
+  };
 
   return (
 
@@ -174,7 +187,8 @@ export default function Form() {
                       const updatedSchedules = [...schedules];
                       updatedSchedules[index].date = e.target.value;
                       schedules[index].date = e.target.value;
-
+                      console.log("updatedSchedules", updatedSchedules);
+                      handleDateChange(index, e.target.value)
                       setSchedules(updatedSchedules);
                     }}
                   />

@@ -6,7 +6,8 @@ import Image from "next/image";
 import { Session } from "@auth/core/types";
 import SigninButton from "@/app/component/calendar/SignInButton"
 import { CreateEventButton } from "../component/calendar/CreateEventButton";
-import { ConfirmScheduleButton } from "../component/button/comfirmSchedule";
+import { ConfirmScheduleButton } from "../component/button/confirmSchedule";
+import { getEventIdFromCookie } from "@/app/utils/cookies";
 import styles from "./index.module.scss"
 import { FaRegCircle } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
@@ -15,6 +16,7 @@ import { Schedule } from "@/types/schedule";
 import { User } from "@/types/user";
 import Form from "./form";
 import Modal from "../component/modal/modal";
+import { setEventIdCookie, isEventOwner } from "@/app/utils/cookies"; 
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -25,24 +27,25 @@ type maxAttend = {
 
 
 export default function EventDetails({ session }: { session: Session | null }) {
-  // const session = await auth();
+
   const [eventData, setEventData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isCreateForm, setIsCreateForm] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>();
   const [userName, setUserName] = useState<string>();
   const [isOpen, setIsOpen] = useState(false);
+  const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
   const searchParams = useSearchParams();
-  const eventId = searchParams.get("eventId"); // クエリパラメーターからeventIdを取得
-
+  const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
-  console.log("user>>>>>", user);
-  const accessToken = user.accessToken ?? ""
-  const refreshToken = user.refreshToken ?? ""
+  const accessToken = user.accessToken ?? "";
+  const refreshToken = user.refreshToken ?? "";
+  
+  if(!eventId) return <p>イベントidがありません</p>
+  const isOrganizer = eventId ? isEventOwner(eventId) : false; // ✅ 主催者判定
 
   async function fetchEventWithSchedules(eventId: string) {
     try {
@@ -76,31 +79,37 @@ export default function EventDetails({ session }: { session: Session | null }) {
 
   const handleConfirmSchedule = (scheduleId: number) => {
     setIsOpen(true);
-
     setEventData((prev: any) => {
       const confirmedSchedule = prev.schedules.find(
         (schedule: Schedule) => schedule.id === scheduleId
       );
 
-      if (!confirmedSchedule) return prev;
-
-      // `confirmedSchedule.date` と `confirmedSchedule.time` を組み合わせて日時を作成
+      // ✅ スケジュールが見つからない場合、全て isConfirmed: false にする
+      if (!confirmedSchedule) {
+        setModalText("キャンセルしました")
+        return {
+          ...prev,
+          schedules: prev.schedules.map((schedule: Schedule) => ({
+            ...schedule,
+            isConfirmed: false,
+          })),
+        };
+      }
+      setModalText("以下の日程で決定しました")
+      // ✅ `confirmedSchedule.date` と `confirmedSchedule.time` を組み合わせて日時を作成
       const dateTimeString = `${confirmedSchedule.date.split("T")[0]}T${confirmedSchedule.time}:00`;
       const date = new Date(dateTimeString);
 
-      // 日付フォーマット
+      // ✅ 日付フォーマット
       const formattedDate = format(date, "yyyy/M/d(E) - HH:mm", { locale: ja });
-      setFormattedDate(formattedDate)
-
-      console.log("決定したスケジュール:", formattedDate);
-
+      setFormattedDate(formattedDate);
+      // ✅ `isConfirmed` を更新したスケジュール一覧を返す
       return {
         ...prev,
-        schedules: prev.schedules.map((schedule: Schedule) =>
-          schedule.id === scheduleId
-            ? { ...schedule, isConfirmed: true }
-            : { ...schedule, isConfirmed: false }
-        ),
+        schedules: prev.schedules.map((schedule: Schedule) => ({
+          ...schedule,
+          isConfirmed: schedule.id === scheduleId,
+        })),
       };
     });
   };
@@ -126,7 +135,8 @@ export default function EventDetails({ session }: { session: Session | null }) {
 
   // 初回と更新時にデータ取得
   const fetchSchedules = async () => {
-    const data = await fetchEventWithSchedules(eventId!);
+    const data = await fetchEventWithSchedules(eventId);
+    // setEventIdCookie(eventId)
     setEventData(data);
   };
 
@@ -153,13 +163,12 @@ export default function EventDetails({ session }: { session: Session | null }) {
   }));
 
   const confirmedSchedule = eventData.schedules.filter((res: Schedule) => res.isConfirmed === true)[0];
-  console.log("confirmedSchedule", confirmedSchedule);
-
 
   // ✅ ATTEND数が最も多いスケジュールを取得
   const maxAttendCount = Math.max(...schedulesWithAttendCount.map((s: maxAttend) => s.attendCount));
+  console.log("maxAttendCount", maxAttendCount);
   const highlightScheduleIds = schedulesWithAttendCount
-    .filter((s: maxAttend) => s.attendCount === maxAttendCount)
+    .filter((s: maxAttend) => s.attendCount === maxAttendCount && maxAttendCount != 0)
     .map((s: maxAttend) => s.id);
 
 
@@ -178,12 +187,13 @@ export default function EventDetails({ session }: { session: Session | null }) {
             <h2 className={styles.memo}>{eventData.memo}</h2>
           </section>
 
-          <p className="mb-1"><span className={styles.confirmedText}>開催決定日</span><span className={styles.attendText}>参加人数が多い</span></p>
           <div className={`relative overflow-x-auto ${styles.table}`}>
             <table className={styles.tableDesign}>
               <tbody>
                 <tr>
-                  <th>決定</th>
+                  {isOrganizer && (
+                    <th></th>
+                  )}
                   <th>候補日</th>
                   <th><FaRegCircle className={styles.reactIconTable} /></th>
                   <th><IoTriangleOutline className={styles.reactIconTable} /></th>
@@ -222,10 +232,11 @@ export default function EventDetails({ session }: { session: Session | null }) {
                   const declineCount = schedule.responses.filter((res) => res.response === "ABSENT").length;
                   // ✅ ハイライトの適用
                   const isHighlighted = highlightScheduleIds.includes(schedule.id);
+
                   let highlightClass = ''
                   if (schedule.isConfirmed) {
                     highlightClass = styles.confirmed
-                  } else if (isHighlighted && confirmedSchedule.length === 0) {
+                  } else if (isHighlighted && !confirmedSchedule) {
                     highlightClass = styles.attend
                   }
                   // const totalCount = schedule.responses.length;
@@ -237,16 +248,35 @@ export default function EventDetails({ session }: { session: Session | null }) {
                     return acc;
                   }, {} as Record<string, string>);
 
-
+                  const label = !schedule.isConfirmed ? "" : styles.confirmedLabel
                   return (
                     <tr key={schedule.id} className={highlightClass}>
-                      <td>
-                        {!schedule.isConfirmed ? <ConfirmScheduleButton scheduleId={schedule.id} eventId={eventData.id} onConfirm={handleConfirmSchedule} /> : <span className={styles.confirmText}>決定済み</span>}
-                      </td>
-                      <td>{formattedDate} - {schedule.time}</td>
-                      <td>{attendCount}人</td>
-                      <td>{undecidedCount}人</td>
-                      <td>{declineCount}人</td>
+                      {isOrganizer && (
+                        <td className="min-w-[134px]">
+                          {
+                            !schedule.isConfirmed ? (
+                              <ConfirmScheduleButton
+                                scheduleId={schedule.id}
+                                eventId={eventData.id}
+                                onConfirm={handleConfirmSchedule}
+                                buttonText="この日に開催"
+                              />
+                            ) : (
+                              <ConfirmScheduleButton
+                                scheduleId={0}
+                                eventId={eventData.id}
+                                onConfirm={handleConfirmSchedule}
+                                buttonText="キャンセル"
+                              />
+                            )
+                          }
+
+                        </td>
+                      )}
+                      <td className={`${label} min-w-[210px]`}>{formattedDate} - {schedule.time}</td>
+                      <td className="min-w-[75px]">{attendCount}人</td>
+                      <td className="min-w-[75px]">{undecidedCount}人</td>
+                      <td className="min-w-[75px]">{declineCount}人</td>
                       {Array.from(
                         new Set<string>(
                           eventData.schedules.flatMap((schedule: Schedule) =>
@@ -265,7 +295,10 @@ export default function EventDetails({ session }: { session: Session | null }) {
                   )
                 })}
                 <tr>
-                  <td colSpan={5} className={styles.colspan1}>コメント</td>
+                  {isOrganizer ?
+                    <td colSpan={5} className={styles.colspan1}>コメント</td> :
+                    <td colSpan={4} className={styles.colspan1}>コメント</td>
+                  }
 
                   {Array.from(
                     new Map<number, { id: string; name: string; comment?: string }>(
@@ -287,13 +320,13 @@ export default function EventDetails({ session }: { session: Session | null }) {
                 </tr>
               </tbody>
             </table>
+            {accessToken ?
+              <CreateEventButton accessToken={accessToken} refreshToken={refreshToken} confirmedSchedule={confirmedSchedule} event={eventData} /> :
+              <SigninButton />
+            }
           </div>
         </div>
       </div>
-      {accessToken ?
-        <CreateEventButton accessToken={accessToken} refreshToken={refreshToken} confirmedSchedule={confirmedSchedule} event={eventData} /> :
-        <SigninButton />
-      }
       <div className={styles.eventFormContainer}>
         {isCreateForm ? (
           <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules} />
@@ -302,7 +335,7 @@ export default function EventDetails({ session }: { session: Session | null }) {
         )}
       </div>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <h2 className={styles.modalTitle}>以下の日程で決定しました</h2>
+        <h2 className={styles.modalTitle}>{modalText}</h2>
         <p className={styles.modalText}>{formattedDate}</p>
       </Modal>
     </>

@@ -10,8 +10,9 @@
 }
 
 .eventContainer {
-  display: flex;
-  justify-content: center;
+  // display: flex;
+  // justify-content: center;
+  margin: auto;
   padding: 24px;
 }
 
@@ -65,24 +66,25 @@
   margin-bottom: 12px;
 }
 
-.table{
-  display: flex;
-  justify-content: center;
+.table {
+  // display: flex;
+  // justify-content: center;
+  width: 100%;
   // スクロールバー（幅・高さ）
   &::-webkit-scrollbar {
     width: 30px;
     height: 20px;
   }
-  
+
   // スクロールバーのつまみ
   &::-webkit-scrollbar-thumb {
-    background-color: #C792A3;
+    background-color: #c792a3;
     border-radius: 10px;
   }
 }
 
 @media (max-width: 428px) {
-  .table{
+  .table {
     display: block;
   }
 }
@@ -90,10 +92,10 @@
 .tableDesign {
   border-collapse: collapse;
   min-width: 700px;
+  width: 100%;
   font-weight: bold;
   text-align: center;
   background-color: #ffedfa;
-
 }
 .tableDesign th,
 .tableDesign td {
@@ -147,7 +149,6 @@
   margin-bottom: 5px;
 }
 
-
 @media (max-width: 428px) {
   .formContent {
     width: 100%;
@@ -177,11 +178,11 @@
   margin-left: 4px;
   font-size: 11px;
   border-radius: 5px;
-  background-color: #CCDF92;
+  background-color: #ccdf92;
   color: #333;
 }
 
-.formTextarea{
+.formTextarea {
   width: 100%;
   color: #333;
   padding: 4px;
@@ -244,86 +245,106 @@
   cursor: pointer;
   text-decoration: underline;
   transition: 0.2s;
+  min-width: 140px;
 }
 .userName:hover {
   color: #f7cad6;
   transition: 0.2s;
 }
-.scheduleForm{
+.scheduleForm {
   // border: #ed9ad6 solid 2px;
   position: relative;
 }
 
-.formSubmit{
+.formSubmit {
   border-radius: 9999;
   bottom: -6rem;
   width: 100%;
   color: white;
-  background-color: #DE3163;
-  transition: .3s;
+  background-color: #de3163;
+  transition: 0.3s;
   padding: 24px 12px;
   cursor: pointer;
-  transition: .3s;
+  transition: 0.3s;
 }
 
-.createBtn{
+.createBtn {
   border-radius: 9999;
   display: block;
   bottom: -3rem;
   text-align: center;
   width: 100%;
   color: #333;
-  background-color: #06AB4B;
-  transition: .3s;
+  background-color: #06ab4b;
+  transition: 0.3s;
   padding: 24px 12px;
   cursor: pointer;
-  transition: .3s;
+  transition: 0.3s;
   margin-top: 12px;
 }
 
-.createBtn:hover{
-  transition: .3s;
-  background-color: #CCDF92;
-  
+.createBtn:hover {
+  transition: 0.3s;
+  background-color: #ccdf92;
 }
 
-.disabled{
+.disabled {
   cursor: default;
   background-color: #cccacb;
   color: #333;
 }
 
-.enableSubmit:hover{
-  transition: .3s;
-  background-color: #E195AB;
-
+.enableSubmit:hover {
+  transition: 0.3s;
+  background-color: #e195ab;
 }
 
-
-.colspan1{
+.colspan1 {
   // border-right: none!important;
 }
-.colspan3{
-  border-left: none!important;
+.colspan3 {
+  border-left: none !important;
 }
-.userComment{
+.userComment {
   width: 160px;
   font-weight: normal;
 }
 
-.attend{
-  background-color: rgba(#f2e462, .3);
+.attend {
+  background-color: rgba(#f2e462, 0.3);
   position: relative;
   // border: dashed 3px #f2e462!important;
 }
 
-.confirmed{
-  background-color: rgba(#f262a8, .3);
+.confirmed {
+  background-color: rgba(#f262a8, 0.3);
   position: relative;
-
 }
-.attendText{
-  background-color: rgba(#f2e462, .3);
+
+.confirmedLabel {
+  position: relative;
+}
+.confirmedLabel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-bottom: 40px solid transparent;
+  border-right: 50px solid #de3163;
+}
+.confirmedLabel::after {
+  content: "開催";
+  position: absolute;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  top: 5px;
+  right: 2px;
+  transform: rotate(40deg);
+}
+
+.attendText {
+  background-color: rgba(#f2e462, 0.3);
   color: #333;
   font-size: 12px;
   padding: 4px;
@@ -331,25 +352,23 @@
   // border: dashed 3px #f2e462!important;
 }
 
-.confirmedText{
-  background-color: rgba(#f262a8, .3);
+.confirmedText {
+  background-color: rgba(#f262a8, 0.3);
   color: #333;
   font-size: 12px;
   padding: 4px;
-
 }
 
-.modalTitle{
+.modalTitle {
   text-align: center;
   color: #333;
   font-weight: bold;
 }
-.modalText{
+.modalText {
   text-align: center;
   color: #333;
-
 }
-.confirmText{
-  color: #DE3163;
+.confirmText {
+  color: #de3163;
   font-weight: bold;
 }

@@ -19,17 +19,19 @@ export async function GET(request: NextRequest) {
       include: {
         user: true, // イベントの作成者情報
         schedules: {
+          orderBy: { id: "asc" },
           include: {
             responses: {
+              orderBy: { user: { createdAt: "asc" } }, // userのupdatedAt順で
               include: {
                 user: true, // 各回答者情報を取得
               },
             },
+            // ... existing code ...
           },
         },
       },
     });
-
     if (!event) {
       return NextResponse.json(
         { error: "指定されたイベントが見つかりませんでした" },

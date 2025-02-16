@@ -20,8 +20,8 @@ export const ScheduleSchema = z.object({
           .string({ required_error: "日付は必須です" })
           .nonempty({ message: "日付は必須です" }), // 空文字を禁止
         time: z
-          .string({ required_error: "時間は必須です" })
-          .nonempty({ message: "時間は必須です" }), // 空文字を禁止
+          .string()
+          // .nonempty({ message: "時間は必須です" }), // 空文字を禁止
       }),
     )
     .min(1, { message: "スケジュールを1つ以上追加してください" }), // 最低1つは必要

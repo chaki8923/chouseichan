@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./index.module.scss"
 
-export function ConfirmScheduleButton({ scheduleId, eventId, onConfirm }: {scheduleId: number, eventId: string, onConfirm: (scheduleId: number) => void;}) {
+export function ConfirmScheduleButton({ scheduleId, eventId, buttonText, onConfirm }: {scheduleId: number, eventId: string, buttonText: string,onConfirm: (scheduleId: number) => void;}) {
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -27,7 +27,7 @@ export function ConfirmScheduleButton({ scheduleId, eventId, onConfirm }: {sched
     
     <button className={styles.confirmBtn} onClick={handleConfirm} disabled={loading}>
       
-      {loading ? "処理中..." : <span className={styles.confirmText}>この日に決定</span>}
+      {loading ? "処理中..." : <span className={styles.confirmText}>{buttonText}</span>}
     </button>
 
   );

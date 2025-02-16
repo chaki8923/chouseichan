@@ -4,16 +4,18 @@ import { useState } from "react";
 import { Schedule } from "@/types/schedule";
 import { Event } from "@/types/event";
 import { signOut } from "next-auth/react";
+import { FcGoogle } from "react-icons/fc";
+import Modal from "../modal/modal";
 import styles from "./index.module.scss"
+import { Spinner } from "flowbite-react";
 
 export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule, event }: { accessToken: string, refreshToken: string, confirmedSchedule: Schedule, event: Event }) {
   const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
+  if(!confirmedSchedule) return;
   const handleCreateEvent = async () => {
     setLoading(true);
-
-    console.log("confirmedSchedule.date:", confirmedSchedule.date);
-    console.log("confirmedSchedule.time:", confirmedSchedule.time);
     // 日付を UTC 文字列から `YYYY-MM-DD` に変換
     const datePart = confirmedSchedule.date.split("T")[0];
 
@@ -40,7 +42,7 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
 
       const result = await response.json();
       if (result.success) {
-        alert("イベントが作成されました！");
+        setIsOpen(true)
       } else {
         alert("イベント作成に失敗しました");
       }
@@ -54,13 +56,16 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
   return (
     <>
       <button className={styles.createEventBtn} onClick={handleCreateEvent} disabled={loading}>
-        {loading ? "追加中..." : "Googleカレンダーに開催日を追加"}
+        {!loading ? <Spinner className={styles.spinner} color="pink" aria-label="Pink spinner example" /> : <span className={styles.addEvent}><FcGoogle className={styles.google} />開催日をカレンダーに追加</span>}
       </button>
       <button onClick={async () => {
         await signOut();
       }}>
         ログアウト
       </button>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <h2 className={styles.modalTitle}>カレンダーに追加しました</h2>
+      </Modal>
     </>
   );
 }
