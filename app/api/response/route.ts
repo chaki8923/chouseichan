@@ -58,7 +58,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // トランザクションでレスポンスを更新
-    const updatedResponses = await prisma.$transaction(async (tx) => {
+    const updatedResponses = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 既存のレスポンスを削除してから新しいレスポンスを作成
       await tx.response.deleteMany({
         where: { userId },
