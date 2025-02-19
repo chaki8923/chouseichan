@@ -6,6 +6,14 @@ import { prisma } from "@/prisma";
 // 認証APIのベースパス
 export const BASE_PATH = "/api/auth";
 
+// ユーザーの型定義
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -39,7 +47,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       if (user) {
         token.user = user;
-        token.role = (user as any).role ?? "user";
+        token.role = (user as User).role ?? "user";
       } else {
         console.log("⚠️ user は undefined");
       }

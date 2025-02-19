@@ -15,14 +15,6 @@ export async function POST(req: Request) {
   try {
     const { accessToken, refreshToken, eventData } = await req.json();
 
-    // UTC → JST に変換
-    const startJST = eventData.start.toLocaleString('ja-JP', {
-      timeZone: 'Asia/Tokyo',
-    })
-    const endJST = eventData.end.toLocaleString('ja-JP', {
-      timeZone: 'Asia/Tokyo',
-    })
-
     if (!accessToken) {
       return NextResponse.json(
         { error: "Access token is required" },

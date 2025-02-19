@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { userId, schedules, user_name, comment } = await request.json();
+    const { userId, schedules } = await request.json();
 
     if (!userId || !schedules || schedules.length === 0) {
       return NextResponse.json(
@@ -61,14 +61,6 @@ export async function PUT(request: NextRequest) {
       // 既存のレスポンスを削除してから新しいレスポンスを作成
       await tx.response.deleteMany({
         where: { userId },
-      });
-
-      const updateUser = await tx.user.update({
-        where: { id: userId }, // 更新するユーザーを特定
-        data: {
-          name: user_name,
-          comment: comment
-        },
       });
 
       const newResponses = await tx.response.createMany({

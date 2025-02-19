@@ -1,14 +1,13 @@
-import { log } from 'console'
 import { PixelCrop } from 'react-image-crop'
 
-const TO_RADIANS = Math.PI / 180
+// const TO_RADIANS = Math.PI / 180
 
 export async function canvasPreview(
   image: HTMLImageElement,
   canvas: HTMLCanvasElement,
   crop: PixelCrop,
-  scale = 1,
-  rotate = 0,
+  // scale = 1,
+  // rotate = 0,
 ) {
   const ctx = canvas.getContext('2d')
 
@@ -34,9 +33,9 @@ export async function canvasPreview(
   const cropX = crop.x * scaleX
   const cropY = crop.y * scaleY
 
-  const rotateRads = rotate * TO_RADIANS
+  // const rotateRads = rotate * TO_RADIANS
   const centerX = image.naturalWidth / 2
-  const centerY = image.naturalHeight / 2
+  // const centerY = image.naturalHeight / 2
 
   console.log("image.naturalWidth", image.naturalWidth);
   console.log("image.naturalHeight", image.naturalHeight);

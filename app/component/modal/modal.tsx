@@ -20,9 +20,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
         >
           <motion.div
             className="bg-white p-6 rounded-2xl shadow-lg w-80 relative"
-            initial={{ y: -50, opacity: 0 }}
+            initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -50, opacity: 0 }}
+            exit={{ y: 50, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             onClick={(e) => e.stopPropagation()} // 内側クリックで閉じないように
           >

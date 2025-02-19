@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from "react";
-import { useForm, FormProvider, useFormContext } from 'react-hook-form';
+import {  useEffect } from "react";
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserResponseSchema, UserResponseSchemaType } from '@/schemas/UserResponse';
 import styles from "./index.module.scss";
@@ -29,7 +29,6 @@ type SchedulesProp = {
 };
 
 export default function Form(props: SchedulesProp) {
-  const [isSubmit, setIsSubmit] = useState(false);
   const { userId, userName, schedules } = props;
   const methods = useForm<UserResponseSchemaType>({
     mode: 'onChange', // バリデーションのタイミングを変更
@@ -109,7 +108,6 @@ export default function Form(props: SchedulesProp) {
 
 
   const onSubmit = async (params: UserResponseSchemaType) => {
-    setIsSubmit(true);
 
     // APIに送信するデータ
     const data = {
@@ -134,9 +132,7 @@ export default function Form(props: SchedulesProp) {
         body: JSON.stringify(data),
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        
+      if (response.ok) {        
         props.onSuccess();
       } else {
         console.error("Error:", response.status, response.statusText);
@@ -144,7 +140,6 @@ export default function Form(props: SchedulesProp) {
     } catch (error) {
       console.log("Fetch エラー:", error);
     } finally {
-      setIsSubmit(false);
     }
   };
 

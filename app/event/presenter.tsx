@@ -7,16 +7,18 @@ import { Session } from "@auth/core/types";
 import SigninButton from "@/app/component/calendar/SignInButton"
 import { CreateEventButton } from "../component/calendar/CreateEventButton";
 import { ConfirmScheduleButton } from "../component/button/confirmSchedule";
-import { getEventIdFromCookie } from "@/app/utils/cookies";
 import styles from "./index.module.scss"
 import { FaRegCircle } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { IoTriangleOutline } from "react-icons/io5";
 import { Schedule } from "@/types/schedule";
+import { Response } from "@/types/response";
 import { User } from "@/types/user";
+import { Event } from "@/types/event";
 import Form from "./form";
 import Modal from "../component/modal/modal";
-import { setEventIdCookie, isEventOwner } from "@/app/utils/cookies"; 
+import { isEventOwner } from "@/app/utils/cookies";
+import { FaRegCopy } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -25,26 +27,53 @@ type maxAttend = {
   attendCount: number
 }
 
-
 export default function EventDetails({ session }: { session: Session | null }) {
 
-  const [eventData, setEventData] = useState<any>(null);
+  const [eventData, setEventData] = useState<Event | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isCreateForm, setIsCreateForm] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>();
   const [userName, setUserName] = useState<string>();
   const [isOpen, setIsOpen] = useState(false);
+  const [isCopyModal, setIsCopyModal] = useState(false);
   const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
   const refreshToken = user.refreshToken ?? "";
-  
-  if(!eventId) return <p>イベントidがありません</p>
+
+  useEffect(() => {
+    // データ取得
+    const getEventData = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchEventWithSchedules(eventId!);
+        setEventData(data);
+        setError(null); // エラーをリセット
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("データ取得中に予期しないエラーが発生しました");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getEventData();
+  }, [eventId]);
+
+  useEffect(() => {
+    fetchSchedules(); // 初回ロード時に取得
+  }, []);
+
+  if (!eventId) return <p>イベントidがありません</p>
   const isOrganizer = eventId ? isEventOwner(eventId) : false; // ✅ 主催者判定
 
   async function fetchEventWithSchedules(eventId: string) {
@@ -79,34 +108,35 @@ export default function EventDetails({ session }: { session: Session | null }) {
 
   const handleConfirmSchedule = (scheduleId: number) => {
     setIsOpen(true);
-    setEventData((prev: any) => {
+    setEventData((prev: Event | null) => {
+      if (!prev) return prev; // prev が null の場合はそのまま返す
+
       const confirmedSchedule = prev.schedules.find(
-        (schedule: Schedule) => schedule.id === scheduleId
+        (schedule) => schedule.id === scheduleId
       );
 
-      // ✅ スケジュールが見つからない場合、全て isConfirmed: false にする
       if (!confirmedSchedule) {
-        setModalText("キャンセルしました")
+        setModalText("キャンセルしました");
         return {
           ...prev,
-          schedules: prev.schedules.map((schedule: Schedule) => ({
+          schedules: prev.schedules.map((schedule) => ({
             ...schedule,
             isConfirmed: false,
           })),
         };
       }
-      setModalText("以下の日程で決定しました")
-      // ✅ `confirmedSchedule.date` と `confirmedSchedule.time` を組み合わせて日時を作成
+
+      setModalText("以下の日程で決定しました");
+
       const dateTimeString = `${confirmedSchedule.date.split("T")[0]}T${confirmedSchedule.time}:00`;
       const date = new Date(dateTimeString);
-
-      // ✅ 日付フォーマット
       const formattedDate = format(date, "yyyy/M/d(E) - HH:mm", { locale: ja });
+
       setFormattedDate(formattedDate);
-      // ✅ `isConfirmed` を更新したスケジュール一覧を返す
+
       return {
         ...prev,
-        schedules: prev.schedules.map((schedule: Schedule) => ({
+        schedules: prev.schedules.map((schedule) => ({
           ...schedule,
           isConfirmed: schedule.id === scheduleId,
         })),
@@ -114,24 +144,16 @@ export default function EventDetails({ session }: { session: Session | null }) {
     });
   };
 
+  const handleCopyLink = async (eventId: string) => {
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/event?eventId=${eventId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopyModal(true);
+    } catch (err) {
+      console.error("リンクのコピーに失敗しました", err);
+    }
+  };
 
-  useEffect(() => {
-    // データ取得
-    const getEventData = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchEventWithSchedules(eventId!);
-        setEventData(data);
-        setError(null); // エラーをリセット
-      } catch (err: any) {
-        setError(err.message || "データ取得中にエラーが発生しました");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getEventData();
-  }, [eventId]);
 
   // 初回と更新時にデータ取得
   const fetchSchedules = async () => {
@@ -139,10 +161,6 @@ export default function EventDetails({ session }: { session: Session | null }) {
     // setEventIdCookie(eventId)
     setEventData(data);
   };
-
-  useEffect(() => {
-    fetchSchedules(); // 初回ロード時に取得
-  }, []);
 
 
   if (loading) {
@@ -157,12 +175,13 @@ export default function EventDetails({ session }: { session: Session | null }) {
     return <p>データが見つかりません</p>;
   }
 
-  const schedulesWithAttendCount = eventData.schedules.map((schedule: Schedule) => ({
+  const schedulesWithAttendCount = eventData.schedules.map((schedule) => ({
     ...schedule,
-    attendCount: schedule.responses.filter((res) => res.response === "ATTEND").length,
+    attendCount: (schedule.responses as Response[]).filter((res) => res.response === "ATTEND").length,
   }));
 
-  const confirmedSchedule = eventData.schedules.filter((res: Schedule) => res.isConfirmed === true)[0];
+
+  const confirmedSchedule = eventData.schedules.filter((res) => res.isConfirmed === true)[0];
 
   // ✅ ATTEND数が最も多いスケジュールを取得
   const maxAttendCount = Math.max(...schedulesWithAttendCount.map((s: maxAttend) => s.attendCount));
@@ -176,6 +195,7 @@ export default function EventDetails({ session }: { session: Session | null }) {
     <>
       <div className={styles.eventContainer}>
         <div>
+          <p className={styles.eventLink} onClick={() => handleCopyLink(eventData.id)}><FaRegCopy className={styles.copyIcon} />{`${baseUrl}/event?eventId=${eventData.id}`}</p>
           <h1 className={styles.eventName}>{eventData.name}</h1>
           <section className={styles.eventTitleSection}>
             {eventData.image && (
@@ -200,7 +220,7 @@ export default function EventDetails({ session }: { session: Session | null }) {
                   <th><RxCross2 className={styles.reactIconTable} /></th>
                   {/** `userId` をキーとして利用 */}
                   {Array.from(
-                    new Map<number, { id: string; name: string; response: string }>(
+                    new Map<string, { id: string; name: string; response: string }>(
                       eventData.schedules
                         .flatMap((schedule: Schedule) =>
                           schedule.responses.map((response) => ({
@@ -301,7 +321,7 @@ export default function EventDetails({ session }: { session: Session | null }) {
                   }
 
                   {Array.from(
-                    new Map<number, { id: string; name: string; comment?: string }>(
+                    new Map<string, { id: string; name: string; comment?: string }>(
                       eventData.schedules
                         .flatMap((schedule: Schedule) =>
                           schedule.responses.map((response) => ({
@@ -310,7 +330,7 @@ export default function EventDetails({ session }: { session: Session | null }) {
                             comment: response.user.comment || "",
                           }))
                         )
-                        .map((user: User) => [user.id, user])
+                        .map((user) => [user.id, user])
                     ).values()
                   ).map((user) => (
                     <td key={`comment-${user.id}`} colSpan={1} className={styles.userComment}>
@@ -329,14 +349,35 @@ export default function EventDetails({ session }: { session: Session | null }) {
       </div>
       <div className={styles.eventFormContainer}>
         {isCreateForm ? (
-          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules} />
+          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules.map((schedule) => ({
+            ...schedule,
+            responses: schedule.responses.map((response) => ({
+              ...response,
+              user: {
+                ...response.user,
+                comment: response.user.comment || "", // undefined を空文字に変換
+              },
+            })),
+          }))} />
         ) : (
-          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules} userId={userId} userName={userName} />
+          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules.map((schedule) => ({
+            ...schedule,
+            responses: schedule.responses.map((response) => ({
+              ...response,
+              user: {
+                ...response.user,
+                comment: response.user.comment || "", // undefined を空文字に変換
+              },
+            })),
+          }))} userId={userId} userName={userName} />
         )}
       </div>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <h2 className={styles.modalTitle}>{modalText}</h2>
         <p className={styles.modalText}>{formattedDate}</p>
+      </Modal>
+      <Modal isOpen={isCopyModal} onClose={() => setIsCopyModal(false)}>
+        <h2 className={styles.modalTitle}>コピーしました</h2>
       </Modal>
     </>
   );

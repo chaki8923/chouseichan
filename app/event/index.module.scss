@@ -372,3 +372,45 @@
   color: #de3163;
   font-weight: bold;
 }
+
+
+.eventLink {
+  position: relative;
+  border-top: solid 2px #CCDF92;
+  border-bottom: solid 2px #CCDF92;
+  background: #f4f4f4;
+  line-height: 1.4;
+  padding: 0.4em 0.5em;
+  margin: 2em 0 0.5em;
+  color: #333;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.eventLink:after {
+  /*タブ*/
+  position: absolute;
+  font-family: "Font Awesome 5 Free",'Quicksand','Avenir','Arial',sans-serif;
+  font-weight: 900;
+  content: '\f0a7\ このイベントのURL';
+  background: #CCDF92;
+  color: #333;
+  left: 0px;
+  bottom: 100%;
+  border-radius: 5px 5px 0 0;
+  padding: 9px 7px 5px;
+  font-size: 0.7em;
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+.copyIcon{
+  background: #5f5d5d;
+  color: #fff;
+  padding: 4px;
+  height: 25px;
+  width: 25px;
+  margin-right: 8px;
+
+}

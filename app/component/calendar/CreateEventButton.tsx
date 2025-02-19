@@ -7,13 +7,13 @@ import { signOut } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss"
-import { Spinner } from "flowbite-react";
+
 
 export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule, event }: { accessToken: string, refreshToken: string, confirmedSchedule: Schedule, event: Event }) {
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  if(!confirmedSchedule) return;
+  if (!confirmedSchedule) return;
   const handleCreateEvent = async () => {
     setLoading(true);
     // 日付を UTC 文字列から `YYYY-MM-DD` に変換
@@ -56,7 +56,15 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
   return (
     <>
       <button className={styles.createEventBtn} onClick={handleCreateEvent} disabled={loading}>
-        {!loading ? <Spinner className={styles.spinner} color="pink" aria-label="Pink spinner example" /> : <span className={styles.addEvent}><FcGoogle className={styles.google} />開催日をカレンダーに追加</span>}
+        {loading ?
+          <div className={styles.loader}>
+            <p>追加中</p>
+            <div className={`${styles.loaderInner} ${styles.ballPulse}`}>
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
+          </div> : <span className={styles.addEvent}><FcGoogle className={styles.google} />開催日をカレンダーに追加</span>}
       </button>
       <button onClick={async () => {
         await signOut();
