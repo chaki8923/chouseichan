@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma"; // Prisma クライアントをインポート
+import { Prisma, PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // トランザクションでユーザーとレスポンスを作成
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       console.log("ユーザー作成");
       
       // ユーザーを作成
