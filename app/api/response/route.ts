@@ -1,5 +1,5 @@
 import { prisma } from "@/prisma"; // Prisma クライアントをインポート
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
