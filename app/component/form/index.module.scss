@@ -255,10 +255,33 @@
 }
 
 
+@media (max-width: 428px) {
+  .cookieEvent{
+    width: 90%;
+    margin: auto;
+  }
+
+
+.cookieContainer{
+  display: block;
+}
+
+}
+
+
 .cookieContainer{
   display: flex;
   justify-content: space-evenly;
   margin-bottom: 60px;
+}
+
+
+@media (max-width: 428px) {
+
+  .cookieContainer{
+    display: block;
+  }
+
 }
 
 .trash{
@@ -289,6 +312,14 @@
   width: 70%;
   margin: 40px auto;
   color: #454545;
+}
+
+@media (max-width: 428px) {
+
+  .cookieTitle{
+    width: 90%;
+  }
+
 }
 
 .cookieTitle:after {

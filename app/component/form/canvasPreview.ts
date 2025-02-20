@@ -34,7 +34,7 @@ export async function canvasPreview(
   const cropY = crop.y * scaleY
 
   // const rotateRads = rotate * TO_RADIANS
-  const centerX = image.naturalWidth / 2
+  // const centerX = image.naturalWidth / 2
   // const centerY = image.naturalHeight / 2
 
   // ctx.save()
