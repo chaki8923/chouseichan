@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
 
     // トランザクションでユーザーとレスポンスを作成
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      console.log("ユーザー作成");
       
       // ユーザーを作成
       const newUser = await tx.user.create({

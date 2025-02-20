@@ -34,8 +34,6 @@ export default function Form() {
   }, []);
 
 
-  console.log("events", events);
-
   const methods = useForm<ScheduleSchemaType>({
     mode: 'onChange',
     resolver: zodResolver(ScheduleSchema)
@@ -213,7 +211,6 @@ export default function Form() {
                         const updatedSchedules = [...schedules];
                         updatedSchedules[index].date = e.target.value;
                         schedules[index].date = e.target.value;
-                        console.log("updatedSchedules", updatedSchedules);
                         handleDateChange(index, e.target.value)
                         setSchedules(updatedSchedules);
                       }}

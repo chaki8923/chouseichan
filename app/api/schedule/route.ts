@@ -63,12 +63,9 @@ export async function POST(request: NextRequest) {
 export async function PUT(req: Request) {
   try {
     const { scheduleId, eventId } = await req.json();
-    console.log("scheduleId",scheduleId);
-    console.log("eventId",eventId);
     
     
     if (scheduleId === undefined || scheduleId === null || !eventId) {
-      console.log("エラー??");
       return NextResponse.json({ error: "scheduleId と eventId は必須です" }, { status: 400 });
     }
 

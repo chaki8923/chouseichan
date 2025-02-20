@@ -185,7 +185,6 @@ export default function EventDetails({ session }: { session: Session | null }) {
 
   // ✅ ATTEND数が最も多いスケジュールを取得
   const maxAttendCount = Math.max(...schedulesWithAttendCount.map((s: maxAttend) => s.attendCount));
-  console.log("maxAttendCount", maxAttendCount);
   const highlightScheduleIds = schedulesWithAttendCount
     .filter((s: maxAttend) => s.attendCount === maxAttendCount && maxAttendCount != 0)
     .map((s: maxAttend) => s.id);

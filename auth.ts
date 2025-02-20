@@ -42,14 +42,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
       } else {
-        console.log("⚠️ account は undefined");
+        // console.log("⚠️ account は undefined");
       }
 
       if (user) {
         token.user = user;
         token.role = (user as User).role ?? "user";
       } else {
-        console.log("⚠️ user は undefined");
+        // console.log("⚠️ user は undefined");
       }
 
       // `role` が未設定ならDBから取得（セッション更新時）

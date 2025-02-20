@@ -37,15 +37,6 @@ export async function canvasPreview(
   const centerX = image.naturalWidth / 2
   // const centerY = image.naturalHeight / 2
 
-  console.log("image.naturalWidth", image.naturalWidth);
-  console.log("image.naturalHeight", image.naturalHeight);
-  console.log("cropX", cropX);
-  console.log("cropY", cropY);
-  console.log("centerX", centerX);
-  console.log("canvas.width", canvas.width);
-  console.log("canvas.height", canvas.height);
-  
-
   // ctx.save()
 
   // 5) Move the crop origin to the canvas origin (0,0)

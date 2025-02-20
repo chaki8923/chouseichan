@@ -62,9 +62,6 @@ export function isEventOwner(eventId: string): boolean {
     console.error("Failed to parse events cookie:", error);
   }
 
-  console.log("events", events);
-  console.log("eventId", eventId);
-
   // 指定した eventId が含まれているか判定
   return events.some(event => event.eventId === eventId);
 }
