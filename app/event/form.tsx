@@ -183,7 +183,7 @@ export default function Form(props: SchedulesProp) {
                   </div>
                 );
               })}
-              <p className="text-gray-600">コメント<span className={styles.tagNoRequire}>必須</span></p>
+              <p className="text-gray-600">コメント<span className={styles.tagNoRequire}>任意</span></p>
               <textarea
                 className={styles.formTextarea}
                 {...register('comment')}

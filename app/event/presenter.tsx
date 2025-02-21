@@ -28,9 +28,7 @@ type maxAttend = {
   attendCount: number
 }
 
-
-
-export default function EventDetails({ session }: { session: Session | null }) {
+export default function EventDetails({ eventId, session }: { eventId: string,session: Session | null }) {
 
   const [eventData, setEventData] = useState<Event | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -42,8 +40,8 @@ export default function EventDetails({ session }: { session: Session | null }) {
   const [isCopyModal, setIsCopyModal] = useState(false);
   const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
+  // const searchParams = useSearchParams();
+  // const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };

@@ -29,7 +29,6 @@ export function setEventCookie(eventId: string, eventName: string, schedules: { 
   });
 }
 
-
 // ✅ クライアントサイドで Cookie から eventId を取得
 export function getEventCookie() {
 

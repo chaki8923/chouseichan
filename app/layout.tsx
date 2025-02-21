@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@your_twitter_handle", // 公式アカウントがあれば追加
+    site: "@chousei", // 公式アカウントがあれば追加
     title: "調整ちゃん | 日程登録",
     description: "たったの2ステップでイベント登録",
     images: ["/logo.png"],

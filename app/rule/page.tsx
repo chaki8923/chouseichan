@@ -1,12 +1,15 @@
-import Head from 'next/head';
-import  "./index.css"
+import type { Metadata } from "next";
+import "./index.css"
 
+export const metadata: Metadata = {
+    title: "利用規約 | 調整ちゃん",
+    description: "利用規約",
+    keywords: ["イベント", "スケジュール", "調整", "日程調整"],
+    robots: "index, follow"
+  };
 export default function rule() {
     return (
         <div className='p-10'>
-            <Head>
-                <title>調整ちゃん | 利用規約</title>
-            </Head>
             <p className='font'>調整ちゃん （以下「本サイト」といいます）は、茶木涼（以下「当人」といいます）が提供する実験サービスです。利用者の皆様は、以下の各項目について承諾のうえ、本サイトをご利用下さい。なお、当人は、利用者の皆様が本サイトを利用することをもって、本利用規約に同意したものとみなします。</p>
 
             <h2>第1条（本サイトの運営）</h2>

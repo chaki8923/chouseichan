@@ -1,12 +1,17 @@
-import Head from 'next/head';
+import type { Metadata } from "next";
 import "./index.css"
+
+export const metadata: Metadata = {
+    title: "プライバシーポリシー | 調整ちゃん",
+    description: "プライバシーポリシー",
+    keywords: ["イベント", "スケジュール", "調整", "日程調整"],
+    robots: "index, follow"
+  };
 
 export default function rule() {
     return (
         <div className='p-10'>
-            <Head>
-                <title>調整ちゃん | プライバシーポリシー</title>
-            </Head>
+
             <h2>個人情報保護方針</h2>
             <p className='font'>当サイトでは事業運営上多くのお客様や従業者の個人情報を取扱うこととなるため、当社倫理綱領に基づいて本方針を定め、個人情報管理体制を確立し、企業として責任ある対応を実現するものとします。</p>
 
