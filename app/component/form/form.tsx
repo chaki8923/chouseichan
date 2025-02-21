@@ -9,9 +9,11 @@ import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
 import { setEventCookie, getEventCookie, removeEventCookie } from "@/app/utils/cookies";
 import Link from "next/link";
 import Modal from "../modal/modal";
+import SpinLoader from "../loader/spin";
 import { CgAddR, CgCloseO } from "react-icons/cg";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./index.module.scss"
+
 
 
 export default function Form() {
@@ -22,6 +24,7 @@ export default function Form() {
   ]);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(false);
 
 
   useEffect(() => {
@@ -121,7 +124,7 @@ export default function Form() {
     };
 
     reset();
-
+    setLoading(true)
     try {
       const response = await fetch(`/api/schedule/`, {
         method: "POST",
@@ -129,23 +132,25 @@ export default function Form() {
           Accept: "application/json, text/plain",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
       });
 
       if (response.ok) {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
-
+        setLoading(false)
         setEventCookie(eventId, result.name, result.schedules)
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {
+        setLoading(false)
         setIsOpen(true)
         console.error("Error:", response.status, response.statusText);
       }
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
+      setLoading(false)
       setIsSubmit(false);
     }
   };
@@ -167,6 +172,11 @@ export default function Form() {
     setValue(`schedules.${index}.date`, value);
     trigger(`schedules.${index}.date`);  // ✅ 強制的にバリデーションを再評価
   };
+
+
+  if (loading) {
+    return <SpinLoader></SpinLoader>;
+  }
 
   return (
     <>
@@ -304,7 +314,7 @@ export default function Form() {
         </div>
       )}
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <h2 className={styles.modalTitle}>エラーが発生しました</h2>
+        <h2 className={styles.modalTitle}>エラーが発生しました。も一度お試しいただくか以下のフォームよりお問い合わせください</h2>
         <p className={styles.modalText}> <Link target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" className={styles.link}>お問い合わせ</Link></p>
       </Modal>
     </>
