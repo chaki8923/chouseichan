@@ -109,6 +109,10 @@ export default function EventDetails({ eventId, session }: { eventId: string,ses
 
   const handleConfirmSchedule = (scheduleId: number) => {
     setIsOpen(true);
+    setTimeout(function(){
+      setIsOpen(false);
+
+    }, 1500);
     setEventData((prev: Event | null) => {
       if (!prev) return prev; // prev が null の場合はそのまま返す
 
@@ -150,6 +154,10 @@ export default function EventDetails({ eventId, session }: { eventId: string,ses
     try {
       await navigator.clipboard.writeText(url);
       setIsCopyModal(true);
+      setTimeout(function(){
+        setIsCopyModal(false);
+
+      }, 1200);
     } catch (err) {
       console.error("リンクのコピーに失敗しました", err);
     }

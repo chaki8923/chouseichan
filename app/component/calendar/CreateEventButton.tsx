@@ -42,7 +42,11 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
 
       const result = await response.json();
       if (result.success) {
-        setIsOpen(true)
+        setIsOpen(true);
+        setTimeout(function(){
+          setIsOpen(false);
+    
+        }, 1500);
       } else {
         alert("イベント作成に失敗しました");
       }
@@ -65,11 +69,6 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
               <div></div>
             </div>
           </div> : <span className={styles.addEvent}><FcGoogle className={styles.google} />開催日をカレンダーに追加</span>}
-      </button>
-      <button onClick={async () => {
-        await signOut();
-      }}>
-        ログアウト
       </button>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <h2 className={styles.modalTitle}>カレンダーに追加しました</h2>
