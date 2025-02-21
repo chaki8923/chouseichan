@@ -28,6 +28,8 @@ type maxAttend = {
   attendCount: number
 }
 
+
+
 export default function EventDetails({ session }: { session: Session | null }) {
 
   const [eventData, setEventData] = useState<Event | null>(null);

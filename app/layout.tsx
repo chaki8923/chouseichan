@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "./header";
 import Footer from "./footer";
-import Head from "next/head";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,14 +49,6 @@ export default function RootLayout({
 }>) {
   return (
     <>
-      <Head>
-        <title>調整ちゃん | イベント登録</title>
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.chouseichan.com/" />
-        <meta property="og:image" content="./logo.png" />
-        <meta property="og:title" content="調整ちゃん" />
-      </Head>
       <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}

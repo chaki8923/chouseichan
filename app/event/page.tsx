@@ -9,5 +9,4 @@ export default async function tracker() {
       <EventDetails session={session} ></EventDetails>
     </>
   )
-
 }
