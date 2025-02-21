@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
 import { setEventCookie, getEventCookie, removeEventCookie } from "@/app/utils/cookies";
 import Link from "next/link";
+import Modal from "../modal/modal";
 import { CgAddR, CgCloseO } from "react-icons/cg";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./index.module.scss"
@@ -19,6 +20,7 @@ export default function Form() {
   const [schedules, setSchedules] = useState([
     { id: Date.now(), date: '', time: '17:00' }, // 初期のスケジュールデータ
   ]);
+  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
 
@@ -138,6 +140,7 @@ export default function Form() {
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {
+        setIsOpen(true)
         console.error("Error:", response.status, response.statusText);
       }
     } catch (error) {
@@ -267,16 +270,16 @@ export default function Form() {
           <h2 className={styles.cookieTitle}>最近このブラウザで閲覧したイベント</h2>
           <div className={styles.cookieContainer}>
             {events.map((ev) => (
-              <div  key={ev.eventId} className={styles.cookieWrapper}>
+              <div key={ev.eventId} className={styles.cookieWrapper}>
                 <Link
                   href={`/event?eventId=${ev.eventId}`}
                   className={styles.cookieEvent}
                 >
                   <p className={styles.cookieData}>{ev.eventName} <FaRegTrashAlt className={styles.trash} onClick={(e) => {
-                  e.preventDefault(); // デフォルトのリンク遷移を防ぐ
-                  e.stopPropagation(); // クリックイベントの伝播を防ぐ
-                  handleRemoveEvent(ev.eventId);
-                }} /></p>
+                    e.preventDefault(); // デフォルトのリンク遷移を防ぐ
+                    e.stopPropagation(); // クリックイベントの伝播を防ぐ
+                    handleRemoveEvent(ev.eventId);
+                  }} /></p>
                   <ul className={styles.scheduleUl}>
                     {ev.schedules?.length > 0 ? (
                       ev.schedules.map((schedule, index) => (
@@ -300,6 +303,10 @@ export default function Form() {
           </div>
         </div>
       )}
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <h2 className={styles.modalTitle}>エラーが発生しました</h2>
+        <p className={styles.modalText}> <Link target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" className={styles.link}>お問い合わせ</Link></p>
+      </Modal>
     </>
   )
 

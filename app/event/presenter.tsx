@@ -17,6 +17,7 @@ import { User } from "@/types/user";
 import { Event } from "@/types/event";
 import Form from "./form";
 import Modal from "../component/modal/modal";
+import SpinLoader from "../component/loader/spin";
 import { isEventOwner } from "@/app/utils/cookies";
 import { FaRegCopy } from "react-icons/fa";
 import { format } from "date-fns";
@@ -164,7 +165,7 @@ export default function EventDetails({ session }: { session: Session | null }) {
 
 
   if (loading) {
-    return <p>読み込み中...</p>;
+    return <SpinLoader></SpinLoader>;
   }
 
   if (error) {
