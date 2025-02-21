@@ -3,12 +3,17 @@ import { Metadata } from "next";
 import { fetchEventWithSchedules } from "@/app/utils/fetchEventData";
 import EventDetails from "@/app/event/presenter";
 
-type Props = {
-  searchParams: { eventId?: string };
-};
+interface SearchParams {
+  eventId?: string;
+}
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const eventId = searchParams.eventId;
+interface PageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const eventId = params.eventId;
 
   if (!eventId) {
     return {
@@ -37,9 +42,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
-export default async function EventPage({ searchParams }: Props) {
-  const session = await auth(); // `use` を使わず、async/await で取得
-  const eventId = searchParams.eventId;
+export default async function EventPage({ searchParams }: PageProps) {
+  const session = await auth();
+  const params = await searchParams;
+  const eventId = params.eventId;
 
   if (!eventId) {
     return <p>イベントIDが指定されていません</p>;
