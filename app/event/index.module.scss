@@ -186,6 +186,8 @@
   width: 100%;
   color: #333;
   padding: 4px;
+  border: 1px solid gray;
+  border-radius: 2px;
 }
 
 .flex {
@@ -275,7 +277,7 @@
   text-align: center;
   width: 100%;
   color: #333;
-  background-color: #06ab4b;
+  background-color: #99c2aa;
   transition: 0.3s;
   padding: 24px 12px;
   cursor: pointer;
@@ -299,9 +301,6 @@
   background-color: #e195ab;
 }
 
-.colspan1 {
-  // border-right: none!important;
-}
 .colspan3 {
   border-left: none !important;
 }

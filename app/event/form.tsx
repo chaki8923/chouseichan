@@ -132,7 +132,15 @@ export default function Form(props: SchedulesProp) {
         body: JSON.stringify(data),
       });
 
-      if (response.ok) {        
+      if (response.ok) {     
+        setValue("comment", '');
+        setValue("user_name", '');
+        // スケジュールのレスポンスを初期値に戻す
+        props.schedules.forEach((schedule, index) => {
+          setValue(`schedules.${index}.response`, 'ATTEND', { shouldValidate: true });
+        });
+    
+        props.onCreate();   
         props.onSuccess();
       } else {
         console.error("Error:", response.status, response.statusText);
@@ -200,7 +208,7 @@ export default function Form(props: SchedulesProp) {
           className={`${styles.formSubmit} ${!isValid || isSubmitting ? `${styles.disabled}` : `${styles.enableSubmit}`
             }`}
         >
-          {userId ? "編集完了" : "登録"}
+          {userId ? "編集完了" : "新規登録"}
         </button>
         {userId && (
           <span onClick={() => handleClickCreate()} className={styles.createBtn}>キャンセル</span>
