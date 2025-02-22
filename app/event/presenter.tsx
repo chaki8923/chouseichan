@@ -28,7 +28,7 @@ type maxAttend = {
   attendCount: number
 }
 
-export default function EventDetails({ eventId, session }: { eventId: string,session: Session | null }) {
+export default function EventDetails({ eventId, session }: { eventId: string, session: Session | null }) {
 
   const [eventData, setEventData] = useState<Event | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -109,7 +109,7 @@ export default function EventDetails({ eventId, session }: { eventId: string,ses
 
   const handleConfirmSchedule = (scheduleId: number) => {
     setIsOpen(true);
-    setTimeout(function(){
+    setTimeout(function () {
       setIsOpen(false);
 
     }, 1500);
@@ -154,7 +154,7 @@ export default function EventDetails({ eventId, session }: { eventId: string,ses
     try {
       await navigator.clipboard.writeText(url);
       setIsCopyModal(true);
-      setTimeout(function(){
+      setTimeout(function () {
         setIsCopyModal(false);
 
       }, 1200);
@@ -212,7 +212,10 @@ export default function EventDetails({ eventId, session }: { eventId: string,ses
                 height={50}
                 alt="Event Crop Image" />
             )}
-            <h2 className={styles.memo}>{eventData.memo}</h2>
+            {eventData.memo && (
+
+              <h2 className={styles.memo}>{eventData.memo}</h2>
+            )}
           </section>
 
           <div className={`relative overflow-x-auto ${styles.table}`}>
