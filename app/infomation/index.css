@@ -1,0 +1,28 @@
+.content{
+    color: #333;
+}
+
+.info-title {
+    position: relative;
+    padding-left: 25px;
+  }
+  
+  .info-title:before {
+    position: absolute;
+    content: '';
+    bottom: -3px;
+    left: 0;
+    width: 0;
+    height: 0;
+    border: none;
+    border-left: solid 15px transparent;
+    border-bottom: solid 15px #de3163;
+  }
+  .info-title:after {
+    position: absolute;
+    content: '';
+    bottom: -3px;
+    left: 10px;
+    width: 100%;
+    border-bottom: solid 3px #de3163;
+  }
