@@ -50,7 +50,7 @@ export function getEventCookie() {
 
 // ✅ 指定の `eventId` が Cookie にない場合は追加
 export function addEventToCookie(newEvent: { eventId: string; eventName: string; schedules: { date: string; time: string }[] }) {
-  let events = getEventCookie();
+  const events = getEventCookie();
 
   // すでに `eventId` が存在する場合は何もしない
   if (events.some(event => event.eventId === newEvent.eventId)) {
