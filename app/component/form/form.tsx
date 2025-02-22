@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import CropImg from "./cropper";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
-import { setEventCookie, getEventCookie, removeEventCookie } from "@/app/utils/cookies";
+import { setOwnerEventCookie, getEventCookie, removeEventCookie } from "@/app/utils/cookies";
 import Link from "next/link";
 import Modal from "../modal/modal";
 import SpinLoader from "../loader/spin";
@@ -139,7 +139,7 @@ export default function Form() {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
         setLoading(false)
-        setEventCookie(eventId, result.name, result.schedules)
+        setOwnerEventCookie(eventId, result.name, result.schedules)
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {

@@ -18,7 +18,7 @@ import { Event } from "@/types/event";
 import Form from "./form";
 import Modal from "../component/modal/modal";
 import SpinLoader from "../component/loader/spin";
-import { isEventOwner } from "@/app/utils/cookies";
+import { isEventOwner, addEventToCookie } from "@/app/utils/cookies";
 import { FaRegCopy } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -167,7 +167,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // 初回と更新時にデータ取得
   const fetchSchedules = async () => {
     const data = await fetchEventWithSchedules(eventId);
-    // setEventIdCookie(eventId)
+    addEventToCookie({eventId: eventId, eventName: data.name, schedules: data.schedules })
     setEventData(data);
   };
 

@@ -6,9 +6,9 @@ type Event = {
 }
 
 // ✅ イベントとスケジュールをセットする関数
-export function setEventCookie(eventId: string, eventName: string, schedules: { date: string; time: string }[]) {
+export function setOwnerEventCookie(eventId: string, eventName: string, schedules: { date: string; time: string }[]) {
   // 既存のイベントリストを取得
-  const eventListString = (getCookie("events") as string) ?? "[]";
+  const eventListString = (getCookie("ownerEvents") as string) ?? "[]";
   let eventList: { eventId: string; eventName: string; schedules: { date: string; time: string }[] }[] = [];
 
   try {
@@ -23,7 +23,7 @@ export function setEventCookie(eventId: string, eventName: string, schedules: { 
   );
 
   // Cookie に JSON 文字列として保存
-  setCookie("events", JSON.stringify(updatedEvents), {
+  setCookie("ownerEvents", JSON.stringify(updatedEvents), {
     maxAge: 60 * 60 * 24 * 30, // 30日間有効
     path: "/",
   });
@@ -48,9 +48,25 @@ export function getEventCookie() {
   
 }
 
+// ✅ 指定の `eventId` が Cookie にない場合は追加
+export function addEventToCookie(newEvent: { eventId: string; eventName: string; schedules: { date: string; time: string }[] }) {
+  let events = getEventCookie();
+
+  // すでに `eventId` が存在する場合は何もしない
+  if (events.some(event => event.eventId === newEvent.eventId)) {
+    return;
+  }
+
+  // 新しいイベントを追加
+  events.push(newEvent);
+
+  // Cookie に保存（1週間有効）
+  setCookie("events", JSON.stringify(events), { maxAge: 60 * 60 * 24 * 7 });
+}
+
 export function isEventOwner(eventId: string): boolean {
   // ✅ `getCookie()` の戻り値を確実に `string` にする
-  const eventsString = (getCookie("events") as string) ?? "[]"; 
+  const eventsString = (getCookie("ownerEvents") as string) ?? "[]"; 
 
   // ✅ JSON パースして `eventId` と `eventName` のリストを取得
   let events: { eventId: string; eventName: string }[] = [];
