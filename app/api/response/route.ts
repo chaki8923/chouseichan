@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // トランザクションでユーザーとレスポンスを作成
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      
+
       // ユーザーを作成
       const newUser = await tx.user.create({
         data: {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { userId, schedules } = await request.json();
+    const { userId, schedules, user_name, comment } = await request.json();
 
     if (!userId || !schedules || schedules.length === 0) {
       return NextResponse.json(
@@ -58,6 +58,14 @@ export async function PUT(request: NextRequest) {
 
     // トランザクションでレスポンスを更新
     const updatedResponses = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+
+
+      // ユーザー名を更新
+      await tx.user.update({
+        where: { id: userId },
+        data: { name: user_name, comment: comment },
+      });
+
       // 既存のレスポンスを削除してから新しいレスポンスを作成
       await tx.response.deleteMany({
         where: { userId },
@@ -67,8 +75,7 @@ export async function PUT(request: NextRequest) {
         data: schedules.map((response: { id: number; response: string; comment?: string }) => ({
           userId,
           scheduleId: response.id,
-          response: response.response,
-          comment: response.comment
+          response: response.response
         })),
       });
 

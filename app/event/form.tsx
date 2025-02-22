@@ -115,7 +115,7 @@ export default function Form(props: SchedulesProp) {
       user_name: params.user_name,
       schedules: params.schedules,
       comment: params.comment,
-    };
+    };    
 
     reset();
 
@@ -203,7 +203,7 @@ export default function Form(props: SchedulesProp) {
           {userId ? "編集完了" : "登録"}
         </button>
         {userId && (
-          <span onClick={() => handleClickCreate()} className={styles.createBtn}>新規登録</span>
+          <span onClick={() => handleClickCreate()} className={styles.createBtn}>キャンセル</span>
         )}
       </form>
     </FormProvider>
