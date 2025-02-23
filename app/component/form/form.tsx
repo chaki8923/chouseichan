@@ -8,37 +8,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
 import { setOwnerEvent, getEventList, removeEvent } from "@/app/utils/strages";
 import Link from "next/link";
+import History from "../strage/history";
 import Modal from "../modal/modal";
 import SpinLoader from "../loader/spin";
 import { CgAddR, CgCloseO } from "react-icons/cg";
-import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./index.module.scss"
 
 
 
 export default function Form() {
   const [isSubmit, setIsSubmit] = useState(false);
-  const [events, setEvents] = useState<{ eventId: string; eventName: string; schedules: { date: string; time: string }[] }[]>([]);
   const [schedules, setSchedules] = useState([
     { id: Date.now(), date: '', time: '17:00' }, // 初期のスケジュールデータ
   ]);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const eventString = getEventList() ?? "[]";
-      try {
-        setEvents(eventString);
-        console.log("events", eventString);
-
-      } catch (error) {
-        console.error("Failed to parse events cookie:", error);
-      }
-    }
-  }, []);
 
 
   const methods = useForm<ScheduleSchemaType>({
@@ -157,12 +142,6 @@ export default function Form() {
     }
   };
 
-  // 指定した eventId のイベントを削除
-  const handleRemoveEvent = (eventId: string) => {
-    removeEvent(eventId);
-    setEvents(prev => prev.filter(ev => ev.eventId !== eventId)); // 画面上も即時更新
-  };
-
 
   // 📌 日付が入力されたら `isValid` を更新する処理
   const handleDateChange = (index: number, value: string) => {
@@ -277,49 +256,7 @@ export default function Form() {
           </div>
         </form>
       </FormProvider>
-      {events.length > 0 && (
-        <div>
-          <h2 className={styles.cookieTitle}>最近このブラウザで閲覧したイベント</h2>
-          <div className={styles.cookieContainer}>
-            {events.map((ev) => (
-              <div key={ev.eventId} className={styles.cookieWrapper}>
-                <Link
-                  href={`/event?eventId=${ev.eventId}`}
-                  className={styles.cookieEvent}
-                >
-                  <p className={styles.cookieData}>{ev.eventName} <FaRegTrashAlt className={styles.trash} onClick={(e) => {
-                    e.preventDefault(); // デフォルトのリンク遷移を防ぐ
-                    e.stopPropagation(); // クリックイベントの伝播を防ぐ
-                    handleRemoveEvent(ev.eventId);
-                  }} /></p>
-                  <ul className={styles.scheduleUl}>
-                    {ev.schedules?.length > 0 ? (
-                      <>
-                        {ev.schedules.slice(0, 5).map((schedule, index) => (
-                          <li key={index} className={styles.schedule}>
-                            {new Date(schedule.date).toLocaleDateString("ja-JP", {
-                              year: "numeric",
-                              month: "numeric",
-                              day: "numeric",
-                              weekday: "short",
-                            })}{" "}
-                            - {schedule.time}
-                          </li>
-                        ))}
-                        {ev.schedules.length > 4 && (
-                          <li className={styles.moreSchedules}>その他候補{ev.schedules.length - 4} 件</li>
-                        )}
-                      </>
-                    ) : (
-                      <li>スケジュールなし</li>
-                    )}
-                  </ul>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <History/>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <h2 className={styles.modalTitle}>エラーが発生しました。も一度お試しいただくか以下のフォームよりお問い合わせください</h2>
         <p className={styles.modalText}> <Link target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" className={styles.link}>お問い合わせ</Link></p>

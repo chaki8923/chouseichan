@@ -1,0 +1,126 @@
+
+.cookieWrapper {
+    position: relative;
+    margin-bottom: 8px;
+  }
+  
+  .cookieData {
+    color: #333;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  
+  .cookieEvent {
+    padding: 12px;
+    width: 440px;
+    border: #E195AB solid 2px;
+    display: block;
+    text-align: center;
+    transition: .3s;
+    height: 100%;
+    position: relative;
+  }
+  
+  .cookieEvent:hover {
+    background: #ffeff3;
+    transition: .3s;
+  }
+  
+  
+  .cookieContent{
+    width: 70%;
+    margin: auto;
+  }
+  .cookieContainer {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  
+  @media (max-width: 428px) {
+    .cookieEvent {
+      width: 90%;
+      margin: auto;
+    }
+  
+  
+  }
+  
+  @media (max-width: 428px) {
+  
+    .cookieContainer {
+      display: block;
+      width: 100%;
+    }
+  
+    .cookieContent{
+      width: 100%;
+      margin: auto;
+    }
+  
+  }
+  
+  .trash {
+    color: #333;
+    transition: .2s;
+    padding: 4px;
+    width: 25px;
+    height: 25px;
+  }
+  
+  .trash:hover {
+    border-radius: 50%;
+    background-color: #fdc4d4;
+    color: #AF1740;
+    // padding: 4px;
+    width: 25px;
+    height: 25px;
+    transition: .2s;
+  }
+  
+  .cookieTitle {
+    position: relative;
+    background: #E195AB;
+    box-shadow: 0px 0px 0px 5px #E195AB;
+    border: dashed 2px white;
+    padding: 0.4em 0.5em;
+    text-align: center;
+    margin: 40px auto;
+    color: #454545;
+  }
+  
+  @media (max-width: 428px) {
+  
+    .cookieTitle {
+      width: 90%;
+    }
+  
+  }
+  
+  .cookieTitle:after {
+    position: absolute;
+    content: '';
+    left: -7px;
+    top: -7px;
+    border-width: 0 0 15px 15px;
+    border-style: solid;
+    border-color: #FFEDFA #FFEDFA #E195AB;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);
+  }
+  
+  .scheduleUl {
+    column-gap: 1%;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  
+  .schedule {
+    color: #333;
+    font-size: 11px;
+    border: 1px #8b8585 solid;
+    padding: 4px;
+  }

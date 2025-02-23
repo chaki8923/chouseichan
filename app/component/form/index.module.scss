@@ -1,10 +1,10 @@
-
-.scheduleForm{
+.scheduleForm {
   // border: #ed9ad6 solid 2px;
   position: relative;
   display: flex;
   justify-content: center;
 }
+
 .none {
   display: none;
 }
@@ -70,7 +70,7 @@
   padding: 6px;
 }
 
-.formTextarea{
+.formTextarea {
   width: 100%;
   height: 120px;
   border: solid 1px #b5b1b1;
@@ -83,12 +83,16 @@
 }
 
 .formH2 {
-  padding: 0.25em 0.5em; /*上下 左右の余白*/
-  color: #494949; /*文字色*/
+  padding: 0.25em 0.5em;
+  /*上下 左右の余白*/
+  color: #494949;
+  /*文字色*/
   font-size: 16px;
   font-weight: bold;
-  background: transparent; /*背景透明に*/
-  border-left: solid 5px #de7c7d; /*左線*/
+  background: transparent;
+  /*背景透明に*/
+  border-left: solid 5px #de7c7d;
+  /*左線*/
   margin-bottom: 6px;
 }
 
@@ -100,6 +104,7 @@
   background-color: #af1740;
   color: #fff;
 }
+
 .tagNoRequire {
   padding: 4px;
   margin-left: 4px;
@@ -115,6 +120,7 @@
   align-items: center;
   border-color: #b5b1b1;
 }
+
 .formInputDate {
   padding: 6px;
   width: 240px;
@@ -161,6 +167,7 @@
   display: flex;
   align-items: center;
 }
+
 //https://colorhunt.co/palette/740938af1740cc2b52de7c7d
 
 
@@ -171,24 +178,24 @@
   opacity: 0;
 }
 
-.cropArea{
+.cropArea {
   width: 340px;
   margin-top: 14px;
 }
 
-.formInputDate::-webkit-inner-spin-button{
+.formInputDate::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
 
-.formInputDate::-webkit-clear-button{
+.formInputDate::-webkit-clear-button {
   -webkit-appearance: none;
 }
 
-.formInputDate{
+.formInputDate {
   position: relative;
 }
 
-.formSubmit{
+.formSubmit {
   border-radius: 9999;
   bottom: -6rem;
   width: 100%;
@@ -207,143 +214,23 @@
   }
 }
 
-.memoCount{
+.memoCount {
   color: #333;
 }
-.memoCount__valid{
+
+.memoCount__valid {
   color: #e34c4c;
 }
 
 
-.disabled{
+.disabled {
   cursor: default;
   background-color: #cccacb;
   color: #333;
 }
 
-.enableSubmit:hover{
+.enableSubmit:hover {
   transition: .3s;
   background-color: #E195AB;
 
-}
-.cookieWrapper{
-  position: relative;
-  margin-bottom: 8px;
-}
-
-.cookieData{
-  color: #333;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.cookieEvent{
-  padding: 12px;
-  width: 440px;
-  border: #E195AB solid 2px;
-  display: block;
-  text-align: center;
-  transition: .3s;
-  position: relative;
-}
-
-.cookieEvent:hover{
-  background: #ffeff3;
-  transition: .3s;
-}
-
-
-@media (max-width: 428px) {
-  .cookieEvent{
-    width: 90%;
-    margin: auto;
-  }
-
-
-.cookieContainer{
-  display: block;
-}
-
-}
-
-
-.cookieContainer{
-  display: flex;
-  justify-content: space-evenly;
-  margin-bottom: 60px;
-  flex-wrap: wrap;
-}
-
-
-@media (max-width: 428px) {
-
-  .cookieContainer{
-    display: block;
-  }
-
-}
-
-.trash{
-  color: #333;
-  transition: .2s;
-  padding: 4px;
-  width: 25px;
-  height: 25px;
-}
-
-.trash:hover{
-  border-radius: 50%;
-  background-color: #fdc4d4;
-  color: #AF1740;
-  // padding: 4px;
-  width: 25px;
-  height: 25px;
-  transition: .2s;
-}
-
-.cookieTitle {
-  position: relative;
-  background: #E195AB;
-  box-shadow: 0px 0px 0px 5px #E195AB;
-  border: dashed 2px white;
-  padding: 0.4em 0.5em;
-  text-align: center;
-  width: 70%;
-  margin: 40px auto;
-  color: #454545;
-}
-
-@media (max-width: 428px) {
-
-  .cookieTitle{
-    width: 90%;
-  }
-
-}
-
-.cookieTitle:after {
-  position: absolute;
-  content: '';
-  left: -7px;
-  top: -7px;
-  border-width: 0 0 15px 15px;
-  border-style: solid;
-  border-color: #FFEDFA #FFEDFA #E195AB;
-  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);
-}
-
-.scheduleUl{
-  display: flex;
-  justify-content: space-between;
-  text-wrap: wrap;
-}
-
-.schedule{
-  color: #333;
-  font-size: 11px;
-  border: 1px #8b8585 solid;
-  padding: 4px;
 }
