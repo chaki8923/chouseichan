@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import CropImg from "./cropper";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
-import { setOwnerEvent, getEventList, removeEvent } from "@/app/utils/strages";
+import { setOwnerEvent} from "@/app/utils/strages";
 import Link from "next/link";
 import History from "../strage/history";
 import Modal from "../modal/modal";

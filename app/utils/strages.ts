@@ -71,7 +71,6 @@ export function removeEvent(eventId: string) {
 
   if (updatedEvents.length === 0) {
     localStorage.removeItem("events");
-    localStorage.removeItem("ownerEvents");
   } else {
     localStorage.setItem("events", JSON.stringify(updatedEvents));
   }
