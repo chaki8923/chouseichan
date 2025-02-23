@@ -33,7 +33,7 @@ export default function Form() {
       try {
         setEvents(eventString);
         console.log("events", eventString);
-        
+
       } catch (error) {
         console.error("Failed to parse events cookie:", error);
       }
@@ -294,17 +294,22 @@ export default function Form() {
                   }} /></p>
                   <ul className={styles.scheduleUl}>
                     {ev.schedules?.length > 0 ? (
-                      ev.schedules.map((schedule, index) => (
-                        <li key={index} className={styles.schedule}>
-                          {new Date(schedule.date).toLocaleDateString("ja-JP", {
-                            year: "numeric",
-                            month: "numeric",
-                            day: "numeric",
-                            weekday: "short",
-                          })}{" "}
-                          - {schedule.time}
-                        </li>
-                      ))
+                      <>
+                        {ev.schedules.slice(0, 5).map((schedule, index) => (
+                          <li key={index} className={styles.schedule}>
+                            {new Date(schedule.date).toLocaleDateString("ja-JP", {
+                              year: "numeric",
+                              month: "numeric",
+                              day: "numeric",
+                              weekday: "short",
+                            })}{" "}
+                            - {schedule.time}
+                          </li>
+                        ))}
+                        {ev.schedules.length > 4 && (
+                          <li className={styles.moreSchedules}>その他候補{ev.schedules.length - 4} 件</li>
+                        )}
+                      </>
                     ) : (
                       <li>スケジュールなし</li>
                     )}
