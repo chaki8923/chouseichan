@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import CropImg from "./cropper";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
-import { setOwnerEventCookie, getEventCookie, removeEventCookie } from "@/app/utils/cookies";
+import { setOwnerEvent, getEventList, removeEvent } from "@/app/utils/strages";
 import Link from "next/link";
 import Modal from "../modal/modal";
 import SpinLoader from "../loader/spin";
@@ -29,9 +29,11 @@ export default function Form() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const eventString = getEventCookie() ?? "[]";
+      const eventString = getEventList() ?? "[]";
       try {
         setEvents(eventString);
+        console.log("events", eventString);
+        
       } catch (error) {
         console.error("Failed to parse events cookie:", error);
       }
@@ -139,7 +141,7 @@ export default function Form() {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
         setLoading(false)
-        setOwnerEventCookie(eventId, result.name, result.schedules)
+        setOwnerEvent(eventId, result.name, result.schedules)
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {
@@ -157,7 +159,7 @@ export default function Form() {
 
   // 指定した eventId のイベントを削除
   const handleRemoveEvent = (eventId: string) => {
-    removeEventCookie(eventId);
+    removeEvent(eventId);
     setEvents(prev => prev.filter(ev => ev.eventId !== eventId)); // 画面上も即時更新
   };
 

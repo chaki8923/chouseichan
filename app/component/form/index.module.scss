@@ -228,6 +228,7 @@
 }
 .cookieWrapper{
   position: relative;
+  margin-bottom: 8px;
 }
 
 .cookieData{
@@ -273,6 +274,7 @@
   display: flex;
   justify-content: space-evenly;
   margin-bottom: 60px;
+  flex-wrap: wrap;
 }
 
 

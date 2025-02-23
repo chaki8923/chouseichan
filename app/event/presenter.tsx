@@ -18,7 +18,7 @@ import { Event } from "@/types/event";
 import Form from "./form";
 import Modal from "../component/modal/modal";
 import SpinLoader from "../component/loader/spin";
-import { isEventOwner, addEventToCookie } from "@/app/utils/cookies";
+import { isEventOwner, addEvent } from "@/app/utils/strages";
 import { FaRegCopy } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -167,7 +167,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // 初回と更新時にデータ取得
   const fetchSchedules = async () => {
     const data = await fetchEventWithSchedules(eventId);
-    addEventToCookie({eventId: eventId, eventName: data.name, schedules: data.schedules })
+    addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules })
     setEventData(data);
   };
 
@@ -206,15 +206,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           <p className={styles.eventLink} onClick={() => handleCopyLink(eventData.id)}><FaRegCopy className={styles.copyIcon} />{`${baseUrl}/event?eventId=${eventData.id}`}</p>
           <h1 className={styles.eventName}>{eventData.name}</h1>
           <section className={styles.eventTitleSection}>
-            {eventData.image && (
-              <Image src={eventData.image}
-                width={50}
-                height={50}
-                alt="Event Crop Image" />
-            )}
             {eventData.memo && (
-
-              <h2 className={styles.memo}>{eventData.memo}</h2>
+              <>
+                <Image src={eventData.image ? eventData.image : '/default.png'}
+                  width={50}
+                  height={50}
+                  alt="Event Crop Image" />
+                <h2 className={styles.memo}>{eventData.memo}</h2>
+              </>
             )}
           </section>
 
