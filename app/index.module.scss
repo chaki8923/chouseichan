@@ -25,6 +25,19 @@
   padding: 20px;
 }
 
+
+.description{
+  width: 620px;
+  background-color: #fff;
+  color: #333;
+  padding: 18px;
+  margin-left: 48px;
+  font-size: 11px;
+}
+
+.privacy{
+  text-decoration: underline;
+}
 .nav {
   display: flex;
   justify-content: center;
@@ -68,6 +81,16 @@
     display: block;
     text-align: left;
     padding: 4px 0;
+  }
+
+  .description{
+    width: 100%;
+    margin-left: 0;
+    padding: 4px;
+  }
+
+  .header{
+    margin-bottom: 0;
   }
 }
 

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "調整ちゃん | 日程登録",
-  description: "たったの2ステップでイベント登録",
+  description: "たったの2ステップでイベント登録。本アプリは、Googleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。",
   keywords: ["イベント", "スケジュール", "調整", "日程調整"],
   robots: "index, follow",
   openGraph: {
