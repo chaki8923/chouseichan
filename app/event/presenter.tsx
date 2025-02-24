@@ -40,6 +40,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isCopyModal, setIsCopyModal] = useState(false);
   const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
+  const [isOrganizer, setIsOrganizer] = useState(false);
   // const searchParams = useSearchParams();
   // const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -74,8 +75,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     fetchSchedules(); // 初回ロード時に取得
   }, []);
 
+  
+  useEffect(() => {
+    if (eventId) {
+      setIsOrganizer(isEventOwner(eventId)); // ✅ クライアントサイドで実行
+    }
+  }, [eventId]);
+
   if (!eventId) return <p>イベントidがありません</p>
-  const isOrganizer = eventId ? isEventOwner(eventId) : false; // ✅ 主催者判定
+
+  
 
   async function fetchEventWithSchedules(eventId: string) {
     try {

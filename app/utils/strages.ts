@@ -50,8 +50,9 @@ export function addEvent(newEvent: Event) {
   localStorage.setItem("events", JSON.stringify(events));
 }
 
-// ✅ 指定の eventId のオーナーかどうか判定
 export function isEventOwner(eventId: string): boolean {
+  if (typeof window === "undefined") return false; // ✅ サーバーなら false を返す
+
   const eventsString = localStorage.getItem("ownerEvents") ?? "[]";
   let events: { eventId: string; eventName: string }[] = [];
 

@@ -1,0 +1,23 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "shukketuchan"
+main = "app/layout.tsx"
+compatibility_date = "2024-05-29"
+compatibility_flags = ["nodejs_compat"]
+minify = true
+
+# Automatically place your workloads in an optimal location to minimize latency.
+# If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
+# rather than the end user may result in better performance.
+# Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+[placement]
+mode = "smart"
+
+# Bind a KV Namespace. Use KV as persistent storage for small key-value pairs.
+# Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#kv-namespaces
+[[kv_namespaces]]
+binding = "KV"
+id = "d75754623343429e8326284206c010f9"
+
+[observability]
+enabled = true
+head_sampling_rate = 1 # optional. default = 1.
