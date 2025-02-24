@@ -1,4 +1,3 @@
-
 // import { PrismaClient } from "@prisma/client/edge";
 // import { withAccelerate } from "@prisma/extension-accelerate";
 
@@ -27,17 +26,24 @@ import { PrismaClient as PrismaClientEdge } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { PrismaClient as PrismaClientNormal } from "@prisma/client";
 
-declare global {
-  var prismaGlobal: ReturnType<typeof prismaClientSingleton> | undefined;
-  var prisma: PrismaClientNormal | undefined;
-}
-
 const prismaClientSingleton = () => {
   return new PrismaClientEdge().$extends(withAccelerate());
 };
 
-export const prisma =
-  process.env.NODE_ENV === "production"
-    ? prismaGlobal ?? (prismaGlobal = prismaClientSingleton())
-    : globalThis.prisma ?? (globalThis.prisma = new PrismaClientNormal());
+// グローバル変数を型安全に管理
+const getPrismaInstance = () => {
+  if (process.env.NODE_ENV === "production") {
+    if (!("prismaGlobal" in globalThis)) {
+      (globalThis as any).prismaGlobal = prismaClientSingleton();
+    }
+    return (globalThis as any).prismaGlobal;
+  } else {
+    if (!("prisma" in globalThis)) {
+      (globalThis as any).prisma = new PrismaClientNormal();
+    }
+    return (globalThis as any).prisma;
+  }
+};
 
+// `export` はトップレベルで行う
+export const prisma = getPrismaInstance();
