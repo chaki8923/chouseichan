@@ -261,6 +261,7 @@ export default function Form() {
         <h2 className={styles.modalTitle}>エラーが発生しました。も一度お試しいただくか以下のフォームよりお問い合わせください</h2>
         <p className={styles.modalText}> <Link target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" className={styles.link}>お問い合わせ</Link></p>
       </Modal>
+      
     </>
   )
 
