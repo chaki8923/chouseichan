@@ -31,6 +31,7 @@ const getPrismaAccelerate = async ({
         singleInstance: true,
         secret,
         adapter: getAdapter,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         getRuntime: () => require('@prisma/client/runtime/query_engine_bg.postgresql.js'),
         getQueryEngineWasmModule: async () => WASM,
         getPrismaClient,
