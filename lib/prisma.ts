@@ -26,22 +26,25 @@ import { PrismaClient as PrismaClientEdge } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { PrismaClient as PrismaClientNormal } from "@prisma/client";
 
+// globalThis の型を拡張
+interface GlobalPrisma {
+  prismaGlobal?: ReturnType<typeof prismaClientSingleton>;
+  prisma?: PrismaClientNormal;
+}
+
+declare const globalThis: GlobalPrisma;
+
 const prismaClientSingleton = () => {
   return new PrismaClientEdge().$extends(withAccelerate());
 };
 
-// グローバル変数を型安全に管理
 const getPrismaInstance = () => {
   if (process.env.NODE_ENV === "production") {
-    if (!("prismaGlobal" in globalThis)) {
-      (globalThis as any).prismaGlobal = prismaClientSingleton();
-    }
-    return (globalThis as any).prismaGlobal;
+    globalThis.prismaGlobal = globalThis.prismaGlobal ?? prismaClientSingleton();
+    return globalThis.prismaGlobal;
   } else {
-    if (!("prisma" in globalThis)) {
-      (globalThis as any).prisma = new PrismaClientNormal();
-    }
-    return (globalThis as any).prisma;
+    globalThis.prisma = globalThis.prisma ?? new PrismaClientNormal();
+    return globalThis.prisma;
   }
 };
 
