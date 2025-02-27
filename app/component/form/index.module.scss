@@ -21,11 +21,21 @@
 
 .croppedImage {
   margin-top: 6px;
-  border: #de7c7d solid 2px;
-  border-radius: 9999;
+  width: 200px;
 
 }
 
+.gray{
+  color: #333;
+}
+
+.none{
+  display: none;
+}
+
+.block{
+  display: block;
+}
 
 .form {
   display: flex;
@@ -179,7 +189,7 @@
 }
 
 .cropArea {
-  width: 340px;
+  // width: 340px;
   margin-top: 14px;
 }
 

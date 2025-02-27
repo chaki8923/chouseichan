@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"; // Prisma クライアントをインポート
+import { prisma } from "@/libs/prisma"; // Prisma クライアントをインポート
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 

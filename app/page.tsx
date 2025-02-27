@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <>
       <div className={styles.container}>
-        <Form />
+        <Form categoryName="イベント"/>
       </div>
     </>
   );

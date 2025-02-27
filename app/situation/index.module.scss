@@ -1,0 +1,71 @@
+.blogContainer{
+    width: 70%;
+    margin: auto;
+    margin-top: 80px;
+    margin-bottom: 40px;
+
+}
+
+.categoryTitle{
+    padding: 0.25em 0.5em;/*上下 左右の余白*/
+    color: #494949;/*文字色*/
+    background: transparent;/*背景透明に*/
+    border-left: solid 5px #DE3163;/*左線*/
+    margin-bottom: 16px;
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.description{
+    color: #333;
+    font-weight: bold;
+}
+
+
+.descriptionContainer{
+    padding: 8px;
+    margin-bottom: 40px;
+}
+
+.blogUl{
+    display: flex;
+    justify-content: space-around;
+    gap: 12px;
+    
+}
+
+.blogTitle{
+    color: #333;
+}
+.blogList{
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+.eyeCatch{
+    height: 100%;
+    object-fit: contain;
+}
+
+.tagList{
+    display: flex;
+    gap: 5px;
+}
+.tagItem{
+    padding: 4px;
+    color: #fff;
+    width: fit-content;
+    background-color: rgba(239, 88, 113, 0.6);
+    
+}
+
+.imageWrapper{
+    width: 420px;
+    height: 320px;
+    overflow: hidden;
+}

@@ -1,0 +1,50 @@
+.blogPage{
+    height: 100vh;
+}
+
+.blogListTitle{
+ padding: 0.4em 0.5em;/*文字の上下 左右の余白*/
+  color: #494949;/*文字色*/
+  background: #f4f4f4;/*背景色*/
+  border-left: solid 5px #7db4e6;/*左線*/
+  border-bottom: solid 3px #d7d7d7;/*下線*/
+}
+
+.blogListContainer{
+    padding: 8px;
+    color: #333;
+}
+
+.blogLink{
+ color: #fff;
+ transform: .2s;
+}
+
+.blogLink:hover{
+ color: #fff;
+ text-decoration: underline;
+ transition: .2s;
+}
+
+.blogList{
+  font-size: 12px;
+}
+
+.situationFooter{
+background-color: #DE3163;
+color: #fff;
+padding: 20px;
+}
+
+.situationTitle{
+  font-size: 18px;
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.situationUl{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}

@@ -25,10 +25,12 @@ export function ConfirmScheduleButton({ scheduleId, eventId, buttonText, onConfi
   };
 
   return (
+    <>
     
     <button className={styles.confirmBtn} onClick={handleConfirm} disabled={loading}>
       {loading ? "処理中..." : <span className={styles.confirmText}>{buttonText}</span>}
     </button>
+    </>
 
   );
 }

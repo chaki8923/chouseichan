@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import CropImg from "./cropper";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
-import { setOwnerEvent} from "@/app/utils/strages";
+import { setOwnerEvent } from "@/app/utils/strages";
 import Link from "next/link";
 import History from "../strage/history";
 import Modal from "../modal/modal";
@@ -15,8 +15,7 @@ import { CgAddR, CgCloseO } from "react-icons/cg";
 import styles from "./index.module.scss"
 
 
-
-export default function Form() {
+export default function Form({ categoryName }: { categoryName: string }) {
   const [isSubmit, setIsSubmit] = useState(false);
   const [schedules, setSchedules] = useState([
     { id: Date.now(), date: '', time: '17:00' }, // 初期のスケジュールデータ
@@ -24,7 +23,6 @@ export default function Form() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-
 
   const methods = useForm<ScheduleSchemaType>({
     mode: 'onChange',
@@ -164,9 +162,9 @@ export default function Form() {
       <FormProvider {...methods} >
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 ${styles.scheduleForm}`}>
           <div className={styles.formContent}>
-            <h2 className={styles.formH2}>STEP1: イベント名登録</h2>
+            <h2 className={styles.formH2}>STEP1: {categoryName}登録</h2>
             <div className={styles.formInner}>
-              <p className="text-gray-600">イベント名<span className={styles.tagRequire}>必須</span></p>
+              <p className="text-gray-600">{categoryName}名<span className={styles.tagRequire}>必須</span></p>
               <input
                 type="text"
                 className={styles.formInput}
@@ -256,12 +254,11 @@ export default function Form() {
           </div>
         </form>
       </FormProvider>
-      <History/>
+      <History />
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <h2 className={styles.modalTitle}>エラーが発生しました。も一度お試しいただくか以下のフォームよりお問い合わせください</h2>
         <p className={styles.modalText}> <Link target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" className={styles.link}>お問い合わせ</Link></p>
       </Modal>
-      
     </>
   )
 
