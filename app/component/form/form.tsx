@@ -159,6 +159,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   return (
     <>
+      <h1 className={styles.categoryTitle}>{categoryName}の予定も調整ちゃんで簡単2ステップ</h1>
       <FormProvider {...methods} >
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 ${styles.scheduleForm}`}>
           <div className={styles.formContent}>

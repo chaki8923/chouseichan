@@ -83,3 +83,30 @@
     height: 220px;
     overflow: hidden;
 }
+
+
+/* スマホ対応 */
+@media (max-width: 768px) {
+    .blogContainer {
+        width: 100%;
+
+    }
+
+    .blogUl {
+        display: block;
+
+    }
+    .blogList {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    .imageWrapper {
+        width: 100%;
+    }
+
+    .blogTitle {
+        padding-left: 8px;
+        padding-bottom: 0;
+    }
+}

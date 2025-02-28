@@ -25,15 +25,15 @@
 
 }
 
-.gray{
+.gray {
   color: #333;
 }
 
-.none{
+.none {
   display: none;
 }
 
-.block{
+.block {
   display: block;
 }
 
@@ -217,11 +217,49 @@
   transition: .3s;
 }
 
+.categoryTitle {
+  width: fit-content;
+  text-align: center;
+  color: #333;
+  margin: auto;
+  font-size: 28px;
+  margin-bottom: 30px;
+  position: relative;
+  font-weight: bold;
+  padding-left: 25px;
+}
+
+.categoryTitle::before {
+  position: absolute;
+  content: '';
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border: none;
+  border-left: solid 15px transparent;
+  border-bottom: solid 15px #DE3163;
+}
+
+.categoryTitle::after {
+  position: absolute;
+  content: '';
+  bottom: -3px;
+  left: 10px;
+  width: 100%;
+  border-bottom: solid 3px #DE3163;
+}
+
 
 @media (max-width: 428px) {
   .formSubmit {
     bottom: -20px;
   }
+
+.categoryTitle::after {
+  width: 90%;
+}
+
 }
 
 .memoCount {
