@@ -4,8 +4,9 @@ import { getBlogPosts } from '@/app/utils/getBlogPosts';
 import Form from '../component/form/form';
 import styles from "./index.module.scss";
 
+
 interface PageProps {
-    searchParams: Record<string, string | string[] | undefined>;
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 type Blog = {
@@ -24,8 +25,9 @@ type Blog = {
     tags: { id: string; name: string; }[]
 };
 
-export async function generateMetadata({ searchParams }: PageProps ): Promise<Metadata> {
-    const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId : undefined;
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+    const params = await searchParams;
+    const categoryId = typeof params.categoryId === "string" ? params.categoryId : undefined;
 
     if (!categoryId) {
         return {
@@ -56,7 +58,8 @@ export async function generateMetadata({ searchParams }: PageProps ): Promise<Me
 }
 
 export default async function Page({ searchParams }: PageProps) {
-    const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId  : undefined;
+    const params = await searchParams;
+    const categoryId = typeof params.categoryId === "string" ? params.categoryId : undefined;
 
     if (!categoryId) {
         return <p>カテゴリーIDが指定されていません</p>;
