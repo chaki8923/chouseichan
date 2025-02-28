@@ -4,8 +4,8 @@ import { getBlogPosts } from '@/app/utils/getBlogPosts';
 import Form from '../component/form/form';
 import styles from "./index.module.scss";
 
-interface SearchParams {
-    categoryId?: string;
+interface PageProps {
+    searchParams: Record<string, string | string[] | undefined>;
 }
 
 type Blog = {
@@ -24,7 +24,7 @@ type Blog = {
     tags: { id: string; name: string; }[]
 };
 
-export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: PageProps ): Promise<Metadata> {
     const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId : undefined;
 
     if (!categoryId) {
@@ -55,7 +55,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
     };
 }
 
-export default async function Page({ searchParams }: { searchParams: SearchParams }) {
+export default async function Page({ searchParams }: PageProps) {
     const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId  : undefined;
 
     if (!categoryId) {
