@@ -24,11 +24,6 @@ type Blog = {
     tags: { id: string; name: string; }[]
 };
 
-type PageProps = {
-    searchParams: SearchParams;
-    posts: Blog[];
-};
-
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
     const categoryId = searchParams.categoryId;
 
