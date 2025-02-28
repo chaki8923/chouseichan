@@ -25,7 +25,7 @@ type Blog = {
 };
 
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
-    const categoryId = searchParams.categoryId;
+    const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId : undefined;
 
     if (!categoryId) {
         return {
@@ -56,7 +56,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
 }
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {
-    const categoryId = searchParams.categoryId;
+    const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId  : undefined;
 
     if (!categoryId) {
         return <p>カテゴリーIDが指定されていません</p>;
