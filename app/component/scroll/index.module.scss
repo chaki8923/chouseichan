@@ -1,16 +1,16 @@
 .arrows {
     position: absolute;
     font-size: 40px;
-    right: 5%;
-    bottom: 20px;
+    right: 1%;
+    top: 90px;
     display: flex;
     cursor: pointer;
 }
 
 @media (max-width: 428px) {
     .arrows {
-        left: 240px;
-        bottom: 20px;
+        right: 0px;
+        top: 90px;
     }
 }
 
