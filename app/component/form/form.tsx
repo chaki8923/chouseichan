@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import CropImg from "./cropper";
+import CropImg from "./sample";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
 import { setOwnerEvent } from "@/app/utils/strages";
@@ -13,6 +13,7 @@ import Modal from "../modal/modal";
 import SpinLoader from "../loader/spin";
 import { CgAddR, CgCloseO } from "react-icons/cg";
 import styles from "./index.module.scss"
+
 
 
 export default function Form({ categoryName }: { categoryName: string }) {
@@ -95,7 +96,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   const [childCropData, setChildCropData] = useState<string>(''); // 子から受け取るデータを保持
   // 子から受け取ったデータを更新する関数
-  const handleChildData = (data: string) => {
+  const handleChildData = (data: string) => {    
     setChildCropData(data);
   };
 

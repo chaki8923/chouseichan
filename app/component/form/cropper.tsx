@@ -46,27 +46,25 @@ const CropImg = (props: onDataChange) => {
       canvas.height = crop.height;
       const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
       ctx.beginPath();
-      ctx.arc(
-        canvas.width / 2,
-        canvas.height / 2,
-        canvas.width / 2,
-        0,
-        2 * Math.PI,
-        false
-      );
+      
       ctx.clip();
 
       const img = await loadImage(objectUrl);
+      const scaleX = img.naturalWidth / img.width;
+      const scaleY = img.naturalHeight / img.height;
+      const pixelRatio = window.devicePixelRatio;
+      canvas.width = (crop?.width ?? 0) * scaleX * pixelRatio;
+      canvas.height = (crop?.height ?? 0) * scaleY * pixelRatio;
       ctx.drawImage(
         img,
-        crop.x,
-        crop.y,
-        crop.width,
-        crop.height,
+        (crop?.x ?? 0) * scaleX,
+        (crop?.y ?? 0) * scaleY,
+        (crop?.width ?? 0) * scaleX,
+        (crop?.height ?? 0) * scaleY,
         0,
         0,
-        crop.width,
-        crop.height
+        (crop?.width ?? 0) * scaleX,
+        (crop?.height ?? 0) * scaleY
       );
 
       canvas.toBlob((result) => {
@@ -116,7 +114,7 @@ const CropImg = (props: onDataChange) => {
             crop={crop}
             onChange={(c) => setCrop(c)}
             aspect={1}
-            circularCrop={true}
+            // circularCrop={true}
             keepSelection={true}
           >
             <img src={objectUrl} alt="" style={{ width: "100%" }} />

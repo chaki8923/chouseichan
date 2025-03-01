@@ -3,18 +3,20 @@ import ReactCrop, { Crop, PixelCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import styles from "./index.module.scss";
 
-type Props = {
-  onDataChange: (data: string) => void;
+// Props の型定義
+type onDataChange = {
+  onDataChange: (data: string) => void; // 親に通知する関数の型
+  isSubmit: boolean;
 };
 
-const CropImg = ({ onDataChange }: Props) => {
+const CropImg = (props: onDataChange) => {
   const [imgSrc, setImgSrc] = useState<string | undefined>();
   const [crop, setCrop] = useState<Crop>({
     unit: "%",
     x: 25,
     y: 25,
-    width: 50,
-    height: 50,
+    width: 100,
+    height: 100,
     // aspect: 1, // 必ず正方形
   });
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -71,7 +73,7 @@ const CropImg = ({ onDataChange }: Props) => {
 
       // Base64で出力
       const croppedDataUrl = canvas.toDataURL("image/png");
-      onDataChange(croppedDataUrl);
+      props.onDataChange(croppedDataUrl);
     }
   };
 
@@ -83,7 +85,6 @@ const CropImg = ({ onDataChange }: Props) => {
           crop={crop}
           onChange={(newCrop) => setCrop(newCrop)}
           onComplete={onCropComplete}
-          circularCrop={true} // UI的には円形
           aspect={1}
         >
           <img ref={imgRef} alt="Crop" src={imgSrc} />

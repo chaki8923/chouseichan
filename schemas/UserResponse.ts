@@ -12,7 +12,7 @@ export const UserResponseSchema = z.object({
     .max(30, { message: "名は30文字以内で入力してください" }),
   comment: z
     .string()
-    .max(30, { message: "コメントは30文字以内で入力してください" }),
+    .max(50, { message: "コメントは50文字以内で入力してください" }),
   schedules: z
     .array(
       z.object({
