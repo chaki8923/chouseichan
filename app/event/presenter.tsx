@@ -362,8 +362,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   ))}
                 </tr>
               </tbody>
-              <Scroll containerRef={containerRef} />
             </table>
+            <Scroll containerRef={containerRef} />
             {accessToken ?
               <CreateEventButton accessToken={accessToken} refreshToken={refreshToken} confirmedSchedule={confirmedSchedule} event={eventData} /> :
               <SigninButton />

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import CropImg from "./sample";
+import CropImg from "./cropper";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
 import { setOwnerEvent } from "@/app/utils/strages";
@@ -19,7 +19,7 @@ import styles from "./index.module.scss"
 export default function Form({ categoryName }: { categoryName: string }) {
   const [isSubmit, setIsSubmit] = useState(false);
   const [schedules, setSchedules] = useState([
-    { id: Date.now(), date: '', time: '17:00' }, // 初期のスケジュールデータ
+    { id: Date.now(), date: '', time: '19:00' }, // 初期のスケジュールデータ
   ]);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const AddSchedule = () => {
     setSchedules((prevSchedules) => [
       ...prevSchedules,
-      { id: Date.now(), date: '', time: '17:00' },
+      { id: Date.now(), date: '', time: '19:00' },
     ]);
   };
 

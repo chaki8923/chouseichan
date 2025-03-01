@@ -1,26 +1,23 @@
 .arrows {
-    width: 60px;
-    height: 72px;
     position: absolute;
-    left: 60%;
-    margin-left: -30px;
-    bottom: 15%;
-    transform: rotate(270deg);
+    font-size: 40px;
+    right: 5%;
+    bottom: 20px;
+    display: flex;
+    cursor: pointer;
 }
 
 @media (max-width: 428px) {
     .arrows {
-        left: 270px;
-        bottom: 10%;
+        left: 240px;
+        bottom: 20px;
     }
 }
 
-.arrows path {
-    stroke: #de3163;
-    fill: transparent;
-    stroke-width: 2px;
-    animation: arrow 1.5s infinite;
-    -webkit-animation: arrow 1.5s infinite;
+.arrows .path {
+    color: #de3163;
+    animation: arrow 3s infinite;
+    -webkit-animation: arrow 3s infinite;
 }
 
 @keyframes arrow {
@@ -62,19 +59,19 @@
     }
 }
 
-.arrows path.a1 {
+.arrows .path.a1 {
     animation-delay: -0.5s;
     -webkit-animation-delay: -0.5s;
     /* Safari 和 Chrome */
 }
 
-.arrows path.a2 {
+.arrows .path.a2 {
     animation-delay: -0.2s;
     -webkit-animation-delay: -0.2s;
     /* Safari 和 Chrome */
 }
 
-.arrows path.a3 {
+.arrows .path.a3 {
     animation-delay: 0s;
     -webkit-animation-delay: 0s;
     /* Safari 和 Chrome */

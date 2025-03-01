@@ -69,8 +69,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
     <main className={styles.container}>
       <article className={styles.article}>
         <h1>{post.title}</h1> {/* タイトルを表示 */}
-        <img src={post.eyecatch.url} alt="" />
-        <div>作成日:{formattedDate}</div> {/* 日付を表示 */}
+        <img src={post.eyecatch.url} alt="" className={styles.eyecatch} />
+        <p>作成日:{formattedDate}</p> {/* 日付を表示 */}
         <div dangerouslySetInnerHTML={{ __html: post.body }} /> {/* 記事本文を表示 */}
       </article>
       <div className={styles.sidebar}>
