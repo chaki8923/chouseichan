@@ -13,7 +13,7 @@ export default function Scroll({ containerRef }: ScrollProps) {
         const container = containerRef.current;
 
         const isOverflowing = container.scrollWidth > container.clientWidth;
-        const isScrolledToEnd = container.scrollLeft > container.scrollWidth - container.clientWidth - 150;
+        const isScrolledToEnd = container.scrollLeft > container.scrollWidth - container.clientWidth - 650;
         setShowScroll(isOverflowing && !isScrolledToEnd);
     };
 
@@ -38,7 +38,6 @@ export default function Scroll({ containerRef }: ScrollProps) {
         <>
             {showScroll && (
                 <svg className={styles.arrows}>
-                    <path className={styles.a1} d="M0 0 L30 32 L60 0"></path>
                     <path className={styles.a2} d="M0 20 L30 52 L60 20"></path>
                     <path className={styles.a3} d="M0 40 L30 72 L60 40"></path>
                 </svg>

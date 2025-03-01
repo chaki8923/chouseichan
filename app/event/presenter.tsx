@@ -51,7 +51,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const refreshToken = user.refreshToken ?? "";
 
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     // データ取得
     const getEventData = async () => {
@@ -362,6 +362,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   ))}
                 </tr>
               </tbody>
+              <Scroll containerRef={containerRef} />
             </table>
             {accessToken ?
               <CreateEventButton accessToken={accessToken} refreshToken={refreshToken} confirmedSchedule={confirmedSchedule} event={eventData} /> :
@@ -369,7 +370,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             }
           </div>
         </div>
-        <Scroll containerRef={containerRef} />
       </div>
       <div className={styles.eventFormContainer}>
         {isCreateForm ? (
