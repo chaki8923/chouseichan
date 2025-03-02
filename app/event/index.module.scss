@@ -153,11 +153,8 @@
   margin-bottom: 5px;
 }
 
-@media (max-width: 428px) {
-  .formContent {
-    width: 100%;
-  }
-}
+
+
 
 .formInput {
   width: 100%;
@@ -401,7 +398,7 @@
   position: absolute;
   font-family: "Font Awesome 5 Free",'Quicksand','Avenir','Arial',sans-serif;
   font-weight: 900;
-  content: '\f0a7\ このイベントのURL';
+  content: '\f0a7\ クリックでコピー▶️仲間にURLを共有';
   background: #CCDF92;
   color: #333;
   left: 0px;
@@ -411,6 +408,14 @@
   font-size: 0.7em;
   line-height: 1;
   letter-spacing: 0.05em;
+}
+
+@media (max-width: 428px) {
+  .eventLink:after {
+    content: '\f0a7\ タップでコピー⇨仲間にURLを共有';
+
+  }
+
 }
 
 .copyIcon{

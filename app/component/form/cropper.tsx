@@ -60,7 +60,6 @@ export default function App(props: onDataChange) {
   const [isCrop, setIsCrop] = useState<boolean>(false);
 
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
-    console.log("入った");
     if (e.target.files && e.target.files.length > 0) {
       // setCrop(undefined) // Makes crop preview update between images.
       setIsCrop(false);
@@ -135,7 +134,6 @@ export default function App(props: onDataChange) {
 
   useDebounceEffect(
     async () => {
-      console.log("completedCrop", completedCrop);
 
       if (
         completedCrop?.width &&
