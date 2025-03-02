@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import ProgressBarComponent from "./component/progress";
+import NextTopLoader from 'nextjs-toploader';
 import Header from "./header";
 import Footer from "./footer";
 import Situation from "./component/footer/situation";
@@ -55,8 +55,8 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
+          <NextTopLoader />
           <Header />
-          <ProgressBarComponent />
           {children}
           <Situation />
           <Footer />

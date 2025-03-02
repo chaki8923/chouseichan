@@ -36,6 +36,7 @@
     "next": "15.1.4",
     "next-auth": "^5.0.0-beta.25",
     "next-nprogress-bar": "^2.4.7",
+    "nextjs-toploader": "^3.7.15",
     "prisma-accelerate-local": "^1.1.21",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
