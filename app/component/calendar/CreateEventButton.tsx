@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Schedule } from "@/types/schedule";
 import { Event } from "@/types/event";
 import { FcGoogle } from "react-icons/fc";
-import { signOut } from "next-auth/react";
+// import { signOut } from "next-auth/react";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss"
 
