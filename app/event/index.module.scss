@@ -154,8 +154,6 @@
 }
 
 
-
-
 .formInput {
   width: 100%;
   height: 30px;
@@ -414,6 +412,10 @@
   .eventLink:after {
     content: '\f0a7\ タップでコピー⇨仲間にURLを共有';
 
+  }
+
+  .formContent{
+    width: auto;
   }
 
 }
