@@ -173,7 +173,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
               <input
                 type="text"
                 className={styles.formInput}
-                placeholder="〇〇さん歓迎会！"
+                placeholder={`${categoryName}開催！`}
                 {...register('event_name')}
               />
               {errors.event_name && (
