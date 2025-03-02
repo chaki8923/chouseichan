@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
         <Link href="/rule" className={styles.link}>利用規約</Link>
         <Link href="/privacy" className={styles.link}>プライバシーポリシー</Link>
         <Link target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" className={styles.link}>お問い合わせ</Link>
-        {/* <Link href="/description" className={styles.link}>調整ちゃんとは</Link> */}
+        <Link href="/description" className={styles.link}>調整ちゃんとは</Link>
         {/* <Link href="/infomation" className={styles.link}>お知らせ</Link> */}
         <Link href="https://x.com/choseichan2025" className={styles.link} target="_blank" rel="noopener noreferrer"><FaSquareXTwitter /></Link>
       </nav>

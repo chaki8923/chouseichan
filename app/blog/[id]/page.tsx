@@ -52,8 +52,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
   const { id } = await params; // IDを取得
   const post = await getBlogPost(id);
 
-  console.log("post", post);
-
   // `generateMetadata` で取得したデータを再利用
   const relatedPosts = await getBlogPosts(post.category.id);
 

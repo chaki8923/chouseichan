@@ -1,0 +1,219 @@
+.blogTitle {
+    font-size: 32px;
+    color: #333;
+    font-weight: bold;
+}
+
+.blogH2 {
+    padding: 0.4em 0.5em;
+    /*文字の上下 左右の余白*/
+    color: #494949;
+    /*文字色*/
+    background: #f4f4f4;
+    /*背景色*/
+    border-left: solid 5px #7db4e6;
+    /*左線*/
+    border-bottom: solid 3px #d7d7d7;
+    /*下線*/
+
+}
+
+
+/* メインコンテンツのレイアウト */
+.container {
+    display: flex;
+    max-width: 1200px;
+    margin: 40px auto;
+    gap: 20px;
+}
+
+/* 記事エリア */
+.section {
+    flex: 2;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* h1タイトル */
+.section h1 {
+    font-size: 32px;
+    color: #DE3163;
+    border-bottom: 3px solid #E195AB;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* アイキャッチ画像 */
+.section .eyecatch {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* h2タグ */
+.section h2 {
+    font-size: 26px;
+    color: #DE3163;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    border-left: 5px solid #E195AB;
+    padding-left: 10px;
+}
+
+/* h2タグ */
+.section a {
+    color: rgb(18, 172, 207);
+    text-decoration: underline;
+}
+.section img {
+    border: 4px solid #e2b5b5;
+    display: block;
+    padding: 6px;
+}
+
+/* h2タグ */
+.relateTitle {
+    font-size: 18px;
+    color: #DE3163;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-left: 5px solid #E195AB;
+    padding-left: 10px;
+}
+
+/* h3タグ */
+.section h3 {
+    font-size: 22px;
+    color: #E195AB;
+    margin-top: 20px;
+}
+
+/* pタグ */
+.section p {
+    font-size: 16px;
+    color: #444;
+    margin-bottom: 12px;
+}
+
+/* サイドバー */
+.sidebar {
+    flex: 1;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+/* サイドバー */
+.sidebar h3 {
+    color: #333;
+}
+
+/* 関連ブログリスト */
+.relatedPosts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.relatedPost {
+    background: #CCDF92;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.relatedPost:hover {
+    background: #CCDF92;
+    padding: 12px;
+    border-radius: 8px;
+    background: #E195AB;
+    transform: translateY(-2px);
+    transition: 0.3s;
+}
+
+/* 各ブログカード */
+.blogCard {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+/* ブログカードのアイキャッチ画像 */
+.blogCard img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* ブログカードのテキスト */
+.blogCard .blogInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* ブログカードのタイトル */
+.blogCard .blogTitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #DE3163;
+}
+
+/* タグ */
+.tags {
+    font-size: 12px;
+    color: #555;
+    background-color: #e5eeca;
+    padding: 4px 8px;
+}
+
+/* タブレット対応 */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column-reverse;
+    }
+
+    .sidebar {
+        order: -1;
+        /* サイドバーを上に */
+        margin-bottom: 20px;
+    }
+}
+
+/* スマホ対応 */
+@media (max-width: 768px) {
+    .section h1 {
+        font-size: 28px;
+    }
+
+    .section h2 {
+        font-size: 22px;
+    }
+
+    .section h3 {
+        font-size: 18px;
+    }
+
+    .section p {
+        font-size: 14px;
+    }
+
+    .blogCard {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .blogCard img {
+        width: 100%;
+        height: auto;
+    }
+
+    .blogTitle {
+        font-size: 14px;
+    }
+}

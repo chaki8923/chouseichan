@@ -25,8 +25,6 @@ export async function getBlogPosts(categoryId: string): Promise<Blog[]> {
       filters: `category[equals]${categoryId}`,
     },
   });
-  console.log("data", data);
-  
   
   return data.contents;
 }

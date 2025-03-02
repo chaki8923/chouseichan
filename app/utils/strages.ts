@@ -56,7 +56,6 @@ export function addEvent(newEvent: Event) {
 
   // 既存のイベントがある場合はスキップ
   if (events.some(event => event.eventId === newEvent.eventId)) {
-    console.log("Event already exists in LocalStorage. Skipping...");
     return;
   }
 

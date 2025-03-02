@@ -64,7 +64,6 @@ const createResponse = async (result: Promise<unknown>) => {
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
-        console.log("入った>>>env.PRISMA_ACCELERATE_SECRET", env.PRISMA_ACCELERATE_SECRET);
 
         const prismaAccelerate = await getPrismaAccelerate({
             secret: env.PRISMA_ACCELERATE_SECRET,
@@ -74,9 +73,6 @@ export default {
         });
 
         const url = new URL(request.url);
-        console.log("URL>>>>>>", url.href);
-        console.log("Pathname>>>>>>", url.pathname);
-
         // `favicon.ico` のリクエストを無視
         if (url.pathname === "/favicon.ico") {
             return new Response("Not Found!??", { status: 404 });
@@ -84,12 +80,7 @@ export default {
 
         const paths = url.pathname.split('/').filter(Boolean);
         const command = paths[3];
-        const headers = Object.fromEntries(request.headers.entries());
-        console.log("paths.length>>>>>>", paths.length);
-        console.log("paths[1]>>>>>>", paths[1]);
-        console.log("paths[2]>>>>>>", paths[2]);
-        console.log("paths[3]>>>>>>", paths[3]); // command
-        console.log("paths[4]>>>>>>", paths[4]);
+        const headers = Object.fromEntries(request.headers.entries())
 
 
         if (request.method === 'POST') {
