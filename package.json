@@ -35,6 +35,7 @@
     "microcms-js-sdk": "^3.1.2",
     "next": "15.1.4",
     "next-auth": "^5.0.0-beta.25",
+    "next-nprogress-bar": "^2.4.7",
     "prisma-accelerate-local": "^1.1.21",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",

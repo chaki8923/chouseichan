@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import ProgressBarComponent from "./component/progress";
 import Header from "./header";
 import Footer from "./footer";
 import Situation from "./component/footer/situation";
@@ -55,6 +56,7 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <Header />
+          <ProgressBarComponent />
           {children}
           <Situation />
           <Footer />
