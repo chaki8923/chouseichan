@@ -76,9 +76,6 @@ export default function App(props: onDataChange) {
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
 
     const { width, height } = e.currentTarget
-    console.log("width", width);
-    console.log("height", height);
-
     setCrop(centerAspectCrop(width, height, 1))
   }
 
@@ -171,9 +168,10 @@ export default function App(props: onDataChange) {
           onChange={(_, percentCrop) => setCrop(percentCrop)}
           onComplete={(c) => setCompletedCrop(c)}
           aspect={1}
-          minWidth={0}
-          minHeight={0}
-        circularCrop
+          minWidth={50}
+          minHeight={50}
+          circularCrop
+          className={styles.reactCrop}
         >
           <img
             ref={imgRef}

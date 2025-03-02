@@ -131,10 +131,13 @@ export default function Form({ categoryName }: { categoryName: string }) {
       } else {
         setLoading(false)
         setIsOpen(true)
-        console.error("Error:", response.status, response.statusText);
+        alert(response.statusText)
+        // console.error("Error:", response.status, response.statusText);
       }
     } catch (error) {
-      console.error("Fetch error:", error);
+      setLoading(false)
+      setIsOpen(true)
+      alert(error)
     } finally {
       setLoading(false)
       setIsSubmit(false);

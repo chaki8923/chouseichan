@@ -20,6 +20,16 @@
   margin-top: 12px;
 }
 
+.modalTitle {
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+}
+.modalText {
+  text-align: center;
+  color: #333;
+}
+
 .croppedImage {
   margin-top: 6px;
   width: 200px;
@@ -255,6 +265,10 @@
   border-radius: 999px;
 }
 
+.reactCrop{
+  width: 290px;
+  margin: auto;
+}
 
 @media (max-width: 428px) {
   .formSubmit {
@@ -262,7 +276,7 @@
   }
 
 .categoryTitle::after {
-  width: 90%;
+  width: 95%;
 }
 
 }
