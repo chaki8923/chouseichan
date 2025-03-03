@@ -93,31 +93,34 @@ export default function Form({ categoryName }: { categoryName: string }) {
     // image: any
   }
 
-  const [childCropData, setChildCropData] = useState<string>(''); // 子から受け取るデータを保持
+  const [childCropData, setChildCropData] = useState<File | null>(null);
   // 子から受け取ったデータを更新する関数
-  const handleChildData = (data: string) => {
+  const handleChildData = (data: File) => {
+    console.log("子からきた", data);
+
     setChildCropData(data);
   };
 
   const onSubmit = async (params: FormData) => {
     setIsSubmit(true);
-    const data = {
-      event_name: params.event_name,
-      schedules: params.schedules,
-      memo: params.memo,
-      image: childCropData,
-    };
+    const formData = new FormData();
+    formData.append("event_name", params.event_name);
+    formData.append("schedules", JSON.stringify(params.schedules));
+    formData.append("memo", params.memo);
+
+    if (childCropData) {
+      formData.append("image", childCropData); // Fileとして送信
+    }
 
     reset();
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await fetch(`/api/schedule/`, {
         method: "POST",
         headers: {
-          Accept: "application/json, text/plain",
-          "Content-Type": "application/json",
+          Accept: "application/json, text/plain"
         },
-        body: JSON.stringify(data)
+        body: formData
       });
 
       if (response.ok) {

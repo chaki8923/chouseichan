@@ -13,34 +13,6 @@ type Props = {
   category: { name: string };
 };
 
-interface SearchParams {
-  categoryId?: string;
-}
-
-type Blog = {
-  id: string;
-  title: string;
-  eyecatch?: {
-      url: string;
-      height: number;
-      width: number;
-  };
-  category: {
-      id: string;
-      name: string;
-  } | null;
-  tags: {id: string; name: string;}[]
-};
-
-type PageProps = {
-  searchParams: Promise<SearchParams>;
-  id: string;
-  title: string;
-  category: {
-      id: string;
-      name: string;
-  } | null;
-};
 // microCMSから特定の記事を取得
 async function getBlogPost(id: string): Promise<Props> {
   const data = await client.get({
@@ -60,8 +32,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
           description: "指定されたイベントが存在しません。",
       };
   }
-
-  
 
   return {
       title: `${blogData.title} | 調整ちゃん`,

@@ -1,49 +1,84 @@
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
+// import { Prisma } from "@prisma/client";
 import { prisma } from "@/libs/prisma";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-
-    if (!body) {
+    if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
       return NextResponse.json(
-        { error: "リクエストボディが不正です" },
-        { status: 400 }
+        { error: "Content-Type must be multipart/form-data" },
+        { status: 400 },
       );
     }
 
-    const { event_name, schedules, image, memo } = body;
-    // バリデーション
-    if (!event_name || !schedules || schedules.length === 0) {
-      return NextResponse.json(
-        { error: "イベント名とスケジュールは必須です" },
-        { status: 400 }
+    // const formData = await request.formData();
+    const formData = await request.formData();
+
+    const event_name = formData.get("event_name") as string;
+    const schedules = JSON.parse(formData.get("schedules") as string);
+    const memo = formData.get("memo") as string;
+    const imageFile = formData.get("image") as File | null;
+    let uploadedUrl = null;
+
+    if (imageFile) {
+      // 拡張子を取得
+      const extension = imageFile.name.split(".").pop() || "jpg"; // デフォルトで "jpg"
+
+      // File をバッファに変換
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const imageBuffer = Buffer.from(arrayBuffer);
+
+      console.log(" process.env.R2_ENDPOINT",  process.env.R2_ENDPOINT);
+      console.log(" process.env.R2_ACCESS_KEY",  process.env.R2_ACCESS_KEY);
+      console.log(" process.env.R2_SECRET_KEY",  process.env.R2_SECRET_KEY);
+      
+
+      // S3 にアップロード
+      const s3 = new S3Client({
+        region: "auto",
+        endpoint: process.env.R2_ENDPOINT!,
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY!,
+          secretAccessKey: process.env.R2_SECRET_KEY!,
+        },
+      });
+
+      const key = `images/${Date.now()}.${extension}`;
+
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: "chousei",
+          Key: key,
+          ContentType: imageFile.type, // FileオブジェクトからMIMEタイプを取得
+          Body: imageBuffer,
+          ACL: "public-read",
+        }),
       );
+
+
+      uploadedUrl = `${process.env.R2_ENDPOINT}/chousei/${key}`;
     }
 
     // トランザクションで処理を一括管理
-    const result = await prisma.$transaction(async (prisma: Prisma.TransactionClient) => {
-      // ① Event を作成
+    const result = await prisma.$transaction(async (prisma) => {
       const newEvent = await prisma.event.create({
         data: {
-          name: event_name, // イベント名
-          image: image, // イベント画像（省略可能）
+          name: event_name,
+          image: uploadedUrl,
           memo: memo,
         },
       });
 
-      // ② 取得した event の id を Schedule に渡して一括作成
       await prisma.schedule.createMany({
-        data: schedules.map((schedule: { date: string; time: string;}) => ({
-          eventId: newEvent.id, // Event の ID を明示的に設定
-          date: new Date(schedule.date), // 日付
-          time: schedule.time, // 時間
-          isConfirmed: false, // デフォルト false
+        data: schedules.map((schedule: { date: string; time: string }) => ({
+          eventId: newEvent.id,
+          date: new Date(schedule.date),
+          time: schedule.time,
+          isConfirmed: false,
         })),
       });
 
-      // ③ 作成したイベントを `schedules` を含めて取得
       return await prisma.event.findUnique({
         where: { id: newEvent.id },
         include: { schedules: true },
@@ -52,10 +87,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.log("Error creating event and schedules:", error);
+    console.error("Error creating event and schedules:", error);
     return NextResponse.json(
       { error: "イベントとスケジュールの登録に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -63,10 +98,12 @@ export async function POST(request: NextRequest) {
 export async function PUT(req: Request) {
   try {
     const { scheduleId, eventId } = await req.json();
-    
-    
+
     if (scheduleId === undefined || scheduleId === null || !eventId) {
-      return NextResponse.json({ error: "scheduleId と eventId は必須です" }, { status: 400 });
+      return NextResponse.json(
+        { error: "scheduleId と eventId は必須です" },
+        { status: 400 },
+      );
     }
 
     // ✅ 既存の「決定済み」スケジュールをリセット（isConfirmed を false にする）
@@ -75,8 +112,7 @@ export async function PUT(req: Request) {
       data: { isConfirmed: false },
     });
 
-
-    if(scheduleId === 0){
+    if (scheduleId === 0) {
       return NextResponse.json({ success: true, schedule: "キャンセル" });
     }
     // ✅ 指定したスケジュールを「決定済み」にする
@@ -88,6 +124,9 @@ export async function PUT(req: Request) {
     return NextResponse.json({ success: true, schedule: updatedSchedule });
   } catch (error) {
     console.error("Error confirming schedule:", error);
-    return NextResponse.json({ error: "スケジュールの更新に失敗しました" }, { status: 500 });
+    return NextResponse.json(
+      { error: "スケジュールの更新に失敗しました" },
+      { status: 500 },
+    );
   }
 }

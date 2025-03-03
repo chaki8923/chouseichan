@@ -69,17 +69,24 @@ const CropImg = (props: onDataChange) => {
         crop.height
       );
 
+
+
       canvas.toBlob((result) => {
+        if (result) {
+          const file = new File([result], "profile.png", { type: "image/png" }); // Fileオブジェクトに変換
+          // setProfileImg(file);
+          props.onDataChange(file); // 親コンポーネントにFileを渡す
+        }
         if (result instanceof Blob) {
           const reader = new FileReader();
           reader.onloadend = () => {
             const base64Data = reader.result as string;
             setProfileImg(base64Data); // Base64 データを状態に保存
-            props.onDataChange(base64Data); // 親コンポーネントに渡す
+            // props.onDataChange(base64Data); // 親コンポーネントに渡す
           };
           reader.readAsDataURL(result);
         }
-      });
+      }, "image/png");
 
     }
   };
