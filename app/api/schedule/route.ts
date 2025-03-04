@@ -1,6 +1,5 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
-// import { Prisma } from "@prisma/client";
 import { prisma } from "@/libs/prisma";
 
 export async function POST(request: NextRequest) {
