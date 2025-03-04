@@ -28,7 +28,7 @@
 }
 
 /* 記事エリア */
-.article {
+.section {
     flex: 2;
     background: #fff;
     padding: 20px;
@@ -37,7 +37,7 @@
 }
 
 /* h1タイトル */
-.article h1 {
+.section h1 {
     font-size: 32px;
     color: #DE3163;
     border-bottom: 3px solid #E195AB;
@@ -46,7 +46,7 @@
 }
 
 /* アイキャッチ画像 */
-.article .eyecatch {
+.section .eyecatch {
     width: 100%;
     height: auto;
     border-radius: 8px;
@@ -54,18 +54,24 @@
 }
 
 /* h2タグ */
-.article h2 {
+.section h2 {
     font-size: 26px;
     color: #DE3163;
     margin-top: 30px;
+    margin-bottom: 20px;
     border-left: 5px solid #E195AB;
     padding-left: 10px;
 }
 
 /* h2タグ */
-.article a {
+.section a {
     color: rgb(18, 172, 207);
     text-decoration: underline;
+}
+.section img {
+    border: 4px solid #e2b5b5;
+    display: block;
+    padding: 6px;
 }
 
 /* h2タグ */
@@ -79,18 +85,17 @@
 }
 
 /* h3タグ */
-.article h3 {
+.section h3 {
     font-size: 22px;
     color: #E195AB;
     margin-top: 20px;
 }
 
 /* pタグ */
-.article p {
+.section p {
     font-size: 16px;
-    line-height: 1.8;
     color: #444;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 /* サイドバー */
@@ -181,19 +186,19 @@
 
 /* スマホ対応 */
 @media (max-width: 768px) {
-    .article h1 {
+    .section h1 {
         font-size: 28px;
     }
 
-    .article h2 {
+    .section h2 {
         font-size: 22px;
     }
 
-    .article h3 {
+    .section h3 {
         font-size: 18px;
     }
 
-    .article p {
+    .section p {
         font-size: 14px;
     }
 

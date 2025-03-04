@@ -23,18 +23,13 @@ export async function POST(request: NextRequest) {
 
     if (imageFile) {
       // 拡張子を取得
-      const extension = imageFile.name.split(".").pop() || "jpg"; // デフォルトで "jpg"
-
+      const extension = imageFile.name.split(".").pop() || "jpg"; // デフォルトは "jpg"
+    
       // File をバッファに変換
       const arrayBuffer = await imageFile.arrayBuffer();
       const imageBuffer = Buffer.from(arrayBuffer);
-
-      console.log(" process.env.R2_ENDPOINT",  process.env.R2_ENDPOINT);
-      console.log(" process.env.R2_ACCESS_KEY",  process.env.R2_ACCESS_KEY);
-      console.log(" process.env.R2_SECRET_KEY",  process.env.R2_SECRET_KEY);
-      
-
-      // S3 にアップロード
+    
+      // S3 クライアント作成（Cloudflare R2 用）
       const s3 = new S3Client({
         region: "auto",
         endpoint: process.env.R2_ENDPOINT!,
@@ -43,21 +38,20 @@ export async function POST(request: NextRequest) {
           secretAccessKey: process.env.R2_SECRET_KEY!,
         },
       });
-
+    
       const key = `images/${Date.now()}.${extension}`;
-
+    
       await s3.send(
         new PutObjectCommand({
-          Bucket: "chousei",
+          Bucket:  process.env.BUCKET_NAME!,
           Key: key,
           ContentType: imageFile.type, // FileオブジェクトからMIMEタイプを取得
           Body: imageBuffer,
-          ACL: "public-read",
         }),
       );
-
-
-      uploadedUrl = `${process.env.R2_ENDPOINT}/chousei/${key}`;
+    
+      // 正しい公開 URL を生成
+      uploadedUrl = `${process.env.R2_PUBLIC_BUCKET_DOMAIN}/${key}`;
     }
 
     // トランザクションで処理を一括管理

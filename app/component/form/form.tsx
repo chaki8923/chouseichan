@@ -15,10 +15,11 @@ import { CgAddR, CgCloseO } from "react-icons/cg";
 import styles from "./index.module.scss"
 
 
+
 export default function Form({ categoryName }: { categoryName: string }) {
   const [isSubmit, setIsSubmit] = useState(false);
   const [schedules, setSchedules] = useState([
-    { id: Date.now(), date: '', time: '17:00' }, // 初期のスケジュールデータ
+    { id: Date.now(), date: '', time: '19:00' }, // 初期のスケジュールデータ
   ]);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const AddSchedule = () => {
     setSchedules((prevSchedules) => [
       ...prevSchedules,
-      { id: Date.now(), date: '', time: '17:00' },
+      { id: Date.now(), date: '', time: '19:00' },
     ]);
   };
 
@@ -133,10 +134,13 @@ export default function Form({ categoryName }: { categoryName: string }) {
       } else {
         setLoading(false)
         setIsOpen(true)
-        console.error("Error:", response.status, response.statusText);
+        alert(response.statusText)
+        // console.error("Error:", response.status, response.statusText);
       }
     } catch (error) {
-      console.error("Fetch error:", error);
+      setLoading(false)
+      setIsOpen(true)
+      alert(error)
     } finally {
       setLoading(false)
       setIsSubmit(false);
@@ -162,6 +166,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   return (
     <>
+      <h1 className={styles.categoryTitle}>{categoryName}の予定も調整ちゃんで簡単2ステップ</h1>
       <FormProvider {...methods} >
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 ${styles.scheduleForm}`}>
           <div className={styles.formContent}>
@@ -171,7 +176,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
               <input
                 type="text"
                 className={styles.formInput}
-                placeholder="〇〇さん歓迎会！"
+                placeholder={`${categoryName}開催！`}
                 {...register('event_name')}
               />
               {errors.event_name && (

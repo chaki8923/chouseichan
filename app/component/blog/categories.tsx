@@ -16,7 +16,6 @@ type Blog = {
 export default async function Category({ categoryId }: { categoryId: string }) {
   // getBlogPosts を Server Component 内で直接呼び出す（OK）
   const posts = await getBlogPosts(categoryId);
-  console.log("posts", posts);
 
   return (
     <div>

@@ -1,145 +1,212 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
-import ReactCrop from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
-import { Crop } from "react-image-crop";
+import React, { useState, useRef } from 'react'
 import styles from "./index.module.scss";
+import ReactCrop, {
+  centerCrop,
+  makeAspectCrop,
+  Crop,
+  PixelCrop,
+} from 'react-image-crop'
+import { canvasPreview } from './canvasPreview'
+import { useDebounceEffect } from './useDebounceEffect'
+
+import 'react-image-crop/dist/ReactCrop.css'
+
+// This is to demonstate how to make and center a % aspect crop
+// which is a bit trickier so we use some helper functions.
+function centerAspectCrop(
+  mediaWidth: number,
+  mediaHeight: number,
+  aspect: number,
+) {
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: '%',
+        width: 50,
+        height: 50,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight,
+    ),
+    mediaWidth,
+    mediaHeight,
+  )
+}
+
 
 // Props の型定義
 type onDataChange = {
-  onDataChange: (data: string) => void; // 親に通知する関数の型
+  onDataChange: (data: File) => void; // 親に通知する関数の型
   isSubmit: boolean;
 };
-const CropImg = (props: onDataChange) => {
-  const [fileData, setFileData] = useState<File | undefined>();
-  const [objectUrl, setObjectUrl] = useState<string | undefined>();
-  const [isCrop, setIsCrop] = useState<boolean>(false);
 
-  //プロフィールイメージ
-  const [profileImg, setProfileImg] = useState<string>("");
 
-  //Crop
+export default function App(props: onDataChange) {
+  const [imgSrc, setImgSrc] = useState('')
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const hiddenAnchorRef = useRef<HTMLAnchorElement>(null)
+  const blobUrlRef = useRef('')
   const [crop, setCrop] = useState<Crop>({
-    unit: "px", // 'px' または '%' にすることができます
-    x: 0,
-    y: 0,
-    width: 200,
-    height: 200,
+    unit: '%',
+    width: 50, // 初期サイズを適切に設定
+    height: 50, // 正方形にする
+    x: 25,
+    y: 25,
   });
 
-  //アップロードした画像のObjectUrlをステイトに保存する
-  useEffect(() => {
-    if (fileData instanceof File) {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
+  const [isCrop, setIsCrop] = useState<boolean>(false);
+
+  function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      // setCrop(undefined) // Makes crop preview update between images.
+      setIsCrop(false);
+
+      const reader = new FileReader()
+      reader.addEventListener('load', () =>
+        setImgSrc(reader.result?.toString() || ''),
+      )
+      reader.readAsDataURL(e.target.files[0])
+    }
+  }
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+
+    const { width, height } = e.currentTarget
+    setCrop(centerAspectCrop(width, height, 1))
+  }
+
+  async function generateCroppedImage() {
+    const image = imgRef.current
+    const previewCanvas = previewCanvasRef.current
+    if (!image || !previewCanvas || !completedCrop) {
+      throw new Error('Crop canvas does not exist')
+    }
+
+    // This will size relative to the uploaded image
+    // size. If you want to size according to what they
+    // are looking at on screen, remove scaleX + scaleY
+    const scaleX = image.naturalWidth / image.width
+    const scaleY = image.naturalHeight / image.height
+
+    const offscreen = new OffscreenCanvas(
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+    )
+    const ctx = offscreen.getContext('2d')
+    if (!ctx) {
+      throw new Error('No 2d context')
+    }
+
+    ctx.drawImage(
+      previewCanvas,
+      0,
+      0,
+      previewCanvas.width,
+      previewCanvas.height,
+      0,
+      0,
+      offscreen.width,
+      offscreen.height,
+    )
+    // You might want { type: "image/jpeg", quality: <0 to 1> } to
+    // Blobを生成
+    // const blob = await offscreen.convertToBlob({
+    //   type: "image/png",
+    // });
+
+    const blob = await new Promise<Blob>((resolve) =>
+      previewCanvas.toBlob((b) => resolve(b!), "image/png")
+    );
+
+    // BlobをFileに変換（ファイル名を適当につける）
+    const file = new File([blob], "cropped-image.png", { type: "image/png" });
+    
+
+    // 親コンポーネントにFileを送る
+    props.onDataChange(file);
+
+    setIsCrop(true);
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current)
+    }
+    blobUrlRef.current = URL.createObjectURL(blob)
+    
+
+    if (hiddenAnchorRef.current) {
+      hiddenAnchorRef.current.href = blobUrlRef.current
+      hiddenAnchorRef.current.click()
+    }
+  }
+
+  useDebounceEffect(
+    async () => {
+
+      if (
+        completedCrop?.width &&
+        completedCrop?.height &&
+        imgRef.current &&
+        previewCanvasRef.current
+      ) {
+        // We use canvasPreview as it's much faster than imgPreview.
+        canvasPreview(
+          imgRef.current,
+          previewCanvasRef.current,
+          completedCrop,
+        )
       }
-      setObjectUrl(URL.createObjectURL(fileData));
-    } else {
-      setObjectUrl(undefined);
-    }
-  }, [fileData]);
-
-  //切り取った画像のObjectUrlを作成し、ステイトに保存する
-  const makeProfileImgObjectUrl = async () => {
-    if (objectUrl) {
-      const canvas = document.createElement("canvas");
-      canvas.width = crop.width;
-      canvas.height = crop.height;
-      const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-      ctx.beginPath();
-      ctx.arc(
-        canvas.width / 2,
-        canvas.height / 2,
-        canvas.width / 2,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.clip();
-
-      const img = await loadImage(objectUrl);
-      ctx.drawImage(
-        img,
-        crop.x,
-        crop.y,
-        crop.width,
-        crop.height,
-        0,
-        0,
-        crop.width,
-        crop.height
-      );
-
-
-
-      canvas.toBlob((result) => {
-        if (result) {
-          const file = new File([result], "profile.png", { type: "image/png" }); // Fileオブジェクトに変換
-          // setProfileImg(file);
-          props.onDataChange(file); // 親コンポーネントにFileを渡す
-        }
-        if (result instanceof Blob) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64Data = reader.result as string;
-            setProfileImg(base64Data); // Base64 データを状態に保存
-            // props.onDataChange(base64Data); // 親コンポーネントに渡す
-          };
-          reader.readAsDataURL(result);
-        }
-      }, "image/png");
-
-    }
-  };
-
-  // canvasで画像を扱うため
-  // アップロードした画像のObjectUrlをもとに、imgのHTMLElementを作る
-  const loadImage = (src: string): Promise<HTMLImageElement> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = () => resolve(img);
-    });
-  };
+    },
+    100,
+    [completedCrop, 1, 0],
+  )
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-600 mb-2">
-        アイコン登録<span className={styles.tagNoRequire}>任意</span>
-      </label>
-      <input
-        type="file"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => {
-          if (e.target.files && e.target.files.length > 0) {
-            const file = e.target.files[0];
-            setFileData(file); // File を確実にセット
-            setIsCrop(false)
-          }
-        }}
-      />
-      
-      <div className={styles.cropArea}>
-        {(objectUrl && !props.isSubmit && !isCrop) && (
-          <ReactCrop
-            crop={crop}
-            onChange={(c) => setCrop(c)}
-            aspect={1}
-            circularCrop={true}
-            keepSelection={true}
-          >
-            <img src={objectUrl} alt="" style={{ width: "100%" }} />
-          </ReactCrop>
-        )}
+    <div className="App">
+      <div className="Crop-Controls">
+        <input type="file" accept="image/*" onChange={onSelectFile} onClick={() => setIsCrop(false)} />
       </div>
-      {(objectUrl && !props.isSubmit && !isCrop) && (
-        <span className={`${styles.cropBtn}`} onClick={() => { makeProfileImgObjectUrl(); }}>切り取り</span>
+      {(!!imgSrc && !isCrop) && (
+        <ReactCrop
+          crop={crop}
+          onChange={(_, percentCrop) => setCrop(percentCrop)}
+          onComplete={(c) => setCompletedCrop(c)}
+          aspect={1}
+          minWidth={50}
+          minHeight={50}
+          circularCrop
+          className={styles.reactCrop}
+        >
+          <img
+            ref={imgRef}
+            alt="Crop me"
+            src={imgSrc}
+            style={{ transform: `scale(${1}) rotate(${0}deg)` }}
+            onLoad={onImageLoad}
+          />
+        </ReactCrop>
       )}
-      <div>
-        {profileImg && !props.isSubmit ? (
-          <img className={styles.croppedImage} src={profileImg} alt="プロフィール画像" />
-        ) : null}
-      </div>
-    </div>
-  );
-};
+      {(!!completedCrop) && (
+        <>
+          <div>
+            <canvas
+              ref={previewCanvasRef}
+              style={{
+                border: '1px solid black',
+                objectFit: 'contain',
+                width: completedCrop.width,
+                height: completedCrop.height,
+              }}
+              className={styles.cropCanvas}
+            />
+          </div>
+          <div>
 
-export default CropImg;
+          </div>
+          <span className={`${styles.cropBtn}`} onClick={generateCroppedImage}>切り取り</span>
+        </>
+      )}
+    </div>
+  )
+}

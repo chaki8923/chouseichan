@@ -4,49 +4,65 @@ type Event = {
   schedules: { date: string; time: string }[];
 };
 
-// ✅ イベントとスケジュールを LocalStorage に保存
+// 型定義
+type EventWithExpiry = {
+  eventId: string;
+  eventName: string;
+  schedules: { date: string; time: string }[];
+  expiry: number; // 期限（UNIXタイムスタンプ）
+};
+
 export function setOwnerEvent(eventId: string, eventName: string, schedules: { date: string; time: string }[]) {
   const eventListString = localStorage.getItem("ownerEvents") ?? "[]";
-  let eventList: Event[] = [];
+  let eventList: EventWithExpiry[] = [];
 
   try {
-    eventList = JSON.parse(eventListString);
+    eventList = JSON.parse(eventListString).filter((event: EventWithExpiry) => {
+      return event.expiry > Date.now(); // 期限切れのデータは除外
+    });
   } catch (error) {
     console.error("Failed to parse events from localStorage:", error);
   }
 
+  // 1年後のタイムスタンプを計算（現在時刻 + 365日）
+  const expiry = Date.now() + 1000 * 60 * 60 * 24 * 365;
+
   // イベントの重複を防ぐ（同じ eventId の場合は上書き）
   const updatedEvents = Array.from(
-    new Map([...eventList, { eventId, eventName, schedules }].map(e => [e.eventId, e])).values()
+    new Map([...eventList, { eventId, eventName, schedules, expiry }].map(e => [e.eventId, e])).values()
   );
 
   localStorage.setItem("ownerEvents", JSON.stringify(updatedEvents));
 }
 
-// ✅ LocalStorage からイベントリストを取得
-export function getEventList(): Event[] {
-  const eventsString = localStorage.getItem("events") ?? "[]";
-  let events: Event[] = [];
+
+export function getEventList(): EventWithExpiry[] {
+  const eventListString = localStorage.getItem("events") ?? "[]";
+  let eventList: EventWithExpiry[] = [];
 
   try {
-    events = JSON.parse(eventsString);
+    eventList = JSON.parse(eventListString).filter((event: EventWithExpiry) => event.expiry > Date.now());
   } catch (error) {
     console.error("Failed to parse events from localStorage:", error);
   }
 
-  return events;
+  return eventList;
 }
 
-// ✅ 指定の `eventId` が LocalStorage にない場合は追加
-export function addEvent(newEvent: Event) {
-  const events = getEventList();
+const ONE_YEAR_IN_MS = 365 * 24 * 60 * 60 * 1000; // 1年をミリ秒で定義
 
+export function addEvent(newEvent: Event) {
+  const events: EventWithExpiry[] = getEventList();
+
+  // 既存のイベントがある場合はスキップ
   if (events.some(event => event.eventId === newEvent.eventId)) {
-    console.log("Event already exists in LocalStorage. Skipping...");
     return;
   }
 
-  events.push(newEvent);
+  // 期限を追加して保存
+  const eventWithExpiry = { ...newEvent, expiry: Date.now() + ONE_YEAR_IN_MS };
+  events.push(eventWithExpiry);
+  
   localStorage.setItem("events", JSON.stringify(events));
 }
 

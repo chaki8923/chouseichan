@@ -12,11 +12,22 @@
 .cropBtn {
   cursor: pointer;
   display: block;
-  padding: 4px;
+  padding: 12px 4px;
   color: #fff;
   background-color: #AF1740;
   text-align: center;
-  width: 220px;
+  width: 230px;
+  margin-top: 12px;
+}
+
+.modalTitle {
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+}
+.modalText {
+  text-align: center;
+  color: #333;
 }
 
 .croppedImage {
@@ -25,15 +36,15 @@
 
 }
 
-.gray{
+.gray {
   color: #333;
 }
 
-.none{
+.none {
   display: none;
 }
 
-.block{
+.block {
   display: block;
 }
 
@@ -217,11 +228,57 @@
   transition: .3s;
 }
 
+.categoryTitle {
+  width: fit-content;
+  text-align: center;
+  color: #333;
+  margin: auto;
+  font-size: 28px;
+  margin-bottom: 30px;
+  position: relative;
+  font-weight: bold;
+  padding-left: 25px;
+}
+
+.categoryTitle::before {
+  position: absolute;
+  content: '';
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border: none;
+  border-left: solid 15px transparent;
+  border-bottom: solid 15px #DE3163;
+}
+
+.categoryTitle::after {
+  position: absolute;
+  content: '';
+  bottom: -3px;
+  left: 10px;
+  width: 100%;
+  border-bottom: solid 3px #DE3163;
+}
+
+.cropCanvas{
+  border-radius: 999px;
+}
+
+.reactCrop{
+  width: 290px;
+  margin: auto;
+}
 
 @media (max-width: 428px) {
   .formSubmit {
     bottom: -20px;
   }
+
+.categoryTitle::after {
+  width: 95%;
+}
+
 }
 
 .memoCount {

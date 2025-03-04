@@ -1,7 +1,7 @@
 'use client'
 
 // import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Session } from "@auth/core/types";
 import SigninButton from "@/app/component/calendar/SignInButton"
@@ -10,6 +10,7 @@ import { ConfirmScheduleButton } from "../component/button/confirmSchedule";
 import styles from "./index.module.scss"
 import { FaRegCircle } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
+import Scroll from "../component/scroll/arrow";
 import { IoTriangleOutline } from "react-icons/io5";
 import { Schedule } from "@/types/schedule";
 import { Response } from "@/types/response";
@@ -49,6 +50,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const accessToken = user.accessToken ?? "";
   const refreshToken = user.refreshToken ?? "";
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     // データ取得
     const getEventData = async () => {
@@ -75,7 +78,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     fetchSchedules(); // 初回ロード時に取得
   }, []);
 
-  
+
   useEffect(() => {
     if (eventId) {
       setIsOrganizer(isEventOwner(eventId)); // ✅ クライアントサイドで実行
@@ -84,7 +87,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   if (!eventId) return <p>イベントidがありません</p>
 
-  
+
 
   async function fetchEventWithSchedules(eventId: string) {
     try {
@@ -220,13 +223,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 <Image src={eventData.image ? eventData.image : '/default.png'}
                   width={50}
                   height={50}
-                  alt="Event Crop Image" />
+                  alt="Event Crop Image"
+                  className={styles.eventImage} />
                 <h2 className={styles.memo}>{eventData.memo}</h2>
               </>
             )}
           </section>
 
-          <div className={`relative overflow-x-auto ${styles.table}`}>
+          <div className={`relative overflow-x-auto ${styles.table}`} ref={containerRef}>
             <table className={styles.tableDesign}>
               <tbody>
                 <tr>
@@ -312,7 +316,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
                         </td>
                       )}
-                      <td className={`${label} min-w-[210px]`}>{formattedDate} - {schedule.time}</td>
+                      <td className={`${label} min-w-[310px]`}>{formattedDate} - {schedule.time}</td>
                       <td className="min-w-[75px]">{attendCount}人</td>
                       <td className="min-w-[75px]">{undecidedCount}人</td>
                       <td className="min-w-[75px]">{declineCount}人</td>
@@ -359,6 +363,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 </tr>
               </tbody>
             </table>
+            <Scroll containerRef={containerRef} />
             {accessToken ?
               <CreateEventButton accessToken={accessToken} refreshToken={refreshToken} confirmedSchedule={confirmedSchedule} event={eventData} /> :
               <SigninButton />

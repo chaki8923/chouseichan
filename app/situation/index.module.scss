@@ -1,4 +1,4 @@
-.blogContainer{
+.blogContainer {
     width: 70%;
     margin: auto;
     margin-top: 80px;
@@ -6,11 +6,15 @@
 
 }
 
-.categoryTitle{
-    padding: 0.25em 0.5em;/*上下 左右の余白*/
-    color: #494949;/*文字色*/
-    background: transparent;/*背景透明に*/
-    border-left: solid 5px #DE3163;/*左線*/
+.categoryTitle {
+    padding: 0.25em 0.5em;
+    /*上下 左右の余白*/
+    color: #494949;
+    /*文字色*/
+    background: transparent;
+    /*背景透明に*/
+    border-left: solid 5px #DE3163;
+    /*左線*/
     margin-bottom: 16px;
     font-size: 32px;
     font-style: normal;
@@ -18,28 +22,35 @@
     line-height: normal;
 }
 
-.description{
+.description {
     color: #333;
     font-weight: bold;
 }
 
 
-.descriptionContainer{
+.descriptionContainer {
     padding: 8px;
     margin-bottom: 40px;
 }
 
-.blogUl{
+.blogUl {
     display: flex;
-    justify-content: space-around;
-    gap: 12px;
-    
+    gap: 24px;
+
 }
 
-.blogTitle{
+.blogTitle {
     color: #333;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-.blogList{
+
+.blogList {
+    width: 320px;
     margin: 0;
     padding: 0;
     font-size: 100%;
@@ -47,25 +58,55 @@
     background: transparent;
 }
 
-.eyeCatch{
+
+.eyeCatch {
+    width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
 }
 
-.tagList{
+.tagList {
     display: flex;
     gap: 5px;
 }
-.tagItem{
+
+.tagItem {
     padding: 4px;
     color: #fff;
     width: fit-content;
     background-color: rgba(239, 88, 113, 0.6);
-    
+
 }
 
-.imageWrapper{
-    width: 420px;
-    height: 320px;
+.imageWrapper {
+    width: 320px;
+    height: 220px;
     overflow: hidden;
+}
+
+
+/* スマホ対応 */
+@media (max-width: 768px) {
+    .blogContainer {
+        width: 100%;
+
+    }
+
+    .blogUl {
+        display: block;
+
+    }
+    .blogList {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    .imageWrapper {
+        width: 100%;
+    }
+
+    .blogTitle {
+        padding-left: 8px;
+        padding-bottom: 0;
+    }
 }
