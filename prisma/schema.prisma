@@ -11,7 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  //directUrl = env("DIRECT_URL")
 }
 
 
@@ -113,4 +113,13 @@ model Response {
   schedule    Schedule       @relation(fields: [scheduleId], references: [id])
 
   @@unique([scheduleId, userId]) // 複合一意キー制約
+}
+
+model EventImages {
+  id        String   @id @default(uuid())
+  eventId   String
+  imagePath String
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, imagePath]) // 1つのイベントに同じ画像が登録されないように
 }

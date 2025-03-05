@@ -1,10 +1,10 @@
 'use client'
 
-// import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Session } from "@auth/core/types";
 import SigninButton from "@/app/component/calendar/SignInButton"
+import ImageUploadSection from "../component/form/imageUploader";
 import { CreateEventButton } from "../component/calendar/CreateEventButton";
 import { ConfirmScheduleButton } from "../component/button/confirmSchedule";
 import styles from "./index.module.scss"
@@ -403,6 +403,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       <Modal isOpen={isCopyModal} onClose={() => setIsCopyModal(false)}>
         <h2 className={styles.modalTitle}>コピーしました</h2>
       </Modal>
+      <ImageUploadSection eventData={eventData}/>
     </>
   );
 }
