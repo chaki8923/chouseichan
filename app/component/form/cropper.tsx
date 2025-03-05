@@ -39,6 +39,7 @@ function centerAspectCrop(
 type onDataChange = {
   onDataChange: (data: File) => void; // 親に通知する関数の型
   isSubmit: boolean;
+  setValidationError: (error: string | null) => void;
 };
 
 
@@ -58,6 +59,7 @@ export default function App(props: onDataChange) {
 
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [isCrop, setIsCrop] = useState<boolean>(false);
+  const [isValid, setIsValid] = useState<boolean>(false);
 
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
@@ -79,6 +81,9 @@ export default function App(props: onDataChange) {
   }
 
   async function generateCroppedImage() {
+    console.log("切り取り");
+
+    setIsValid(false);
     const image = imgRef.current
     const previewCanvas = previewCanvasRef.current
     if (!image || !previewCanvas || !completedCrop) {
@@ -123,8 +128,27 @@ export default function App(props: onDataChange) {
 
     // BlobをFileに変換（ファイル名を適当につける）
     const file = new File([blob], "cropped-image.png", { type: "image/png" });
-    
 
+    // バリデーションチェック
+    if (!file.type.startsWith('image/')) {
+      setIsValid(true);
+      props.setValidationError('Invalid file format. Please upload an image file.');
+      return;
+    }
+
+    const maxSize = 1024 * 1024 * 1; // 1MB
+    console.log("file.size", file.size);
+    console.log("maxSize", maxSize);
+
+    if (file.size > maxSize) {
+      console.log("入った");
+      setIsValid(true);
+      props.setValidationError('File size exceeds the limit of 1MB.');
+      return;
+    }
+
+    console.log("入った2");
+    props.setValidationError(null);
     // 親コンポーネントにFileを送る
     props.onDataChange(file);
 
@@ -133,7 +157,7 @@ export default function App(props: onDataChange) {
       URL.revokeObjectURL(blobUrlRef.current)
     }
     blobUrlRef.current = URL.createObjectURL(blob)
-    
+
 
     if (hiddenAnchorRef.current) {
       hiddenAnchorRef.current.href = blobUrlRef.current

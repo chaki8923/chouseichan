@@ -24,6 +24,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const methods = useForm<ScheduleSchemaType>({
     mode: 'onChange',
@@ -97,9 +98,13 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [childCropData, setChildCropData] = useState<File | null>(null);
   // 子から受け取ったデータを更新する関数
   const handleChildData = (data: File) => {
-    console.log("子からきた", data);
-
+    
     setChildCropData(data);
+  };
+
+  const handleValidationError = (error: string | null) => {
+    console.log("error!!!", error);
+    setValidationError(error);
   };
 
   const onSubmit = async (params: FormData) => {
@@ -193,8 +198,14 @@ export default function Form({ categoryName }: { categoryName: string }) {
               )}
 
               <div>
-                <CropImg onDataChange={handleChildData} isSubmit={isSubmit} />
+                <CropImg onDataChange={handleChildData} isSubmit={isSubmit} setValidationError={handleValidationError}/>
               </div>
+              {validationError && (
+              <div className="text-red-500">
+                {validationError}
+              </div>
+            )}
+            
             </div>
 
             <div>
@@ -254,7 +265,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
             <button
               type="submit"
               disabled={!isValid || isSubmitting}
-              className={`${styles.formSubmit} ${!isValid || isSubmitting ? `${styles.disabled}` : `${styles.enableSubmit}`
+              className={`${styles.formSubmit} ${!isValid || isSubmitting || validationError ? `${styles.disabled}` : `${styles.enableSubmit}`
                 }`}
             >
               登録
