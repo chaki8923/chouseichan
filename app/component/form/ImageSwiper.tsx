@@ -1,148 +1,222 @@
+import React, { useState, useEffect } from 'react';
+import { FiX } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Navigation, Pagination, A11y, EffectFade, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import 'swiper/css/autoplay';
+import 'swiper/css/effect-fade';
 import styles from './index.module.scss';
-import { IoClose } from 'react-icons/io5';
-import { useMemo } from 'react';
 
-// eventImageオブジェクトのinterface
-interface EventImage {
-  id: number;
-  eventId: string;
-  imagePath: string;
-}
+// Cloudflareの画像URLを適切に処理する関数
+const normalizeImageUrl = (url: string | null | undefined | object) => {
+  // nullまたはundefinedの場合、空文字を返す
+  if (!url) {
+    return '';
+  }
 
-type ImageSwiperProps = {
-  eventImages: EventImage[] | string[] | any[];
-  onClose?: () => void;
+  // オブジェクトの場合、適切なプロパティを抽出
+  if (typeof url === 'object') {
+    // imagePath プロパティがあればそれを使用
+    if ('imagePath' in url && typeof url.imagePath === 'string') {
+      return url.imagePath;
+    }
+    // id プロパティがあれば文字列に変換して返す（このケースは避けるべき）
+    console.warn('画像URLがオブジェクト形式で、適切な文字列プロパティが見つかりません:', url);
+    return '';
+  }
+  
+  // 既にCDN URLの場合はそのまま返す
+  if (typeof url === 'string' && url.includes('imagedelivery.net')) {
+    return url;
+  }
+  
+  // ローカルパスの場合、CDN URLに変換
+  if (typeof url === 'string' && url.startsWith('/')) {
+    return `${process.env.NEXT_PUBLIC_CLOUDFLARE_DELIVERY_URL}${url}`;
+  }
+  
+  return url;
 };
 
-const ImageSwiper: React.FC<ImageSwiperProps> = ({ eventImages, onClose }) => {
+// 現在の日付をフォーマットする関数
+const getFormattedDate = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}.${month}.${day}`;
+};
+
+type Props = {
+  images: (string | any)[];
+  title?: string;
+  onClose: () => void;
+};
+
+export default function ImageSwiper({ images = [], title = '登録した画像', onClose }: Props) {
+  const [normalizedImages, setNormalizedImages] = useState<string[]>([]);
   
-  // 画像パスを正規化する
-  const normalizedImages = useMemo(() => {
-    return eventImages.map((image: any) => {
-      // すでにEventImage型の場合
-      if (typeof image === 'object' && image.imagePath) {
-        return image;
-      }
-      // 文字列の場合（URL直接）
-      if (typeof image === 'string') {
-        return {
-          id: 0,
-          eventId: '',
-          imagePath: image
-        };
-      }
-      // その他の場合（安全のため）
-      return {
-        id: 0,
-        eventId: '',
-        imagePath: ''
-      };
-    });
-  }, [eventImages]);
+  useEffect(() => {
+    if (images && images.length > 0) {
+      console.log('Processing images:', images);
+      // 各イメージをnormalizeImageUrl関数で処理
+      const normalized = images.map(img => normalizeImageUrl(img));
+      console.log('Normalized images:', normalized);
+      setNormalizedImages(normalized.filter(img => img !== '')); // 空文字列を除外
+    }
+  }, [images]);
   
-  if (normalizedImages.length === 0) {
+  const swiperParams = {
+    modules: [Navigation, Pagination, A11y, EffectFade, Autoplay],
+    spaceBetween: 50,
+    slidesPerView: 1,
+    navigation: true,
+    pagination: { 
+      clickable: true,
+      dynamicBullets: true 
+    },
+    loop: normalizedImages.length > 1,
+    fadeEffect: {
+      crossFade: true
+    },
+    effect: 'fade' as const,
+    autoplay: {
+      delay: 2500,
+      disableOnInteraction: false,
+      pauseOnMouseEnter: true
+    }
+  };
+  
+  const currentDate = getFormattedDate();
+  
+  if (!images || images.length === 0) {
     return (
       <div className={styles.albumContainer}>
         <div className={styles.albumHeader}>
-          <h2 className={styles.albumTitle}>MEMORY FILM</h2>
-          {onClose && (
-            <button onClick={onClose} className={styles.closeButton}>
-              <IoClose size={24} />
-            </button>
-          )}
+          <h2 className={styles.albumTitle}>{title}</h2>
+          <button className={styles.closeButton} onClick={onClose}>
+            <FiX />
+          </button>
         </div>
-        <div className={styles.noImages}>
-          <p>まだ写真がありません</p>
+        
+        <div className={styles.albumSwiper}>
+          <div className={styles.filmTextTop}>FILM: ShukkeTU-400 | EXP: {currentDate}</div>
+          <div className={`${styles.filmHoles} ${styles.top}`}>
+            {[...Array(12)].map((_, i) => (
+              <div className={styles.hole} key={`top-${i}`} />
+            ))}
+          </div>
+          
+          <div className={styles.filmLightStrips}></div>
+          
+          <div className={styles.noImages}>
+            <p>登録された画像がありません</p>
+            <p className={styles.noImagesSubtext}>イベント登録時に画像をアップロードしてください</p>
+          </div>
+          
+          <div className={`${styles.filmHoles} ${styles.bottom}`}>
+            {[...Array(12)].map((_, i) => (
+              <div className={styles.hole} key={`bottom-${i}`} />
+            ))}
+          </div>
+          <div className={styles.filmTextBottom}>PRODUCTION: ShukkeTU CAMERA CO., LTD.</div>
+        </div>
+        
+        <div className={styles.filmProductionInfo}>
+          <span>ISO 400</span>
+          <span>COLOR NEGATIVE 36 EXP.</span>
         </div>
       </div>
     );
   }
   
-  const swiperParams = {
-    modules: [Navigation, Pagination, Autoplay],
-    spaceBetween: 20,
-    slidesPerView: 1,
-    centeredSlides: true,
-    initialSlide: 0,
-    loop: true,
-    watchSlidesProgress: true,
-    autoplay: {
-      delay: 8000,
-      disableOnInteraction: false,
-    },
-    navigation: true,
-    pagination: {
-      clickable: true,
-    },
-    className: styles.albumSwiper,
-    onSwiper: (swiper: any) => console.log("Swiper initialized", swiper)
-  };
-
   return (
     <div className={styles.albumContainer}>
       <div className={styles.albumHeader}>
-        <h2 className={styles.albumTitle}>MEMORY FILM</h2>
-        {onClose && (
-          <button onClick={onClose} className={styles.closeButton}>
-            <IoClose size={24} />
-          </button>
-        )}
+        <h2 className={styles.albumTitle}>{title}</h2>
+        <button className={styles.closeButton} onClick={onClose}>
+          <FiX />
+        </button>
       </div>
-      <Swiper {...swiperParams}>
-        <div className={styles.filmHoles + " " + styles.top}>
-          {[...Array(10)].map((_, i) => (
-            <div key={`top-hole-${i}`} className={styles.hole}></div>
-          ))}
-        </div>
-        <div className={styles.filmHoles + " " + styles.bottom}>
-          {[...Array(10)].map((_, i) => (
-            <div key={`bottom-hole-${i}`} className={styles.hole}></div>
-          ))}
-        </div>
-        <div className={styles.filmTextTop}>KODAK • VISION3 • 500T • 35MM</div>
-        <div className={styles.filmTextBottom}>5231-2023</div>
+      
+      <Swiper
+        {...swiperParams}
+        className={styles.albumSwiper}
+        modules={swiperParams.modules}
+        navigation={{
+          nextEl: `.${styles.swiperButtonNext}`,
+          prevEl: `.${styles.swiperButtonPrev}`
+        }}
+        pagination={{
+          clickable: true,
+          dynamicBullets: true,
+          bulletClass: styles.swiperPaginationBullet,
+          bulletActiveClass: styles.swiperPaginationBulletActive
+        }}
+        autoplay={swiperParams.autoplay}
+      >
         {normalizedImages.map((image, index) => (
-          <SwiperSlide key={index}>
-            <div className={styles.albumSlide}>
-              <div className={styles.filmStrip}>
-                <div className={styles.filmPerforationLeft}>
-                  {[...Array(8)].map((_, i) => (
-                    <div key={`left-perf-${i}`} className={styles.perforation}></div>
-                  ))}
+          <SwiperSlide key={index} className={styles.albumSlide}>
+            <div className={styles.filmStrip}>
+              <div className={styles.filmPerforationLeft}>
+                {[...Array(6)].map((_, i) => (
+                  <div className={styles.perforation} key={`left-${i}`} />
+                ))}
+              </div>
+              
+              <div className={styles.imageWrapper}>
+                <div className={styles.filmInfo}>
+                  <span className={styles.filmIso}>ISO 400</span>
+                  <span className={styles.frameNumber}>#{index + 1}</span>
+                  <span className={styles.filmEvent}>{title}</span>
                 </div>
-                <div className={styles.imageWrapper}>
-                  <img 
-                    src={image.imagePath} 
-                    alt={`写真 ${index + 1}`} 
-                    className={styles.albumImage} 
-                  />
-                  <div className={styles.filmInfo}>
-                    <span className={styles.filmIso}>ISO 400</span>
-                    <span className={styles.frameNumber}>{String(index + 1).padStart(2, '0')}</span>
-                    <span className={styles.filmEvent}>イベント</span>
-                  </div>
-                  <div className={styles.caption}>
-                    <p>写真 {index + 1}</p>
-                  </div>
+                
+                <img 
+                  src={image} 
+                  alt={`${title} - イメージ ${index + 1}`}
+                  className={styles.albumImage}
+                />
+                
+                <div className={styles.caption}>
+                  <p>{title} - フレーム {index + 1}</p>
                 </div>
-                <div className={styles.filmPerforationRight}>
-                  {[...Array(8)].map((_, i) => (
-                    <div key={`right-perf-${i}`} className={styles.perforation}></div>
-                  ))}
-                </div>
+              </div>
+              
+              <div className={styles.filmPerforationRight}>
+                {[...Array(6)].map((_, i) => (
+                  <div className={styles.perforation} key={`right-${i}`} />
+                ))}
               </div>
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
+      
+      <div className={`${styles.swiperButtonNext} swiper-button-next`}></div>
+      <div className={`${styles.swiperButtonPrev} swiper-button-prev`}></div>
+      
+      <div className={styles.filmTextTop}>FILM: ShukkeTU-400 | EXP: {currentDate}</div>
+      <div className={styles.filmTextBottom}>MADE IN JAPAN | © 出欠管理ちゃん</div>
+      
+      <div className={`${styles.filmHoles} ${styles.top}`}>
+        {[...Array(12)].map((_, i) => (
+          <div className={styles.hole} key={`top-${i}`} />
+        ))}
+      </div>
+      
+      <div className={`${styles.filmHoles} ${styles.bottom}`}>
+        {[...Array(12)].map((_, i) => (
+          <div className={styles.hole} key={`bottom-${i}`} />
+        ))}
+      </div>
+      
+      <div className={styles.filmLightStrips}></div>
+      
+      <div className={styles.filmProductionInfo}>
+        <span>ShukkeTU FILM</span>
+        <span>出欠管理ちゃん</span>
+      </div>
     </div>
   );
-};
-
-export default ImageSwiper;
+}

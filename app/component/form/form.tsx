@@ -1,30 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { useForm, FormProvider } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import styles from './index.module.scss';
 import { useRouter } from 'next/navigation';
-import CropImg from "./cropper";
+import Link from 'next/link';
+import { FiTrash2, FiPlus, FiAlertCircle, FiSend } from 'react-icons/fi';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import History from '../strage/history';
+import CropImg from './cropper';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
 import { setOwnerEvent } from "@/app/utils/strages";
-import Link from "next/link";
-import History from "../strage/history";
 import Modal from "../modal/modal";
 import SpinLoader from "../loader/spin";
-import { CgAddR, CgCloseO } from "react-icons/cg";
-import styles from "./index.module.scss"
-
-
 
 export default function Form({ categoryName }: { categoryName: string }) {
-  const [isSubmit, setIsSubmit] = useState(false);
   const [schedules, setSchedules] = useState([
     { id: Date.now(), date: '', time: '19:00' }, // 初期のスケジュールデータ
   ]);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(`${categoryName}名と日程を入力してください`);
+  const [memoLength, setMemoLength] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true); // 初期状態は無効
+  const [file, setFile] = useState<File | null>(null);
 
   const methods = useForm<ScheduleSchemaType>({
     mode: 'onChange',
@@ -38,12 +39,21 @@ export default function Form({ categoryName }: { categoryName: string }) {
     watch,
     setValue,  // ✅ react-hook-form の値を更新するための関数
     trigger,   // ✅ バリデーションを手動で実行
-    formState: { errors, isValid, isSubmitting },
+    formState: { errors, isValid, isSubmitting: formIsSubmitting },
   } = methods
 
   // 本文の文字数を監視
-  const memoValue = watch("memo", "")
-  const memoLength = memoValue.length
+  const memoValue = watch("memo", "");  // デフォルト値を設定
+  const eventNameValue = watch("event_name", "");  // デフォルト値を設定
+  
+  useEffect(() => {
+    if (memoValue) {
+      setMemoLength(memoValue.length);
+    } else {
+      setMemoLength(0);
+    }
+  }, [memoValue]);
+
   const AddSchedule = () => {
     setSchedules((prevSchedules) => [
       ...prevSchedules,
@@ -66,7 +76,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
     );
   };
 
-
   // 時間リストを生成（00:00 から 23:30 を 30 分刻み）
   const generateTimeOptions = () => {
     const times: string[] = [];
@@ -83,7 +92,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   const timeOptions = generateTimeOptions();
 
-
   interface FormData {
     event_name: string;
     memo: string;
@@ -98,24 +106,27 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [childCropData, setChildCropData] = useState<File | null>(null);
   // 子から受け取ったデータを更新する関数
   const handleChildData = (data: File) => {
-    
-    setChildCropData(data);
+    console.log("画像データを受信:", data);
+    setFile(data);
   };
 
   const handleValidationError = (error: string | null) => {
-    console.log("error!!!", error);
+    console.log("バリデーションエラーを受信:", error);
     setValidationError(error);
+    // エラーが更新されたら、ボタンの状態も更新
+    setTimeout(() => {
+      setIsSubmitDisabled(!checkFormValidity());
+    }, 0);
   };
 
   const onSubmit = async (params: FormData) => {
-    setIsSubmit(true);
     const formData = new FormData();
     formData.append("event_name", params.event_name);
     formData.append("schedules", JSON.stringify(params.schedules));
     formData.append("memo", params.memo);
 
-    if (childCropData) {
-      formData.append("image", childCropData); // Fileとして送信
+    if (file) {
+      formData.append("image", file); // Fileとして送信
     }
 
     reset();
@@ -132,26 +143,24 @@ export default function Form({ categoryName }: { categoryName: string }) {
       if (response.ok) {
         const result = await response.json(); // レスポンスをJSONとしてパース
         const eventId = result.id; // レスポンスに含まれるIDを取得
-        setLoading(false)
-        setOwnerEvent(eventId, result.name, result.schedules)
+        setLoading(false);
+        setOwnerEvent(eventId, result.name, result.schedules);
         // 必要に応じてページ遷移
         router.push(`/event?eventId=${eventId}`);
       } else {
-        setLoading(false)
-        setIsOpen(true)
-        alert(response.statusText)
+        setLoading(false);
+        setIsOpen(true);
+        alert(response.statusText);
         // console.error("Error:", response.status, response.statusText);
       }
     } catch (error) {
-      setLoading(false)
-      setIsOpen(true)
-      alert(error)
+      setLoading(false);
+      setIsOpen(true);
+      alert(error);
     } finally {
-      setLoading(false)
-      setIsSubmit(false);
+      setLoading(false);
     }
   };
-
 
   // 📌 日付が入力されたら `isValid` を更新する処理
   const handleDateChange = (index: number, value: string) => {
@@ -164,121 +173,236 @@ export default function Form({ categoryName }: { categoryName: string }) {
     trigger(`schedules.${index}.date`);  // ✅ 強制的にバリデーションを再評価
   };
 
+  // フォームのバリデーション状態をチェックする関数
+  const checkFormValidity = () => {
+    // イベント名が入力されているか
+    const titleValid = eventNameValue.trim().length > 0;
+    
+    // 少なくとも1つのスケジュールが有効か（日付と時間が入力されているか）
+    const hasValidSchedule = schedules.some(s => s.date && s.time);
+    
+    // メモが最大文字数以内か
+    const memoValid = memoValue.length <= 200;
+    
+    // バリデーションエラーがないか（cropperからのエラーも含む）
+    const noValidationError = !validationError;
+    
+    // デバッグログ
+    console.log({
+      titleValid,
+      hasValidSchedule,
+      memoValid,
+      noValidationError,
+      file,
+      formValid: titleValid && hasValidSchedule && memoValid && noValidationError
+    });
+    
+    // すべての条件を満たしていればtrueを返す
+    return titleValid && hasValidSchedule && memoValid && noValidationError;
+  };
+
+  // フォームの入力値が変更されたときにバリデーションを実行
+  useEffect(() => {
+    let currentValidationError: string | null = null;
+    
+    // 各項目のバリデーションチェック
+    if (eventNameValue.trim().length === 0) {
+      currentValidationError = `${categoryName}名を入力してください`;
+    } else if (!schedules.some(s => s.date && s.time)) {
+      currentValidationError = "少なくとも1つの日程を設定してください";
+    } else if (memoValue.length > 200) {
+      currentValidationError = "メモは200文字以内で入力してください";
+    }
+    
+    // validationErrorを更新（cropperのエラーは上書きしない）
+    if (currentValidationError) {
+      setValidationError(currentValidationError);
+    } else if (validationError && 
+               !validationError.includes('画像形式') && 
+               !validationError.includes('ファイルサイズ')) {
+      // cropperからのエラーでなければクリア
+      setValidationError(null);
+    }
+    
+    // 最終的なバリデーション結果に基づいて送信ボタンの状態を更新
+    setIsSubmitDisabled(!checkFormValidity());
+    
+  }, [eventNameValue, schedules, memoValue, categoryName, validationError, file]);
 
   if (loading) {
     return <SpinLoader></SpinLoader>;
   }
 
   return (
-    <>
-      <h1 className={styles.categoryTitle}>{categoryName}の予定も調整ちゃんで簡単2ステップ</h1>
-      <FormProvider {...methods} >
-        <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 ${styles.scheduleForm}`}>
-          <div className={styles.formContent}>
-            <h2 className={styles.formH2}>STEP1: {categoryName}登録</h2>
-            <div className={styles.formInner}>
-              <p className="text-gray-600">{categoryName}名<span className={styles.tagRequire}>必須</span></p>
-              <input
-                type="text"
-                className={styles.formInput}
-                placeholder={`${categoryName}開催！`}
-                {...register('event_name')}
-              />
-              {errors.event_name && (
-                <span className="self-start text-xs text-red-500">{errors.event_name.message}</span>
-              )}
-              <p className="text-gray-600">メモ<span className={styles.tagNoRequire}>任意</span></p>
-              <textarea
-                className={styles.formTextarea}
-                {...register('memo')}
-              />
-              <span className={`${styles.memoCount} ${memoLength > 300 ? styles.memoCount__valid : ''}`}>{memoLength}/300</span>
-              {errors.memo && (
-                <span className="self-start text-xs text-red-500">{errors.memo.message}</span>
-              )}
+    <div className={styles.formContainer}>
+      <h1 className={styles.pageTitle}>{categoryName}の登録</h1>
+      <form onSubmit={handleSubmit(onSubmit)} className={styles.modernForm}>
+        <div className={styles.formCard}>
+          <div className={styles.formStep}>
+            <div className={styles.stepNumber}>1</div>
+            <h2 className={styles.stepTitle}>{categoryName}登録</h2>
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              {categoryName}名
+              <span className={styles.badgeRequired}>必須</span>
+            </label>
+            <input
+              type="text"
+              className={styles.modernInput}
+              placeholder={`${categoryName}の名前を入力してください`}
+              {...register('event_name')}
+            />
+            {errors.event_name && (
+              <span className={styles.errorMessage}>{errors.event_name.message}</span>
+            )}
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              メモ
+              <span className={styles.badgeOptional}>任意</span>
+            </label>
+            <textarea
+              className={styles.modernTextarea}
+              placeholder="メモや詳細情報を記入してください"
+              {...register('memo')}
+            />
+            <div className={styles.textareaFooter}>
+              <span className={`${styles.charCount} ${memoLength > 200 ? styles.charCountExceeded : ''}`}>
+                {memoLength}/200
+              </span>
+            </div>
+            {errors.memo && (
+              <span className={styles.errorMessage}>{errors.memo.message}</span>
+            )}
+          </div>
 
-              <div>
-                <CropImg onDataChange={handleChildData} isSubmit={isSubmit} setValidationError={handleValidationError}/>
-              </div>
-              {validationError && (
-              <div className="text-red-500">
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              イメージ画像
+              <span className={styles.badgeOptional}>任意</span>
+            </label>
+            <div className={styles.cropperContainer}>
+              <CropImg onDataChange={handleChildData} isSubmit={isSubmitting} setValidationError={handleValidationError}/>
+            </div>
+            {validationError && (
+              <div className={styles.formValidationError}>
+                <FiAlertCircle style={{ marginRight: '8px' }} />
                 {validationError}
               </div>
             )}
-            
-            </div>
+          </div>
 
-            <div>
-              <h2 className={styles.formH2}>STEP2: 日程登録<span className={styles.tagRequire}>必須</span></h2>
-              <div className={styles.formInner}>
-                {schedules.map((schedule, index) => (
-                  <div key={schedule.id} className={styles.scheduleInput}>
+          <div className={styles.formStepDivider}></div>
+
+          <div className={styles.formStep}>
+            <div className={styles.stepNumber}>2</div>
+            <h2 className={styles.stepTitle}>日程登録<span className={styles.badgeRequired}>必須</span></h2>
+          </div>
+        
+          <div className={styles.scheduleList}>
+            {schedules.map((schedule, index) => (
+              <div key={schedule.id} className={styles.scheduleItem}>
+                <div className={styles.scheduleInputGroup}>
+                  <div className={styles.scheduleInputWrapper}>
+                    <label className={styles.scheduleLabel}>
+                      日付
+                    </label>
                     <input
                       type="date"
-                      {...register(`schedules.${index}.date`)} // ユニークな名前を指定
-                      className={styles.formInputDate}
+                      {...register(`schedules.${index}.date`, { required: true })}
+                      onChange={(e) => handleDateChange(index, e.target.value)}
                       value={schedule.date}
-                      onChange={(e) => {
-                        const updatedSchedules = [...schedules];
-                        updatedSchedules[index].date = e.target.value;
-                        schedules[index].date = e.target.value;
-                        handleDateChange(index, e.target.value)
-                        setSchedules(updatedSchedules);
-                      }}
+                      className={styles.dateInput}
                     />
+                    {errors?.schedules?.[index]?.date && (
+                      <span className={styles.errorMessage}>
+                        {errors.schedules[index]?.date?.message}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={styles.scheduleInputWrapper}>
+                    <label className={styles.scheduleLabel}>
+                      時間
+                    </label>
                     <select
-                      className={styles.fromInputTime}
-                      value={schedule.time}
+                      className={styles.timeSelect}
                       {...register(`schedules.${index}.time`)}
+                      value={schedule.time}
                       onChange={(e) => {
                         const updatedSchedules = [...schedules];
                         updatedSchedules[index].time = e.target.value;
                         setSchedules(updatedSchedules);
                       }}
                     >
-                      {timeOptions.map((timeOption) => (
-                        <option key={timeOption} value={timeOption}>
-                          {timeOption}
+                      {timeOptions.map((time) => (
+                        <option key={time} value={time}>
+                          {time}
                         </option>
                       ))}
                     </select>
-                    <span className={styles.timeFrom}>　〜</span>
-                    {index > 0 && (
-                      <span
-                        className={styles.scheduleRemove}
-                        onClick={() => handleRemove(schedule.id)}
-                      >
-                        <CgCloseO />削除
-                      </span>
-                    )}
                   </div>
-                ))}
-                <span className={styles.addSchedule} onClick={AddSchedule}>
-                  <CgAddR />候補日を追加
-                </span>
-                {errors.schedules && (
-                  <span className="self-start text-xs text-red-500">空白の日付は登録できません</span>
-                )}
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={() => handleRemove(schedule.id)}
+                  className={styles.removeScheduleBtn}
+                >
+                  <FiTrash2 />
+                  削除
+                </button>
               </div>
-
-            </div>
+            ))}
+            
             <button
-              type="submit"
-              disabled={!isValid || isSubmitting}
-              className={`${styles.formSubmit} ${!isValid || isSubmitting || validationError ? `${styles.disabled}` : `${styles.enableSubmit}`
-                }`}
+              type="button"
+              onClick={AddSchedule}
+              className={styles.addScheduleBtn}
             >
-              登録
+              <FiPlus />
+              日程を追加
             </button>
           </div>
-        </form>
-      </FormProvider>
-      <History />
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <h2 className={styles.modalTitle}>エラーが発生しました。も一度お試しいただくか以下のフォームよりお問い合わせください</h2>
-        <p className={styles.modalText}> <Link target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" className={styles.link}>お問い合わせ</Link></p>
-      </Modal>
-    </>
-  )
+        </div>
 
+        <button
+          type="submit"
+          disabled={isSubmitting || isSubmitDisabled}
+          className={`${styles.submitButton} ${isSubmitDisabled ? styles.disabled : styles.enableSubmit}`}
+        >
+          {isSubmitting ? (
+            "送信中..."
+          ) : (
+            <>
+              <FiSend style={{ marginRight: '8px' }} />
+              {isSubmitDisabled ? `入力情報を確認してください` : `${categoryName}を登録する`}
+            </>
+          )}
+        </button>
+      </form>
+
+      <div className={styles.historySection}>
+        <h2 className={styles.sectionTitle}>過去の{categoryName}</h2>
+        <History />
+      </div>
+
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <div className={styles.modalContent}>
+          <FiAlertCircle size={50} color="#FF6B6B" style={{ marginBottom: '1rem' }} />
+          <h2 className={styles.modalTitle}>エラーが発生しました</h2>
+          <p>予期せぬエラーが発生しました。</p>
+          <p>もう一度お試しいただくか、問題が解決しない場合はお問い合わせください。</p>
+          <div className={styles.modalActions}>
+            <Link href="/contact" className={styles.modalLink}>
+              お問い合わせフォーム
+            </Link>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
 }

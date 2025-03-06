@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_JP } from "next/font/google";
 import NextTopLoader from 'nextjs-toploader';
 import Header from "./header";
 import Footer from "./footer";
@@ -14,6 +15,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -51,29 +59,32 @@ export default function RootLayout({
 }>) {
   return (
     <>
-      <html lang="en">
+      <html lang="ja">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased`}
         >
-          <NextTopLoader color="#de3163"
+          <NextTopLoader 
+            color="#5D5FEF"
             initialPosition={0.08}
             crawlSpeed={200}
-            height={5}
+            height={3}
             crawl={true}
             showSpinner={false}
             easing="ease"
             speed={200}
-            shadow="0 0 10px #de3163,0 0 5px #de3163"
-            template='<div class="bar" role="bar"><div class="peg"></div></div> 
-  <div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
+            shadow="0 0 10px #5D5FEF,0 0 5px #5D5FEF"
             zIndex={1600}
-            showAtBottom={false} />
-          <Header />
-          {children}
-          <Situation />
-          <Footer />
+            showAtBottom={false} 
+          />
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow container mx-auto py-6">
+              {children}
+            </main>
+            <Situation />
+            <Footer />
+          </div>
         </body>
-
       </html>
     </>
   );

@@ -24,191 +24,256 @@
     display: flex;
     max-width: 1200px;
     margin: 40px auto;
-    gap: 20px;
+    gap: 30px;
+    padding: 0 1.5rem;
 }
 
 /* 記事エリア */
 .article {
     flex: 2;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
 }
 
 /* h1タイトル */
 .article h1 {
-    font-size: 32px;
-    color: #DE3163;
-    border-bottom: 3px solid #E195AB;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    font-size: 2.5rem;
+    color: var(--neutral);
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
 /* アイキャッチ画像 */
-.article .eyecatch {
+.eyecatch {
     width: 100%;
     height: auto;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+/* 日付表示 */
+.article .publishDate {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: var(--gray-dark);
+    font-size: 0.9rem;
+    background-color: var(--background-secondary);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
 }
 
 /* h2タグ */
 .article h2 {
-    font-size: 26px;
-    color: #DE3163;
-    margin-top: 30px;
-    border-left: 5px solid #E195AB;
-    padding-left: 10px;
+    font-size: 1.8rem;
+    color: var(--neutral);
+    margin: 2.5rem 0 1.5rem;
+    padding-left: 1rem;
+    border-left: 4px solid var(--primary);
+    line-height: 1.3;
 }
 
-/* h2タグ */
+/* リンク */
 .article a {
-    color: rgb(18, 172, 207);
+    color: var(--primary);
     text-decoration: underline;
+    transition: color 0.3s ease;
 }
 
-/* h2タグ */
-.relateTitle {
-    font-size: 18px;
-    color: #DE3163;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border-left: 5px solid #E195AB;
-    padding-left: 10px;
+.article a:hover {
+    color: var(--primary-dark);
 }
 
 /* h3タグ */
 .article h3 {
-    font-size: 22px;
-    color: #E195AB;
-    margin-top: 20px;
+    font-size: 1.5rem;
+    color: var(--neutral);
+    margin: 2rem 0 1rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.article h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--primary-light);
+    border-radius: 3px;
 }
 
 /* pタグ */
 .article p {
-    font-size: 16px;
+    font-size: 1.1rem;
     line-height: 1.8;
-    color: #444;
-    margin-bottom: 20px;
+    color: var(--neutral);
+    margin-bottom: 1.5rem;
+}
+
+/* リスト */
+.article ul, .article ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.article li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+/* 引用 */
+.article blockquote {
+    background-color: var(--background-secondary);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-left: 4px solid var(--primary);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    font-style: italic;
 }
 
 /* サイドバー */
 .sidebar {
     flex: 1;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    height: fit-content;
 }
-/* サイドバー */
-.sidebar h3 {
-    color: #333;
+
+/* 関連記事タイトル */
+.relateTitle {
+    font-size: 1.2rem;
+    color: var(--neutral);
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary);
+    font-weight: 600;
 }
 
 /* 関連ブログリスト */
 .relatedPosts {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 1.25rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
 }
 
 .relatedPost {
-    background: #CCDF92;
-    padding: 12px;
-    border-radius: 8px;
+    background-color: var(--background-secondary);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
 }
 
 .relatedPost:hover {
-    background: #CCDF92;
-    padding: 12px;
-    border-radius: 8px;
-    background: #E195AB;
-    transform: translateY(-2px);
-    transition: 0.3s;
+    border-left-color: var(--primary);
+    transform: translateX(3px);
+    background-color: white;
+    box-shadow: var(--shadow-sm);
 }
 
 /* 各ブログカード */
 .blogCard {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 1rem;
 }
-
 
 /* ブログカードのアイキャッチ画像 */
 .blogCard img {
     width: 80px;
     height: 80px;
     object-fit: cover;
-    border-radius: 6px;
-}
-
-/* ブログカードのテキスト */
-.blogCard .blogInfo {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
 }
 
 /* ブログカードのタイトル */
-.blogCard .blogTitle {
-    font-size: 16px;
-    font-weight: bold;
-    color: #DE3163;
+.blogCardTitle {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--neutral);
+    margin: 0 0 0.5rem;
+    line-height: 1.4;
 }
 
 /* タグ */
 .tags {
-    font-size: 12px;
-    color: #555;
-    background-color: #e5eeca;
-    padding: 4px 8px;
+    display: inline-block;
+    font-size: 0.75rem;
+    color: white;
+    background-color: var(--primary-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    margin-top: 0.5rem;
 }
 
 /* タブレット対応 */
 @media (max-width: 1024px) {
     .container {
-        flex-direction: column-reverse;
+        flex-direction: column;
+        padding: 0 1rem;
     }
 
     .sidebar {
-        order: -1;
-        /* サイドバーを上に */
-        margin-bottom: 20px;
+        order: 2;
+        margin-top: 2rem;
     }
 }
 
 /* スマホ対応 */
 @media (max-width: 768px) {
     .article h1 {
-        font-size: 28px;
+        font-size: 1.8rem;
     }
 
     .article h2 {
-        font-size: 22px;
+        font-size: 1.5rem;
     }
 
     .article h3 {
-        font-size: 18px;
+        font-size: 1.3rem;
     }
 
     .article p {
-        font-size: 14px;
+        font-size: 1rem;
+    }
+
+    .container {
+        margin: 20px auto;
+    }
+
+    .article {
+        padding: 1.5rem;
+    }
+
+    .sidebar {
+        padding: 1.25rem;
+    }
+
+    .relateTitle {
+        font-size: 1.1rem;
     }
 
     .blogCard {
         flex-direction: column;
         align-items: flex-start;
-        padding: 10px;
     }
 
     .blogCard img {
         width: 100%;
-        height: auto;
-    }
-
-    .blogTitle {
-        font-size: 14px;
+        height: 150px;
+        margin-bottom: 0.75rem;
     }
 }

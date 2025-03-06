@@ -122,3 +122,322 @@
   font-size: 44px;
   font-weight: bold;
 }
+
+// モダンなヘッダー
+.modernHeader {
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.headerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logoImage {
+  width: 50px;
+  height: 50px;
+  margin-right: 1rem;
+}
+
+.logoText {
+  display: flex;
+  flex-direction: column;
+}
+
+.logoTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.logoTagline {
+  font-size: 0.85rem;
+  color: var(--gray-dark);
+  margin: 0;
+}
+
+.navMenu {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navLink {
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.3s ease;
+  
+  &:hover {
+    color: var(--primary);
+    
+    &::after {
+      width: 100%;
+    }
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary);
+    transition: width 0.3s ease;
+  }
+}
+
+.mobileMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--foreground);
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.headerDescription {
+  background-color: var(--background-secondary);
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--gray-light);
+  border-bottom: 1px solid var(--gray-light);
+  
+  p {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--gray-dark);
+    line-height: 1.5;
+  }
+}
+
+.textLink {
+  color: var(--primary);
+  text-decoration: underline;
+  
+  &:hover {
+    color: var(--primary-dark);
+  }
+}
+
+.spOnly {
+  display: none;
+}
+
+// モダンなフッター
+.modernFooter {
+  background-color: var(--background-secondary);
+  color: var(--foreground);
+  padding: 3rem 1rem 1.5rem;
+  border-top: 1px solid var(--gray-light);
+}
+
+.footerContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.footerSection {
+  flex: 1;
+  min-width: 200px;
+}
+
+.footerHeading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  position: relative;
+  padding-bottom: 0.75rem;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background-color: var(--primary);
+  }
+}
+
+.footerDescription {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--gray-dark);
+}
+
+.footerNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footerLink {
+  color: var(--gray-dark);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+  
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+.socialLinks {
+  display: flex;
+  gap: 1rem;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: white;
+  color: var(--primary);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.footerBottom {
+  max-width: 1200px;
+  margin: 2.5rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--gray-light);
+  text-align: center;
+}
+
+.copyright {
+  font-size: 0.85rem;
+  color: var(--gray-dark);
+}
+
+// モバイルスタイル
+@media (max-width: 768px) {
+  .headerContainer {
+    padding: 0.75rem;
+  }
+  
+  .logoImage {
+    width: 40px;
+    height: 40px;
+    margin-right: 0.75rem;
+  }
+  
+  .logoTitle {
+    font-size: 1.5rem;
+  }
+  
+  .logoTagline {
+    font-size: 0.75rem;
+  }
+  
+  .navMenu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: white;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: none;
+    padding: 2rem;
+    gap: 2rem;
+  }
+  
+  .menuOpen {
+    transform: translateX(0);
+  }
+  
+  .mobileMenuButton {
+    display: block;
+    z-index: 101;
+  }
+  
+  .navLink {
+    font-size: 1.25rem;
+  }
+  
+  .spOnly {
+    display: inline;
+  }
+  
+  .footerContainer {
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+  
+  .footerSection {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .logoImage {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .logoTitle {
+    font-size: 1.25rem;
+  }
+  
+  .logoTagline {
+    font-size: 0.7rem;
+  }
+  
+  .headerDescription p {
+    font-size: 0.8rem;
+  }
+}
+
+// アニメーション
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

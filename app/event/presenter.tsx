@@ -427,7 +427,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       </button>
       {isImageSwiperOpen && (
         <ImageSwiper 
-          eventImages={eventData.images || []} 
+          images={eventData.images || []} 
           onClose={() => setIsImageSwiperOpen(false)}
         />
       )}
