@@ -49,7 +49,7 @@ const getFormattedDate = () => {
 };
 
 type Props = {
-  images: (string | any)[];
+  images: (string | { imagePath?: string; id?: string; url?: string })[];
   title?: string;
   onClose: () => void;
   debugId?: string;

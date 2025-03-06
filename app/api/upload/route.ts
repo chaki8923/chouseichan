@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let uploadedUrls: string[] = [];
+    const uploadedUrls: string[] = [];
 
     const s3 = new S3Client({
       region: "auto",

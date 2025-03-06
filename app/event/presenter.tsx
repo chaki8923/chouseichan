@@ -45,7 +45,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [formattedDate, setFormattedDate] = useState<string>();
   const [isImageSwiperOpen, setIsImageSwiperOpen] = useState(false);
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
-  const [eventImages, setEventImages] = useState<any[]>([]);
+  const [eventImages, setEventImages] = useState<{ imagePath?: string; id?: string; url?: string }[]>([]);
   const [isOrganizer, setIsOrganizer] = useState(false);
   // const searchParams = useSearchParams();
   // const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
@@ -260,28 +260,34 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   // リロード後のアップロード完了チェック
   useEffect(() => {
+    // ここでローカルストレージからデータを取得
     const uploadFlag = localStorage.getItem(`image_uploaded_${eventId}`);
     const uploadTime = localStorage.getItem(`image_upload_time_${eventId}`);
     
-    if (uploadFlag === 'true' && uploadTime) {
-      // 最近アップロードされた場合（10分以内）
-      const uploadTimeNum = parseInt(uploadTime);
-      const now = Date.now();
-      if (now - uploadTimeNum < 10 * 60 * 1000) {
-        console.log("リロード後のアップロード検知 - Swiperを表示");
-        // ローカルストレージをクリア
-        localStorage.removeItem(`image_uploaded_${eventId}`);
-        localStorage.removeItem(`image_upload_time_${eventId}`);
-        
-        // スケジュール取得完了後に画像データを取得し、Swiperを表示
-        // fetchSchedules関数はすでにコンポーネントマウント時に呼ばれているので、
-        // 少し待ってからSwiperを表示
-        setTimeout(() => {
-          // すでにデータは取得されているはずなので、そのままSwiperを表示
-          setIsImageSwiperOpen(true);
-        }, 1000);
+    // フラグ処理の関数を定義
+    const handleUploadFlag = () => {
+      if (uploadFlag === 'true' && uploadTime) {
+        // 最近アップロードされた場合（10分以内）
+        const uploadTimeNum = parseInt(uploadTime);
+        const now = Date.now();
+        if (now - uploadTimeNum < 10 * 60 * 1000) {
+          console.log("リロード後のアップロード検知 - Swiperを表示");
+          // ローカルストレージをクリア
+          localStorage.removeItem(`image_uploaded_${eventId}`);
+          localStorage.removeItem(`image_upload_time_${eventId}`);
+          
+          // スケジュール取得完了後に画像データを取得し、Swiperを表示
+          // 少し待ってからSwiperを表示
+          setTimeout(() => {
+            // すでにデータは取得されているはずなので、そのままSwiperを表示
+            setIsImageSwiperOpen(true);
+          }, 1000);
+        }
       }
-    }
+    };
+
+    // 関数を実行
+    handleUploadFlag();
   }, [eventId]);
 
   if (loading) {
