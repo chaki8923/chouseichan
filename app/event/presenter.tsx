@@ -20,6 +20,7 @@ import Form from "./form";
 import Modal from "../component/modal/modal";
 import SpinLoader from "../component/loader/spin";
 import { isEventOwner, addEvent } from "@/app/utils/strages";
+import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -41,6 +42,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isCopyModal, setIsCopyModal] = useState(false);
   const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
+  const [isImageSwiperOpen, setIsImageSwiperOpen] = useState(false);
   const [isOrganizer, setIsOrganizer] = useState(false);
   // const searchParams = useSearchParams();
   // const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
@@ -99,7 +101,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       const data = await response.json();
 
-      return data;
+      return {
+        ...data,
+        images: data.images || [],
+      };
     } catch (error) {
       console.error("Error fetching event data:", error);
       throw error; // エラーを呼び出し元に伝える
@@ -209,7 +214,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const highlightScheduleIds = schedulesWithAttendCount
     .filter((s: maxAttend) => s.attendCount === maxAttendCount && maxAttendCount != 0)
     .map((s: maxAttend) => s.id);
-
+  console.log("eventData", eventData.images);
+  
 
   return (
     <>
@@ -403,7 +409,26 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       <Modal isOpen={isCopyModal} onClose={() => setIsCopyModal(false)}>
         <h2 className={styles.modalTitle}>コピーしました</h2>
       </Modal>
-      <ImageUploadSection eventData={eventData}/>
-    </>
+      {new Date().toDateString() === new Date(eventData.schedules.find(schedule => schedule.isConfirmed)?.date || '').toDateString() ? (
+        <ImageUploadSection eventData={eventData} />
+      ) : (
+        <button onClick={() => alert("画像はイベント当日以降に投稿できます")}>
+          画像を投稿する
+        </button>
+      )}
+    <button onClick={() => setIsImageSwiperOpen(true)} className="view-images-btn">
+      投稿画像を見る
+    </button>
+    {eventData.images?.map((url, index) => (
+      <Image
+        key={index}
+        src={url}
+        alt={`Uploaded image ${index + 1}`}
+        width={100}
+        height={100}
+      />
+    ))}
+    {isImageSwiperOpen && <ImageSwiper imageUrls={eventData.images || []} />}
+  </>
   );
 }

@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
       where: { id: eventId },
       include: {
         user: true, // イベントの作成者情報
+        images: true,
         schedules: {
           orderBy: { id: "asc" },
           include: {
@@ -27,7 +28,6 @@ export async function GET(request: NextRequest) {
                 user: true, // 各回答者情報を取得
               },
             },
-            // ... existing code ...
           },
         },
       },

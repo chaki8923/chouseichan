@@ -87,6 +87,7 @@ model Event {
   updatedAt DateTime     @updatedAt
   user      User?        @relation(fields: [userId], references: [id])
   schedules Schedule[]
+  images    EventImage[]
 }
 
 model Schedule {
@@ -115,11 +116,9 @@ model Response {
   @@unique([scheduleId, userId]) // 複合一意キー制約
 }
 
-model EventImages {
-  id        String   @id @default(uuid())
+model EventImage {
+  id        Int      @id @default(autoincrement())
   eventId   String
   imagePath String
-  createdAt DateTime @default(now())
-
-  @@unique([eventId, imagePath]) // 1つのイベントに同じ画像が登録されないように
+  event     Event    @relation(fields: [eventId], references: [id])
 }

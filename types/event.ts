@@ -15,4 +15,5 @@ export type Event = {
   image?: string;
   memo: string;
   schedules: Schedule[];
+  images?: string[];
 };

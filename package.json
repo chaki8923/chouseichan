@@ -12,7 +12,8 @@
     "build:worker": "npx wrangler publish --dry-run",
     "dev:worker": "npx wrangler dev",
     "deploy:worker": "npm run build:worker && wrangler deploy",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "test": "vitest"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
@@ -24,6 +25,7 @@
     "@prisma/extension-accelerate": "^1.2.2",
     "@prisma/pg-worker": "^6.4.1",
     "@types/sass": "^1.43.1",
+    "@types/swiper": "^5.4.3",
     "bootstrap": "^5.3.3",
     "cookies-next": "^5.1.0",
     "cropperjs": "^1.6.2",
@@ -48,6 +50,7 @@
     "react-icons": "^5.4.0",
     "react-image-crop": "^11.0.7",
     "react-loading": "^2.0.3",
+    "swiper": "^11.2.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {

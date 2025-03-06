@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@/libs/prisma";
 
+
 export async function POST(request: NextRequest) {
   try {
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
@@ -51,8 +52,10 @@ export async function POST(request: NextRequest) {
       const imageUrl = `${process.env.R2_PUBLIC_BUCKET_DOMAIN}/${key}`;
       uploadedUrls.push(imageUrl);
 
+      console.log("入った:", imageUrl);
+      
       // EventImages テーブルに登録
-      await prisma.eventImages.create({
+      await prisma.eventImage.create({
         data: {
           eventId: eventId,
           imagePath: imageUrl,
