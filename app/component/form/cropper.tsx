@@ -39,7 +39,6 @@ function centerAspectCrop(
 // Props の型定義
 type onDataChange = {
   onDataChange: (data: File) => void; // 親に通知する関数の型
-  isSubmit: boolean;
   setValidationError: (error: string | null) => void;
 };
 

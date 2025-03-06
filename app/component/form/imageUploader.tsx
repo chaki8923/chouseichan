@@ -46,15 +46,9 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
         setIsUploading(true);
 
         try {
-            const imagePaths = await uploadImagesToCloudflare(selectedImages, eventData.id);
-            setModalText('画像のアップロードが完了しました');
-            setIsOpen(true);
+            const result = await uploadImagesToCloudflare(selectedImages, eventData.id);
+            console.log("アップロード結果:", result);
             
-            // アップロード成功時に親コンポーネントに通知
-            if (onImageUploaded) {
-                onImageUploaded();
-            }
-
             // フォームをリセット
             setSelectedImages([]);
             setPreviewUrls(prev => {
@@ -65,6 +59,21 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
+            
+            // 先に親コンポーネントに通知してから、モーダルを表示する
+            if (onImageUploaded) {
+                onImageUploaded();
+            }
+            
+            // 最後にモーダルを表示
+            setModalText('画像のアップロードが完了しました。ページをリロードします...');
+            setIsOpen(true);
+            
+            // モーダルを表示した後、少し待ってからリロード
+            setTimeout(() => {
+                // リロードする前に必要なデータをすべて保存済みなので安全
+                window.location.reload();
+            }, 1500);
         } catch (error) {
             console.error("Error uploading images:", error);
             setModalText('画像のアップロードに失敗しました');
@@ -200,7 +209,12 @@ const uploadImagesToCloudflare = async (files: File[], eventId: string) => {
     });
 
     if (!response.ok) throw new Error('Upload failed');
-    return await response.json();
+    const result = await response.json();
+    
+    // デバッグログ
+    console.log("アップロードAPIレスポンス:", result);
+    
+    return result;
 };
 
 export default ImageUploadSection;

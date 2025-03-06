@@ -52,20 +52,29 @@ type Props = {
   images: (string | any)[];
   title?: string;
   onClose: () => void;
+  debugId?: string;
 };
 
-export default function ImageSwiper({ images = [], title = '登録した画像', onClose }: Props) {
+export default function ImageSwiper({ images = [], title = '登録した画像', onClose, debugId }: Props) {
   const [normalizedImages, setNormalizedImages] = useState<string[]>([]);
   
   useEffect(() => {
-    if (images && images.length > 0) {
-      console.log('Processing images:', images);
-      // 各イメージをnormalizeImageUrl関数で処理
-      const normalized = images.map(img => normalizeImageUrl(img));
-      console.log('Normalized images:', normalized);
-      setNormalizedImages(normalized.filter(img => img !== '')); // 空文字列を除外
+    // デバッグログを出力
+    if (debugId) {
+      console.log(`ImageSwiper(${debugId}) - 受け取った画像:`, images);
     }
-  }, [images]);
+    
+    // 画像URLを正規化
+    const processed = images
+      .filter(img => img) // null/undefinedをフィルタリング
+      .map(img => normalizeImageUrl(img));
+    
+    setNormalizedImages(processed);
+    
+    if (debugId) {
+      console.log(`ImageSwiper(${debugId}) - 処理後の画像:`, processed);
+    }
+  }, [images, debugId]);
   
   const swiperParams = {
     modules: [Navigation, Pagination, A11y, EffectFade, Autoplay],

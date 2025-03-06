@@ -24,6 +24,7 @@ import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { FiCamera } from 'react-icons/fi';
 
 type maxAttend = {
   id: number;
@@ -182,33 +183,27 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   };
 
-  // イベント画像を更新する関数
-  const refreshEventImages = async () => {
-    if (eventData && eventData.id) {
-      try {
-        const response = await fetch(`/api/images/${eventData.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.images) {
-            setEventImages(data.images);
-            console.log("画像を更新しました:", data.images);
-          }
-        }
-      } catch (error) {
-        console.error("画像の更新に失敗しました:", error);
-      }
-    }
-  };
 
   // 初回と更新時にデータ取得
   const fetchSchedules = async () => {
-    const data = await fetchEventWithSchedules(eventId);
-    addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
-    setEventData(data);
-    
-    // 画像データも取得
-    if (data && data.images) {
-      setEventImages(data.images);
+    try {
+     
+      // クエリパラメータの追加方法を修正 - evntIdは単独で渡す
+      const data = await fetchEventWithSchedules(eventId);
+      
+      if (data) {
+        addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
+        setEventData(data);
+        
+        // 画像データはイベントデータに含まれているので直接設定
+        if (data && data.images) {
+          console.log("フェッチ時に取得した画像:", data.images);
+          setEventImages(Array.isArray(data.images) ? [...data.images] : []);
+        }
+      }
+    } catch (error) {
+      console.error("スケジュールの取得中にエラーが発生しました:", error);
+      setError("データの取得に失敗しました");
     }
   };
 
@@ -240,10 +235,54 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   };
 
   // 画像アップロード後に画像リストを更新
-  const handleImageUploaded = () => {
-    // 画像が更新されたら最新の画像を取得
-    refreshEventImages();
+  const handleImageUploaded = async () => {
+    console.log("画像がアップロードされました - リロード前の処理");
+    
+    // アップロード成功を示すフラグをローカルストレージに保存
+    // リロード後もアップロード完了を認識できるようにする
+    localStorage.setItem(`image_uploaded_${eventId}`, 'true');
+    localStorage.setItem(`image_upload_time_${eventId}`, Date.now().toString());
+    
+    // 画像データ取得の代わりに既存のイベントデータAPIを使用
+    try {
+      const response = await fetch(`/api/events?eventId=${eventId}&_t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.images) {
+          console.log("アップロード後に画像データを更新:", data.images);
+          setEventImages([...data.images]);
+        }
+      }
+    } catch (error) {
+      console.error("画像データの更新に失敗:", error);
+    }
   };
+
+  // リロード後のアップロード完了チェック
+  useEffect(() => {
+    const uploadFlag = localStorage.getItem(`image_uploaded_${eventId}`);
+    const uploadTime = localStorage.getItem(`image_upload_time_${eventId}`);
+    
+    if (uploadFlag === 'true' && uploadTime) {
+      // 最近アップロードされた場合（10分以内）
+      const uploadTimeNum = parseInt(uploadTime);
+      const now = Date.now();
+      if (now - uploadTimeNum < 10 * 60 * 1000) {
+        console.log("リロード後のアップロード検知 - Swiperを表示");
+        // ローカルストレージをクリア
+        localStorage.removeItem(`image_uploaded_${eventId}`);
+        localStorage.removeItem(`image_upload_time_${eventId}`);
+        
+        // スケジュール取得完了後に画像データを取得し、Swiperを表示
+        // fetchSchedules関数はすでにコンポーネントマウント時に呼ばれているので、
+        // 少し待ってからSwiperを表示
+        setTimeout(() => {
+          // すでにデータは取得されているはずなので、そのままSwiperを表示
+          setIsImageSwiperOpen(true);
+        }, 1000);
+      }
+    }
+  }, [eventId]);
 
   if (loading) {
     return <SpinLoader></SpinLoader>;
@@ -500,21 +539,40 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         </div>
       )}
       
-      <button 
-        onClick={() => {
-          refreshEventImages(); // 画像を最新の状態に更新してから表示
-          setIsImageSwiperOpen(true);
-        }} 
-        className={styles.viewImagesBtn}
-      >
-        投稿画像を見る
-      </button>
+      {/* 画像がある場合のみボタンを表示 */}
+      {eventData && eventData.images && eventData.images.length > 0 && (
+        <button 
+          onClick={async () => {
+            // 強制的に最新データを取得してからSwiperを開く
+            if (eventData && eventData.id) {
+              try {
+                const response = await fetch(`/api/events?eventId=${eventData.id}&_t=${Date.now()}`);
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data && data.images) {
+                    setEventImages([...data.images]);
+                    console.log("画像ボタンクリック時に更新:", data.images);
+                  }
+                }
+              } catch (error) {
+                console.error("画像の更新に失敗しました:", error);
+              }
+            }
+            setIsImageSwiperOpen(true);
+          }} 
+          className={styles.viewImagesBtn}
+        >
+          <FiCamera size={18} /> イベント写真を見る
+        </button>
+      )}
       
+      {/* Swiperコンポーネント */}
       {isImageSwiperOpen && (
         <ImageSwiper 
-          images={eventImages} 
+          images={eventImages.length > 0 ? eventImages : (eventData.images || [])}
           title={eventData.name || "イベント"}
           onClose={() => setIsImageSwiperOpen(false)}
+          debugId={`debug-${Date.now()}`}
         />
       )}
 

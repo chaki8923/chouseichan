@@ -23,7 +23,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string | null>(`${categoryName}名と日程を入力してください`);
   const [memoLength, setMemoLength] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true); // 初期状態は無効
   const [file, setFile] = useState<File | null>(null);
 
@@ -39,13 +38,13 @@ export default function Form({ categoryName }: { categoryName: string }) {
     watch,
     setValue,  // ✅ react-hook-form の値を更新するための関数
     trigger,   // ✅ バリデーションを手動で実行
-    formState: { errors, isValid, isSubmitting: formIsSubmitting },
+    formState: { errors },
   } = methods
 
   // 本文の文字数を監視
   const memoValue = watch("memo", "");  // デフォルト値を設定
   const eventNameValue = watch("event_name", "");  // デフォルト値を設定
-  
+
   useEffect(() => {
     if (memoValue) {
       setMemoLength(memoValue.length);
@@ -103,7 +102,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
     // image: any
   }
 
-  const [childCropData, setChildCropData] = useState<File | null>(null);
   // 子から受け取ったデータを更新する関数
   const handleChildData = (data: File) => {
     console.log("画像データを受信:", data);
@@ -177,16 +175,16 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const checkFormValidity = () => {
     // イベント名が入力されているか
     const titleValid = eventNameValue.trim().length > 0;
-    
+
     // 少なくとも1つのスケジュールが有効か（日付と時間が入力されているか）
     const hasValidSchedule = schedules.some(s => s.date && s.time);
-    
+
     // メモが最大文字数以内か
     const memoValid = memoValue.length <= 200;
-    
+
     // バリデーションエラーがないか（cropperからのエラーも含む）
     const noValidationError = !validationError;
-    
+
     // デバッグログ
     console.log({
       titleValid,
@@ -196,7 +194,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
       file,
       formValid: titleValid && hasValidSchedule && memoValid && noValidationError
     });
-    
+
     // すべての条件を満たしていればtrueを返す
     return titleValid && hasValidSchedule && memoValid && noValidationError;
   };
@@ -204,7 +202,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
   // フォームの入力値が変更されたときにバリデーションを実行
   useEffect(() => {
     let currentValidationError: string | null = null;
-    
+
     // 各項目のバリデーションチェック
     if (eventNameValue.trim().length === 0) {
       currentValidationError = `${categoryName}名を入力してください`;
@@ -213,20 +211,20 @@ export default function Form({ categoryName }: { categoryName: string }) {
     } else if (memoValue.length > 200) {
       currentValidationError = "メモは200文字以内で入力してください";
     }
-    
+
     // validationErrorを更新（cropperのエラーは上書きしない）
     if (currentValidationError) {
       setValidationError(currentValidationError);
-    } else if (validationError && 
-               !validationError.includes('画像形式') && 
-               !validationError.includes('ファイルサイズ')) {
+    } else if (validationError &&
+      !validationError.includes('画像形式') &&
+      !validationError.includes('ファイルサイズ')) {
       // cropperからのエラーでなければクリア
       setValidationError(null);
     }
-    
+
     // 最終的なバリデーション結果に基づいて送信ボタンの状態を更新
     setIsSubmitDisabled(!checkFormValidity());
-    
+
   }, [eventNameValue, schedules, memoValue, categoryName, validationError, file]);
 
   if (loading) {
@@ -242,7 +240,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
             <div className={styles.stepNumber}>1</div>
             <h2 className={styles.stepTitle}>{categoryName}登録</h2>
           </div>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>
               {categoryName}名
@@ -258,7 +256,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
               <span className={styles.errorMessage}>{errors.event_name.message}</span>
             )}
           </div>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>
               メモ
@@ -285,7 +283,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
               <span className={styles.badgeOptional}>任意</span>
             </label>
             <div className={styles.cropperContainer}>
-              <CropImg onDataChange={handleChildData} isSubmit={isSubmitting} setValidationError={handleValidationError}/>
+              <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
             </div>
             {validationError && (
               <div className={styles.formValidationError}>
@@ -301,7 +299,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
             <div className={styles.stepNumber}>2</div>
             <h2 className={styles.stepTitle}>日程登録<span className={styles.badgeRequired}>必須</span></h2>
           </div>
-        
+
           <div className={styles.scheduleList}>
             {schedules.map((schedule, index) => (
               <div key={schedule.id} className={styles.scheduleItem}>
@@ -346,7 +344,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
                     </select>
                   </div>
                 </div>
-                
+
                 <button
                   type="button"
                   onClick={() => handleRemove(schedule.id)}
@@ -357,7 +355,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
                 </button>
               </div>
             ))}
-            
+
             <button
               type="button"
               onClick={AddSchedule}
@@ -371,17 +369,14 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
         <button
           type="submit"
-          disabled={isSubmitting || isSubmitDisabled}
+          disabled={isSubmitDisabled}
           className={`${styles.submitButton} ${isSubmitDisabled ? styles.disabled : styles.enableSubmit}`}
         >
-          {isSubmitting ? (
-            "送信中..."
-          ) : (
-            <>
-              <FiSend style={{ marginRight: '8px' }} />
-              {isSubmitDisabled ? `入力情報を確認してください` : `${categoryName}を登録する`}
-            </>
-          )}
+
+          <>
+            <FiSend style={{ marginRight: '8px' }} />
+            {isSubmitDisabled ? `入力情報を確認してください` : `${categoryName}を登録する`}
+          </>
         </button>
       </form>
 
