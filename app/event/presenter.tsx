@@ -57,43 +57,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // データ取得
-    const getEventData = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchEventWithSchedules(eventId!);
-        setEventData(data);
-        setError(null); // エラーをリセット
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("データ取得中に予期しないエラーが発生しました");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getEventData();
-  }, [eventId]);
-
-  useEffect(() => {
-    fetchSchedules(); // 初回ロード時に取得
-  }, []);
-
-
-  useEffect(() => {
-    if (eventId) {
-      setIsOrganizer(isEventOwner(eventId)); // ✅ クライアントサイドで実行
-    }
-  }, [eventId]);
-
-  if (!eventId) return <p>イベントidがありません</p>
-
-
-
   async function fetchEventWithSchedules(eventId: string) {
     try {
       const response = await fetch(`/api/events?eventId=${eventId}`);
@@ -110,9 +73,66 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       };
     } catch (error) {
       console.error("Error fetching event data:", error);
-      throw error; // エラーを呼び出し元に伝える
+      throw error;
     }
   }
+
+  // 初回と更新時にデータ取得
+  const fetchSchedules = async () => {
+    try {
+      // クエリパラメータの追加方法を修正 - evntIdは単独で渡す
+      const data = await fetchEventWithSchedules(eventId);
+      
+      if (data) {
+        addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
+        setEventData(data);
+        
+        // 画像データはイベントデータに含まれているので直接設定
+        if (data && data.images) {
+          console.log("フェッチ時に取得した画像:", data.images);
+          setEventImages(Array.isArray(data.images) ? [...data.images] : []);
+        }
+      }
+    } catch (error) {
+      console.error("スケジュールの取得中にエラーが発生しました:", error);
+      setError("データの取得に失敗しました");
+    }
+  };
+
+  useEffect(() => {
+    getEventData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fetchSchedules(); // 初回ロード時に取得
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId, /* fetchSchedules */]); // fetchSchedules関数は依存配列に含めるとESLintで警告が出るため、コメントアウトで対処
+
+  useEffect(() => {
+    if (eventId) {
+      setIsOrganizer(isEventOwner(eventId)); // ✅ クライアントサイドで実行
+    }
+  }, [eventId]);
+
+  if (!eventId) return <p>イベントidがありません</p>
+
+  const getEventData = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchEventWithSchedules(eventId!);
+      setEventData(data);
+      setError(null); // エラーをリセット
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("データ取得中に予期しないエラーが発生しました");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const changeUpdate = (userId: string, userName: string) => {
     setUserId(userId)
@@ -183,30 +203,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   };
 
-
-  // 初回と更新時にデータ取得
-  const fetchSchedules = async () => {
-    try {
-     
-      // クエリパラメータの追加方法を修正 - evntIdは単独で渡す
-      const data = await fetchEventWithSchedules(eventId);
-      
-      if (data) {
-        addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
-        setEventData(data);
-        
-        // 画像データはイベントデータに含まれているので直接設定
-        if (data && data.images) {
-          console.log("フェッチ時に取得した画像:", data.images);
-          setEventImages(Array.isArray(data.images) ? [...data.images] : []);
-        }
-      }
-    } catch (error) {
-      console.error("スケジュールの取得中にエラーが発生しました:", error);
-      setError("データの取得に失敗しました");
-    }
-  };
-
   // イベント開催日が確定していて、かつ現在の日付が開催日以降かどうかを確認
   const canUploadImages = () => {
     if (!eventData || !eventData.schedules) return false;
@@ -259,13 +255,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   };
 
   // リロード後のアップロード完了チェック
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    // ここでローカルストレージからデータを取得
-    const uploadFlag = localStorage.getItem(`image_uploaded_${eventId}`);
-    const uploadTime = localStorage.getItem(`image_upload_time_${eventId}`);
-    
-    // フラグ処理の関数を定義
-    const handleUploadFlag = () => {
+    // ブラウザ環境でのみ実行
+    if (typeof window !== 'undefined') {
+      // ローカルストレージからデータを取得
+      const uploadFlag = localStorage.getItem(`image_uploaded_${eventId}`);
+      const uploadTime = localStorage.getItem(`image_upload_time_${eventId}`);
+      
+      // フラグが存在する場合の処理
       if (uploadFlag === 'true' && uploadTime) {
         // 最近アップロードされた場合（10分以内）
         const uploadTimeNum = parseInt(uploadTime);
@@ -284,10 +282,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           }, 1000);
         }
       }
-    };
-
-    // 関数を実行
-    handleUploadFlag();
+    }
   }, [eventId]);
 
   if (loading) {
@@ -556,32 +551,30 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 if (response.ok) {
                   const data = await response.json();
                   if (data && data.images) {
+                    console.log("画像表示前に最新データを取得:", data.images);
                     setEventImages([...data.images]);
-                    console.log("画像ボタンクリック時に更新:", data.images);
+                    setIsImageSwiperOpen(true);
                   }
                 }
               } catch (error) {
-                console.error("画像の更新に失敗しました:", error);
+                console.error("画像データの取得中にエラー発生:", error);
               }
             }
-            setIsImageSwiperOpen(true);
-          }} 
+          }}
           className={styles.viewImagesBtn}
         >
-          <FiCamera size={18} /> イベント写真を見る
+          <FiCamera /> イベント画像を表示
         </button>
       )}
-      
-      {/* Swiperコンポーネント */}
+
       {isImageSwiperOpen && (
         <ImageSwiper 
-          images={eventImages.length > 0 ? eventImages : (eventData.images || [])}
-          title={eventData.name || "イベント"}
+          images={eventImages} 
+          title={`${eventData.name}の画像`}
           onClose={() => setIsImageSwiperOpen(false)}
-          debugId={`debug-${Date.now()}`}
+          debugId={eventData.id}
         />
       )}
-
     </>
   );
 }
