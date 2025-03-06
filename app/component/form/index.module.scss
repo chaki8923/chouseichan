@@ -320,3 +320,753 @@
   object-fit: cover;
   border-radius: 8px;
 }
+
+// ImageSwiper用のスタイル
+.albumContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #070707;
+  background-image: 
+    linear-gradient(rgba(30, 30, 30, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 30, 30, 0.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px 0;
+  backdrop-filter: blur(5px);
+  
+  // フィルムの側面テープ
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 12px;
+    height: 100%;
+    background-color: #0a0a0a;
+    z-index: 10;
+    background-image: 
+      repeating-linear-gradient(0deg, 
+        transparent, 
+        transparent 80px, 
+        rgba(255, 255, 255, 0.1) 80px,
+        rgba(255, 255, 255, 0.1) 82px
+      );
+  }
+  
+  &::before {
+    left: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  &::after {
+    right: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.albumHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  margin-bottom: 30px;
+  width: 100%;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  }
+}
+
+.albumTitle {
+  color: #e6e6e6;
+  font-size: 1.8rem;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-weight: 300;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  padding-left: 25px;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.albumSwiper {
+  width: 100%;
+  height: 85%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 40px;
+    background-color: #121212;
+    z-index: 10;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 40px;
+    background-color: #121212;
+    z-index: 10;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}
+
+// フィルム情報テキスト
+.filmTextTop {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  z-index: 12;
+}
+
+.filmTextBottom {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 1px;
+  z-index: 12;
+}
+
+// 実際のパーフォレーション（穴）を個別の要素として追加
+.filmHoles {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  z-index: 15;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 5%;
+  pointer-events: none;
+  
+  &.top {
+    top: 0;
+  }
+  
+  &.bottom {
+    bottom: 0;
+    top: auto;
+  }
+  
+  .hole {
+    width: 12px;
+    height: 20px;
+    background-color: #000;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 1px;
+    margin-top: 10px;
+  }
+}
+
+// フィルムの光の線
+.filmLightStrips {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    z-index: 5;
+    background: linear-gradient(to bottom, 
+      rgba(255, 255, 255, 0) 0%, 
+      rgba(255, 255, 255, 0.05) 20%, 
+      rgba(255, 255, 255, 0.1) 50%, 
+      rgba(255, 255, 255, 0.05) 80%, 
+      rgba(255, 255, 255, 0) 100%);
+  }
+  
+  &::before {
+    left: 15%;
+  }
+  
+  &::after {
+    right: 15%;
+  }
+}
+
+:global(.swiper-wrapper) {
+  background-color: rgba(20, 20, 20, 0.8);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px 0;
+}
+
+// フィルム製造情報
+.filmProductionInfo {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  width: 100%;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  
+  span {
+    color: rgba(255, 255, 255, 0.3);
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+// フィルムの穴（パーフォレーション）
+.photoFrame::before,
+.photoFrame::after {
+  content: '';
+}
+
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.albumImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+// フィルムのパーフォレーション（穴）を作成
+.filmPerforations {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  z-index: 5;
+}
+
+.filmPerforations.left {
+  left: -2px;
+}
+
+.filmPerforations.right {
+  right: -2px;
+}
+
+.filmPerforationLeft, .filmPerforationRight {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  padding: 15px 0;
+}
+
+.perforation {
+  width: 18px;
+  height: 22px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  margin: 10px auto;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 1px;
+  }
+}
+
+.imageWrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin: 10px;
+  border: 3px solid rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: saturate(1.1) contrast(1.05);
+  }
+}
+
+.filmInfo {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  padding: 5px 10px;
+  display: flex;
+  gap: 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  
+  .filmIso {
+    position: relative;
+    padding-right: 15px;
+    
+    &::after {
+      content: '|';
+      position: absolute;
+      right: 0;
+      opacity: 0.5;
+    }
+  }
+  
+  .frameNumber {
+    font-weight: bold;
+    position: relative;
+    padding-right: 15px;
+    
+    &::after {
+      content: '|';
+      position: absolute;
+      right: 0;
+      opacity: 0.5;
+    }
+  }
+  
+  .filmEvent {
+    font-style: italic;
+  }
+}
+
+.caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 20px 15px 15px;
+  
+  p {
+    margin: 0;
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.photoFrame {
+  width: 370px;
+  height: 400px;
+  background-color: #121212;
+  padding: 15px 15px 35px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  border-radius: 3px;
+  position: relative;
+  transform: rotate(-2deg);
+  transition: transform 0.3s;
+  margin: auto;
+  margin-top: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 60px;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(-50%);
+    clip-path: polygon(0 100%, 50% 0, 100% 100%);
+    z-index: 2;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    width: 100%;
+    height: 18px;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+}
+
+.noImages {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70%;
+  color: white;
+  font-size: 1.5rem;
+  font-family: 'Noto Sans JP', sans-serif;
+  text-align: center;
+  opacity: 0.7;
+  
+  p {
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .albumSlide {
+    width: 300px;
+    height: 400px;
+  }
+  
+  .photoFrame {
+    width: 280px;
+    height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .albumSlide {
+    width: 260px;
+    height: 350px;
+  }
+  
+  .photoFrame {
+    width: 240px;
+    height: 270px;
+  }
+  
+  .albumTitle {
+    font-size: 1.4rem;
+  }
+}
+
+// Swiperのナビゲーションボタンをカスタマイズ
+:global(.swiper-button-next),
+:global(.swiper-button-prev) {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.15);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  margin: 0 10px;
+  z-index: 100;
+}
+
+:global(.swiper-button-next:hover),
+:global(.swiper-button-prev:hover) {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+:global(.swiper-button-next::after),
+:global(.swiper-button-prev::after) {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+:global(.swiper-button-disabled) {
+  opacity: 0.2 !important;
+}
+
+:global(.swiper-pagination-bullet) {
+  background-color: white;
+  opacity: 0.5;
+}
+
+:global(.swiper-pagination-bullet-active) {
+  opacity: 1;
+  background-color: white;
+}
+
+// ナビゲーションボタンの位置調整
+:global(.swiper-button-next),
+:global(.swiper-button-prev) {
+  margin-top: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+}
+
+// ページネーションの位置調整
+:global(.swiper-pagination) {
+  bottom: 50px !important;
+  z-index: 20;
+}
+
+.albumSlide {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100% - 80px);
+  width: 100%;
+  margin-top: 40px;
+}
+
+.filmStrip {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 0 5px;
+}
+
+.filmPerforationLeft, 
+.filmPerforationRight {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  padding: 15px 0;
+}
+
+.perforation {
+  width: 18px;
+  height: 22px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  margin: 10px auto;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 1px;
+  }
+}
+
+.imageWrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin: 10px;
+  border: 3px solid rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: saturate(1.1) contrast(1.05);
+  }
+}
+
+.filmInfo {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  padding: 5px 10px;
+  display: flex;
+  gap: 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  
+  .filmIso {
+    position: relative;
+    padding-right: 15px;
+    
+    &::after {
+      content: '|';
+      position: absolute;
+      right: 0;
+      opacity: 0.5;
+    }
+  }
+  
+  .frameNumber {
+    font-weight: bold;
+    position: relative;
+    padding-right: 15px;
+    
+    &::after {
+      content: '|';
+      position: absolute;
+      right: 0;
+      opacity: 0.5;
+    }
+  }
+  
+  .filmEvent {
+    font-style: italic;
+  }
+}
+
+.caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 20px 15px 15px;
+  
+  p {
+    margin: 0;
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.albumImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+  display: block;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .albumSlide {
+    height: calc(100% - 100px);
+  }
+  
+  .filmPerforationLeft, 
+  .filmPerforationRight {
+    width: 20px;
+  }
+  
+  .perforation {
+    width: 14px;
+    height: 18px;
+    margin: 8px auto;
+    
+    &::after {
+      width: 6px;
+      height: 10px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .albumSlide {
+    height: calc(100% - 120px);
+  }
+  
+  .filmPerforationLeft, 
+  .filmPerforationRight {
+    width: 15px;
+  }
+  
+  .perforation {
+    width: 10px;
+    height: 14px;
+    margin: 6px auto;
+    
+    &::after {
+      width: 5px;
+      height: 8px;
+    }
+  }
+  
+  .filmInfo {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    gap: 8px;
+  }
+  
+  .albumTitle {
+    font-size: 1.4rem;
+  }
+}

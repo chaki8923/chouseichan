@@ -216,6 +216,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     .map((s: maxAttend) => s.id);
   console.log("eventData", eventData.images);
   
+  // eventData.imagesの構造を詳しく確認
+  if (eventData.images && eventData.images.length > 0) {
+    console.log("First image structure:", JSON.stringify(eventData.images[0]));
+  }
+
 
   return (
     <>
@@ -412,23 +417,21 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       {new Date().toDateString() === new Date(eventData.schedules.find(schedule => schedule.isConfirmed)?.date || '').toDateString() ? (
         <ImageUploadSection eventData={eventData} />
       ) : (
-        <button onClick={() => alert("画像はイベント当日以降に投稿できます")}>
-          画像を投稿する
-        </button>
+        <ImageUploadSection eventData={eventData} />
+        // <button onClick={() => alert("画像はイベント当日以降に投稿できます")} className={styles.uploadBtn}>
+        //   画像を投稿する
+        // </button>
       )}
-    <button onClick={() => setIsImageSwiperOpen(true)} className="view-images-btn">
-      投稿画像を見る
-    </button>
-    {eventData.images?.map((url, index) => (
-      <Image
-        key={index}
-        src={url}
-        alt={`Uploaded image ${index + 1}`}
-        width={100}
-        height={100}
-      />
-    ))}
-    {isImageSwiperOpen && <ImageSwiper imageUrls={eventData.images || []} />}
-  </>
+      <button onClick={() => setIsImageSwiperOpen(true)} className={styles.viewImagesBtn}>
+        投稿画像を見る
+      </button>
+      {isImageSwiperOpen && (
+        <ImageSwiper 
+          eventImages={eventData.images || []} 
+          onClose={() => setIsImageSwiperOpen(false)}
+        />
+      )}
+
+    </>
   );
 }
