@@ -61,7 +61,7 @@ export default function App(props: onDataChange) {
 
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [isCrop, setIsCrop] = useState<boolean>(false);
-  const [isValid, setIsValid] = useState<boolean>(false);
+  
 
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
@@ -88,7 +88,6 @@ export default function App(props: onDataChange) {
     // クロップコンテナの高さを取得
     const cropContainerHeight = cropContainerRef.current?.offsetHeight || 0;
     
-    setIsValid(false);
     const image = imgRef.current
     const previewCanvas = previewCanvasRef.current
     if (!image || !previewCanvas || !completedCrop) {
@@ -131,14 +130,12 @@ export default function App(props: onDataChange) {
 
     // バリデーションチェック
     if (!file.type.startsWith('image/')) {
-      setIsValid(true);
       props.setValidationError('画像形式が不正です。画像ファイルをアップロードしてください。');
       return;
     }
 
     const maxSize = 1024 * 1024 * 1; // 1MB
     if (file.size > maxSize) {
-      setIsValid(true);
       props.setValidationError('ファイルサイズが1MBを超えています。');
       return;
     }

@@ -4,7 +4,7 @@ import Modal from "../modal/modal";
 import styles from "./index.module.scss";
 import { FiUpload, FiX, FiImage } from 'react-icons/fi';
 
-const ImageUploadSection: React.FC<{ eventData: Event; }> = ({ eventData }) => {
+const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => void; }> = ({ eventData, onImageUploaded }) => {
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -49,15 +49,24 @@ const ImageUploadSection: React.FC<{ eventData: Event; }> = ({ eventData }) => {
             const imagePaths = await uploadImagesToCloudflare(selectedImages, eventData.id);
             setModalText('画像のアップロードが完了しました');
             setIsOpen(true);
-            // アップロード成功後にリセット
+            
+            // アップロード成功時に親コンポーネントに通知
+            if (onImageUploaded) {
+                onImageUploaded();
+            }
+
+            // フォームをリセット
             setSelectedImages([]);
             setPreviewUrls(prev => {
                 // すべてのURLを解放
                 prev.forEach(url => URL.revokeObjectURL(url));
                 return [];
             });
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         } catch (error) {
-            console.error('Image upload failed:', error);
+            console.error("Error uploading images:", error);
             setModalText('画像のアップロードに失敗しました');
             setIsOpen(true);
         } finally {

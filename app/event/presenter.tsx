@@ -43,6 +43,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
   const [isImageSwiperOpen, setIsImageSwiperOpen] = useState(false);
+  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
+  const [eventImages, setEventImages] = useState<any[]>([]);
   const [isOrganizer, setIsOrganizer] = useState(false);
   // const searchParams = useSearchParams();
   // const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
@@ -180,14 +182,68 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   };
 
+  // イベント画像を更新する関数
+  const refreshEventImages = async () => {
+    if (eventData && eventData.id) {
+      try {
+        const response = await fetch(`/api/images/${eventData.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.images) {
+            setEventImages(data.images);
+            console.log("画像を更新しました:", data.images);
+          }
+        }
+      } catch (error) {
+        console.error("画像の更新に失敗しました:", error);
+      }
+    }
+  };
 
   // 初回と更新時にデータ取得
   const fetchSchedules = async () => {
     const data = await fetchEventWithSchedules(eventId);
-    addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules })
+    addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
     setEventData(data);
+    
+    // 画像データも取得
+    if (data && data.images) {
+      setEventImages(data.images);
+    }
   };
 
+  // イベント開催日が確定していて、かつ現在の日付が開催日以降かどうかを確認
+  const canUploadImages = () => {
+    if (!eventData || !eventData.schedules) return false;
+    
+    // 確定されたスケジュールを検索
+    const confirmedSchedule = eventData.schedules.find(schedule => schedule.isConfirmed === true);
+    if (!confirmedSchedule || !confirmedSchedule.date) return false;
+    
+    // イベント開催日と現在の日付を比較
+    const eventDate = new Date(confirmedSchedule.date);
+    const today = new Date();
+    // 日付のみを比較するため、時刻部分をリセット
+    eventDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    // イベント開催日以降の場合にtrueを返す
+    return eventDate <= today;
+  };
+
+  // 画像アップロードモーダルを表示する関数
+  const handleImageUploadClick = () => {
+    if (!canUploadImages()) {
+      setModalText("画像はイベント開催日以降に投稿できます");
+      setIsImageUploadModalOpen(true);
+    }
+  };
+
+  // 画像アップロード後に画像リストを更新
+  const handleImageUploaded = () => {
+    // 画像が更新されたら最新の画像を取得
+    refreshEventImages();
+  };
 
   if (loading) {
     return <SpinLoader></SpinLoader>;
@@ -414,20 +470,50 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       <Modal isOpen={isCopyModal} onClose={() => setIsCopyModal(false)}>
         <h2 className={styles.modalTitle}>コピーしました</h2>
       </Modal>
-      {new Date().toDateString() === new Date(eventData.schedules.find(schedule => schedule.isConfirmed)?.date || '').toDateString() ? (
-        <ImageUploadSection eventData={eventData} />
+      <Modal isOpen={isImageUploadModalOpen} onClose={() => setIsImageUploadModalOpen(false)} type="info">
+        <div className={styles.modalContent}>
+          <h2 className={styles.modalTitle}>画像投稿について</h2>
+          <p>画像の投稿は以下の条件を満たす場合のみ可能です：</p>
+          <ul className={styles.modalList}>
+            <li>イベントの開催日が確定されている</li>
+            <li>現在の日付がイベント開催日以降である</li>
+          </ul>
+          <p>イベント開催後に再度お試しください。</p>
+          <div className={styles.modalActions}>
+            <button 
+              onClick={() => setIsImageUploadModalOpen(false)}
+              className={styles.modalButton}
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      </Modal>
+      
+      {canUploadImages() ? (
+        // 条件を満たす場合は通常のアップロードセクションを表示
+        <ImageUploadSection eventData={eventData} onImageUploaded={handleImageUploaded} />
       ) : (
-        <ImageUploadSection eventData={eventData} />
-        // <button onClick={() => alert("画像はイベント当日以降に投稿できます")} className={styles.uploadBtn}>
-        //   画像を投稿する
-        // </button>
+        // 条件を満たさない場合はクリックするとモーダルを表示するボタンを表示
+        <div className={styles.disabledImageUploader} onClick={handleImageUploadClick}>
+          画像はイベント開催日以降に投稿できます
+        </div>
       )}
-      <button onClick={() => setIsImageSwiperOpen(true)} className={styles.viewImagesBtn}>
+      
+      <button 
+        onClick={() => {
+          refreshEventImages(); // 画像を最新の状態に更新してから表示
+          setIsImageSwiperOpen(true);
+        }} 
+        className={styles.viewImagesBtn}
+      >
         投稿画像を見る
       </button>
+      
       {isImageSwiperOpen && (
         <ImageSwiper 
-          images={eventData.images || []} 
+          images={eventImages} 
+          title={eventData.name || "イベント"}
           onClose={() => setIsImageSwiperOpen(false)}
         />
       )}
