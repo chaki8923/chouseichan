@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserResponseSchema, UserResponseSchemaType } from '@/schemas/UserResponse';
 import styles from "./index.module.scss";
 import Modal from "@/app/component/modal/modal";
+import { FiCheckCircle } from 'react-icons/fi';
 
 type Schedule = {
   id: number;
@@ -33,6 +34,8 @@ export default function Form(props: SchedulesProp) {
   const { userId, userName, schedules } = props;
   const [isDuplicateUserModalOpen, setIsDuplicateUserModalOpen] = useState(false);
   const [duplicateUserName, setDuplicateUserName] = useState('');
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isEditSuccessModalOpen, setIsEditSuccessModalOpen] = useState(false);
   const methods = useForm<UserResponseSchemaType>({
     mode: 'onChange', // バリデーションのタイミングを変更
     resolver: zodResolver(UserResponseSchema),
@@ -180,8 +183,24 @@ export default function Form(props: SchedulesProp) {
           setValue(`schedules.${index}.response`, 'ATTEND', { shouldValidate: true });
         });
     
-        props.onCreate();   
-        props.onSuccess();
+        // 編集モードかどうかで表示するモーダルを切り替え
+        if (userId) {
+          setIsEditSuccessModalOpen(true);
+          // 3秒後に自動的に閉じる
+          setTimeout(() => {
+            setIsEditSuccessModalOpen(false);
+            props.onCreate();   
+            props.onSuccess();
+          }, 2000);
+        } else {
+          setIsSuccessModalOpen(true);
+          // 3秒後に自動的に閉じる
+          setTimeout(() => {
+            setIsSuccessModalOpen(false);
+            props.onCreate();   
+            props.onSuccess();
+          }, 2000);
+        }
       } else {
         console.error("Error:", response.status, response.statusText);
       }
@@ -212,6 +231,24 @@ export default function Form(props: SchedulesProp) {
           >
             閉じる
           </button>
+        </div>
+      </Modal>
+
+      {/* 成功モーダル（新規登録時） */}
+      <Modal isOpen={isSuccessModalOpen} onClose={() => setIsSuccessModalOpen(false)} type="info">
+        <div className={styles.modalContent}>
+          <FiCheckCircle size={50} color="#4BB543" style={{ marginBottom: '1rem' }} />
+          <h2 className={styles.modalTitle}>参加登録が完了しました</h2>
+          <p>イベントへの参加情報が正常に登録されました。</p>
+        </div>
+      </Modal>
+      
+      {/* 編集完了モーダル */}
+      <Modal isOpen={isEditSuccessModalOpen} onClose={() => setIsEditSuccessModalOpen(false)} type="info">
+        <div className={styles.modalContent}>
+          <FiCheckCircle size={50} color="#4BB543" style={{ marginBottom: '1rem' }} />
+          <h2 className={styles.modalTitle}>編集が完了しました</h2>
+          <p>参加情報の編集が正常に完了しました。</p>
         </div>
       </Modal>
 

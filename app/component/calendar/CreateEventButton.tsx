@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Schedule } from "@/types/schedule";
 import { Event } from "@/types/event";
 import { FcGoogle } from "react-icons/fc";
+import {  FiCheck } from "react-icons/fi";
 // import { signOut } from "next-auth/react";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss"
@@ -13,7 +14,8 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!confirmedSchedule) return;
+  if (!confirmedSchedule) return null;
+  
   const handleCreateEvent = async () => {
     setLoading(true);
     // 日付を UTC 文字列から `YYYY-MM-DD` に変換
@@ -45,8 +47,7 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
         setIsOpen(true);
         setTimeout(function () {
           setIsOpen(false);
-
-        }, 1500);
+        }, 3000);
       } else {
         alert("イベント作成に失敗しました");
       }
@@ -57,10 +58,18 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
     }
   };
 
+  // フォーマットされた日付と時間を取得
+  const formattedDate = confirmedSchedule ? new Date(confirmedSchedule.date).toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }) : '';
+
   return (
     <>
       <button className={styles.createEventBtn} onClick={handleCreateEvent} disabled={loading}>
-        {loading ?
+        {loading ? (
           <div className={styles.loader}>
             <p>追加中</p>
             <div className={`${styles.loaderInner} ${styles.ballPulse}`}>
@@ -68,15 +77,29 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
               <div></div>
               <div></div>
             </div>
-          </div> : <span className={styles.addEvent}><FcGoogle className={styles.google} />開催日をカレンダーに追加</span>}
+          </div>
+        ) : (
+          <span className={styles.addEvent}>
+            <FcGoogle className={styles.google} />
+            Google連携でカレンダー登録
+          </span>
+        )}
       </button>
       {/* <button onClick={async () => {
         await signOut();
       }}>
         ログアウト
       </button> */}
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <h2 className={styles.modalTitle}>カレンダーに追加しました</h2>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} type="info">
+        <div className={styles.modalContainer}>
+          <FiCheck className={styles.modalIcon} />
+          <h2 className={styles.modalTitle}>Google連携が完了しました</h2>
+          <p className={styles.modalText}>
+            {event.name}のイベントが<br />
+            {formattedDate} {confirmedSchedule.time}<br />
+            でGoogleカレンダーに登録されました
+          </p>
+        </div>
       </Modal>
     </>
   );

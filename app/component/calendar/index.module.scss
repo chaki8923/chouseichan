@@ -5,105 +5,179 @@
     background-color: #de3163;
 }
 
-.createEventBtn{
-    background-color: rgb(182, 36, 58);
+.createEventBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: #de3163;
     color: #fff;
-    padding: 13px;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: 12px;
     cursor: pointer;
-    margin-top: 8px;
-    transition: .3s;
-
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 10px rgba(222, 49, 99, 0.25);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+    
+    &:hover {
+        background-color: #c72a56;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(222, 49, 99, 0.3);
+    }
+    
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(222, 49, 99, 0.2);
+    }
+    
+    &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        color: #888888;
+    }
+    
+    @media (max-width: 480px) {
+        padding: 12px 16px;
+        font-size: 15px;
+        max-width: 100%;
+        margin-top: 10px;
+    }
 }
-.createEventBtn:hover{
-    background-color: rgb(182, 36, 58, .7);
-    transition: .3s;
+
+.addEvent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
-.addEvent{
+.syncGoogle {
     display: flex;
     justify-content: center;
     align-items: center;
 }
-.syncGoogle{
-    display: flex;
-    justify-content: center;
-    align-items: center;
+
+.google {
+    font-size: 22px;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
 }
 
-.google{
-    font-size: 18px;
-    margin-right: 4px;
+.modalContainer {
+    padding: 24px;
+    text-align: center;
 }
 
-
-.modalTitle{
+.modalTitle {
+    font-size: 1.3rem;
+    font-weight: 600;
     color: #333;
-    font-weight: bold;
+    margin-bottom: 16px;
+    position: relative;
+    padding-bottom: 12px;
+    
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 3px;
+        background: linear-gradient(to right, #de3163, #e195ab);
+        border-radius: 3px;
+    }
 }
 
+.modalIcon {
+    margin-bottom: 16px;
+    color: #4BB543;
+    font-size: 48px;
+    animation: scaleIn 0.5s ease-out;
+}
 
-.loader{
+.modalText {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.loader {
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    color: #fff;
+    font-weight: 500;
 }
 
-.loaderInner{
+.loaderInner {
     display: flex;
     align-items: center;
 }
 
-.loadings{
-    display: flex;
+@keyframes scale {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    45% {
+        transform: scale(0.1);
+        opacity: 0.7;
+    }
+    80% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
-
-@-webkit-keyframes scale {
-    0% {
-      -webkit-transform: scale(1);
-              transform: scale(1);
-      opacity: 1; }
-    45% {
-      -webkit-transform: scale(0.1);
-              transform: scale(0.1);
-      opacity: 0.7; }
-    80% {
-      -webkit-transform: scale(1);
-              transform: scale(1);
-      opacity: 1; } }
-  @keyframes scale {
-    0% {
-      -webkit-transform: scale(1);
-              transform: scale(1);
-      opacity: 1; }
-    45% {
-      -webkit-transform: scale(0.1);
-              transform: scale(0.1);
-      opacity: 0.7; }
-    80% {
-      -webkit-transform: scale(1);
-              transform: scale(1);
-      opacity: 1; } }
   
-  .ballPulse > div:nth-child(1) {
-    -webkit-animation: scale 0.75s -0.24s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
-            animation: scale 0.75s -0.24s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08); }
+.ballPulse > div:nth-child(1) {
+    animation: scale 0.75s -0.24s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+}
   
-  .ballPulse > div:nth-child(2) {
-    -webkit-animation: scale 0.75s -0.12s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
-            animation: scale 0.75s -0.12s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08); }
+.ballPulse > div:nth-child(2) {
+    animation: scale 0.75s -0.12s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+}
   
-  .ballPulse > div:nth-child(3) {
-    -webkit-animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
-            animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08); }
+.ballPulse > div:nth-child(3) {
+    animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+}
   
-  .ballPulse > div {
+.ballPulse > div {
     background-color: #fff;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 100%;
     margin: 2px;
-    -webkit-animation-fill-mode: both;
-            animation-fill-mode: both;
-    display: inline-block; }
+    animation-fill-mode: both;
+    display: inline-block;
+}
   

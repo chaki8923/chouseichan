@@ -82,7 +82,6 @@ button, .button {
 }
 
 button:hover, .button:hover {
-  background-color: var(--primary-dark);
   transform: translateY(-1px);
 }
 

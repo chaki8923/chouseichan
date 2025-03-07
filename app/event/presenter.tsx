@@ -52,8 +52,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [editedTitle, setEditedTitle] = useState("");
   const [editedMemo, setEditedMemo] = useState("");
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
-  const [isEditCompleteModal, setIsEditCompleteModal] = useState(false);
-  const [isResponseCompleteModal, setIsResponseCompleteModal] = useState(false);
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
@@ -326,12 +324,24 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       // 編集完了モーダルを表示
       setIsEditing(false);
-      setIsEditCompleteModal(true);
       
       // モーダルを表示して少し待ってからリロード
       setTimeout(() => {
-        setIsEditCompleteModal(false);
-        window.location.reload();
+        // リロードする代わりに直接データを取得
+        const fetchData = async () => {
+          try {
+            const data = await fetchEventWithSchedules(eventId);
+            if (data) {
+              setEventData(data);
+              if (data.images) {
+                setEventImages(Array.isArray(data.images) ? [...data.images] : []);
+              }
+            }
+          } catch (error) {
+            console.error("データ更新に失敗:", error);
+          }
+        };
+        fetchData();
       }, 1500);
     } catch (error) {
       console.error("イベント更新エラー:", error);
@@ -464,10 +474,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // フォーム送信後の処理
   const handleFormSuccess = () => {
     // 完了モーダルを表示
-    setIsResponseCompleteModal(true);
     // 2秒後に閉じる
     setTimeout(() => {
-      setIsResponseCompleteModal(false);
     }, 2000);
     
     // スケジュールとイベントデータを再取得（fetchSchedules関数に記述されているリセット処理は実行される）
@@ -630,7 +638,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   return (
                     <tr key={schedule.id} className={highlightClass}>
                       {isOrganizer && (
-                        <td className="min-w-[134px]">
+                        <td className="min-w-[180px]">
                           {
                             !schedule.isConfirmed ? (
                               <ConfirmScheduleButton
@@ -771,17 +779,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         </div>
       </Modal>
       
-      {/* 編集完了モーダル */}
-      <Modal isOpen={isEditCompleteModal} onClose={() => setIsEditCompleteModal(false)} type="info">
-        <h2 className={styles.modalTitle}>編集が完了しました</h2>
-        <p className={styles.modalText}>イベント情報が正常に更新されました。</p>
-      </Modal>
-      
-      {/* 参加登録完了モーダル */}
-      <Modal isOpen={isResponseCompleteModal} onClose={() => setIsResponseCompleteModal(false)} type="info">
-        <h2 className={styles.modalTitle}>参加登録が完了しました</h2>
-        <p className={styles.modalText}>イベントへの参加情報が正常に登録されました。</p>
-      </Modal>
+
       
       {canUploadImages() ? (
         // 条件を満たす場合は通常のアップロードセクションを表示
