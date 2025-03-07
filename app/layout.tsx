@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Noto_Sans_JP } from "next/font/google";
 import NextTopLoader from 'nextjs-toploader';
+import Script from 'next/script';
 import Header from "./header";
 import Footer from "./footer";
 import Situation from "./component/footer/situation";
@@ -81,6 +82,12 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased`}
         >
+          <Script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6348441325859182"
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
           <NextTopLoader 
             color="#DE3163"
             initialPosition={0.08}
