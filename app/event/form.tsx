@@ -1,10 +1,11 @@
 'use client'
 
-import {  useEffect } from "react";
+import {  useEffect, useState } from "react";
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserResponseSchema, UserResponseSchemaType } from '@/schemas/UserResponse';
 import styles from "./index.module.scss";
+import Modal from "@/app/component/modal/modal";
 
 type Schedule = {
   id: number;
@@ -30,6 +31,8 @@ type SchedulesProp = {
 
 export default function Form(props: SchedulesProp) {
   const { userId, userName, schedules } = props;
+  const [isDuplicateUserModalOpen, setIsDuplicateUserModalOpen] = useState(false);
+  const [duplicateUserName, setDuplicateUserName] = useState('');
   const methods = useForm<UserResponseSchemaType>({
     mode: 'onChange', // バリデーションのタイミングを変更
     resolver: zodResolver(UserResponseSchema),
@@ -106,8 +109,45 @@ export default function Form(props: SchedulesProp) {
     props.onCreate();
   }
 
+  // ユーザー名の重複をチェックする関数
+  const checkDuplicateUserName = async (userName: string): Promise<boolean> => {
+    try {
+      if (schedules.length === 0) return false;
+      
+      // すべてのレスポンスからユーザー名を取得
+      const existingUserNames = new Set<string>();
+      
+      schedules.forEach(schedule => {
+        schedule.responses.forEach(response => {
+          if (response.user && response.user.name) {
+            existingUserNames.add(response.user.name);
+          }
+        });
+      });
+      
+      // 重複チェック（大文字小文字を区別せず比較）
+      return Array.from(existingUserNames).some(
+        name => name.toLowerCase() === userName.toLowerCase()
+      );
+    } catch (error) {
+      console.error('重複チェックエラー:', error);
+      return false; // エラーの場合は重複なしとして処理を続行
+    }
+  };
 
   const onSubmit = async (params: UserResponseSchemaType) => {
+    // 編集モード（既存ユーザー）の場合は重複チェックをスキップ
+    if (!userId) {
+      // 新規登録の場合のみ重複チェックを行う
+      const isDuplicate = await checkDuplicateUserName(params.user_name);
+      
+      if (isDuplicate) {
+        // 重複がある場合はモーダルを表示
+        setDuplicateUserName(params.user_name);
+        setIsDuplicateUserModalOpen(true);
+        return; // フォーム送信を中止
+      }
+    }
 
     // APIに送信するデータ
     const data = {
@@ -153,6 +193,28 @@ export default function Form(props: SchedulesProp) {
 
   return (
     <FormProvider {...methods}>
+      {/* 重複ユーザー名の警告モーダル */}
+      <Modal 
+        isOpen={isDuplicateUserModalOpen} 
+        onClose={() => setIsDuplicateUserModalOpen(false)}
+        type="warning"
+      >
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-4">同名での登録はできません</h2>
+          <p className="mb-4">
+            「{duplicateUserName}」という名前のユーザーは既にこのイベントに登録されています。
+            <br />
+            別の名前を設定してください。
+          </p>
+          <button
+            onClick={() => setIsDuplicateUserModalOpen(false)}
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+          >
+            閉じる
+          </button>
+        </div>
+      </Modal>
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className={styles.formContent}>
           <div className={styles.formInner}>

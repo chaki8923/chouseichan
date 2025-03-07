@@ -2,7 +2,13 @@ import { useState, useRef, useCallback } from 'react';
 import { Event } from "@/types/event";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss";
-import { FiUpload, FiX, FiImage } from 'react-icons/fi';
+import { FiUpload, FiX, FiImage, FiCamera } from 'react-icons/fi';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, EffectCoverflow } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/effect-coverflow';
 
 const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => void; }> = ({ eventData, onImageUploaded }) => {
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -111,6 +117,49 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
         }
     }, []);
 
+    // 現在の日付をフォーマットする関数
+    const getFormattedDate = () => {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}.${month}.${day}`;
+    };
+
+    const currentDate = getFormattedDate();
+
+    // プレビュー表示用のスライド生成
+    const renderPreviewSlides = () => {
+        return previewUrls.map((url, index) => (
+            <SwiperSlide key={index} className={styles.filmFrameSlide}>
+                <div className={styles.filmFrame}>
+                    <div className={styles.filmHeader}>
+                        <span className={styles.filmCounter}>#{index + 1}</span>
+                        <span className={styles.filmDate}>{currentDate}</span>
+                    </div>
+                    <div className={styles.filmImageContainer}>
+                        <img 
+                            src={url} 
+                            alt={`プレビュー ${index + 1}`} 
+                            className={styles.filmImage}
+                        />
+                        <button 
+                            className={styles.filmRemoveBtn}
+                            onClick={() => removeImage(index)}
+                            type="button"
+                            aria-label="画像を削除"
+                        >
+                            <FiX />
+                        </button>
+                    </div>
+                    <div className={styles.filmFooter}>
+                        <span className={styles.filmCaption}>ShukkeTU-400</span>
+                    </div>
+                </div>
+            </SwiperSlide>
+        ));
+    };
+
     return (
         <div className={`${styles.formCard} ${styles['fade-in']}`}>
             <div className={styles.formStep}>
@@ -143,34 +192,49 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 </div>
 
                 {previewUrls.length > 0 && (
-                    <div className={styles.previewContainer}>
-                        {previewUrls.map((url, index) => (
-                            <div key={index} className={styles.previewItem}>
-                                <div className={styles.previewImageWrapper}>
-                                    <img 
-                                        src={url} 
-                                        alt={`プレビュー ${index + 1}`} 
-                                        className={styles.previewImage}
-                                    />
-                                    <button 
-                                        className={styles.removeImageBtn}
-                                        onClick={() => removeImage(index)}
-                                        type="button"
-                                        aria-label="画像を削除"
-                                    >
-                                        <FiX />
-                                    </button>
-                                </div>
+                    <div className={styles.filmStripContainer}>
+                        <div className={styles.filmEdge}>
+                            {[...Array(8)].map((_, i) => (
+                                <div key={`hole-top-${i}`} className={styles.filmHole}></div>
+                            ))}
+                        </div>
+                        
+                        <div className={styles.filmStripContent}>
+                            <div className={styles.filmCountText}>
+                                <FiCamera className={styles.filmIcon} /> {previewUrls.length}枚の画像
                             </div>
-                        ))}
+                            
+                            <Swiper
+                                modules={[Navigation, Pagination, EffectCoverflow]}
+                                effect="coverflow"
+                                grabCursor={true}
+                                centeredSlides={true}
+                                slidesPerView={previewUrls.length > 2 ? 3 : previewUrls.length}
+                                coverflowEffect={{
+                                    rotate: 5,
+                                    stretch: 0,
+                                    depth: 100,
+                                    modifier: 1,
+                                    slideShadows: true,
+                                }}
+                                pagination={{ clickable: true }}
+                                navigation={previewUrls.length > 3}
+                                className={styles.filmStripSwiper}
+                            >
+                                {renderPreviewSlides()}
+                            </Swiper>
+                        </div>
+                        
+                        <div className={styles.filmEdge}>
+                            {[...Array(8)].map((_, i) => (
+                                <div key={`hole-bottom-${i}`} className={styles.filmHole}></div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
                 {selectedImages.length > 0 && (
                     <div className={styles.uploadActionContainer}>
-                        <p className={styles.selectedCount}>
-                            {selectedImages.length}枚の画像が選択されています
-                        </p>
                         <button 
                             onClick={handleUpload} 
                             className={styles.submitButton}

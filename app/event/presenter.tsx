@@ -21,7 +21,7 @@ import Modal from "../component/modal/modal";
 import SpinLoader from "../component/loader/spin";
 import { isEventOwner, addEvent } from "@/app/utils/strages";
 import ImageSwiper from "../component/form/ImageSwiper";
-import { FaRegCopy } from "react-icons/fa";
+import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { FiCamera } from 'react-icons/fi';
@@ -32,7 +32,6 @@ type maxAttend = {
 }
 
 export default function EventDetails({ eventId, session }: { eventId: string, session: Session | null }) {
-
   const [eventData, setEventData] = useState<Event | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isCreateForm, setIsCreateForm] = useState<boolean>(true);
@@ -47,15 +46,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
   const [eventImages, setEventImages] = useState<{ imagePath?: string; id?: string; url?: string }[]>([]);
   const [isOrganizer, setIsOrganizer] = useState(false);
-  // const searchParams = useSearchParams();
-  // const eventId = searchParams.get("eventId"); // URLのクエリパラメータから 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedMemo, setEditedMemo] = useState("");
+  const [editMessage, setEditMessage] = useState({ type: "", message: "" });
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
   const refreshToken = user.refreshToken ?? "";
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   async function fetchEventWithSchedules(eventId: string) {
     try {
@@ -101,13 +104,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   useEffect(() => {
     getEventData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     fetchSchedules(); // 初回ロード時に取得
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, /* fetchSchedules */]); // fetchSchedules関数は依存配列に含めるとESLintで警告が出るため、コメントアウトで対処
+  }, [eventId]);
 
   useEffect(() => {
     if (eventId) {
@@ -255,7 +256,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   };
 
   // リロード後のアップロード完了チェック
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     // ブラウザ環境でのみ実行
     if (typeof window !== 'undefined') {
@@ -284,6 +284,30 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       }
     }
   }, [eventId]);
+
+  // テーブルがスクロール可能かどうかを確認するロジック
+  useEffect(() => {
+    const checkTableScrollable = () => {
+      if (tableRef.current) {
+        const isScrollable = tableRef.current.scrollWidth > tableRef.current.clientWidth;
+        if (isScrollable) {
+          tableRef.current.classList.add('scrollable');
+        } else {
+          tableRef.current.classList.remove('scrollable');
+        }
+      }
+    };
+
+    // 初期読み込み時にチェック
+    checkTableScrollable();
+
+    // ウィンドウサイズが変更されたときにチェック
+    window.addEventListener('resize', checkTableScrollable);
+    
+    return () => {
+      window.removeEventListener('resize', checkTableScrollable);
+    };
+  }, []); // 依存配列を空にする
 
   if (loading) {
     return <SpinLoader></SpinLoader>;
@@ -317,15 +341,129 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     console.log("First image structure:", JSON.stringify(eventData.images[0]));
   }
 
+  // イベント編集を開始する関数
+  const handleStartEdit = () => {
+    setEditedTitle(eventData.name);
+    setEditedMemo(eventData.memo || "");
+    setIsEditing(true);
+  };
+
+  // イベント編集をキャンセルする関数
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditMessage({ type: "", message: "" });
+  };
+
+  // イベント編集を保存する関数
+  const handleSaveEdit = async () => {
+    if (!editedTitle.trim()) {
+      setEditMessage({ type: "error", message: "イベント名は必須です" });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/events`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          eventId: eventData.id,
+          name: editedTitle,
+          memo: editedMemo,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("更新に失敗しました");
+      }
+
+      // 更新が成功した場合、ページをリロードして最新のデータを表示
+      window.location.reload();
+    } catch (error) {
+      console.error("イベント更新エラー:", error);
+      setEditMessage({ type: "error", message: "更新に失敗しました。再度お試しください。" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
       <div className={styles.eventContainer}>
         <div>
           <p className={styles.eventLink} onClick={() => handleCopyLink(eventData.id)}><FaRegCopy className={styles.copyIcon} />{`${baseUrl}/event?eventId=${eventData.id}`}</p>
-          <h1 className={styles.eventName}>{eventData.name}</h1>
+          
+          {isEditing ? (
+            <div className={styles.editContainer}>
+              <h2 className={styles.editTitle}>イベント情報の編集</h2>
+              <div className={styles.editForm}>
+                <div className={styles.formGroup}>
+                  <label className={styles.editLabel}>
+                    イベント名 <span className={styles.tagRequire}>必須</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                    className={styles.editInput}
+                    maxLength={100}
+                    placeholder="イベント名（100文字以内）"
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.editLabel}>
+                    メモ <span className={styles.tagNoRequire}>任意</span>
+                  </label>
+                  <textarea
+                    value={editedMemo}
+                    onChange={(e) => setEditedMemo(e.target.value)}
+                    className={styles.editTextarea}
+                    maxLength={500}
+                    placeholder="メモ（500文字以内）"
+                  />
+                </div>
+                {editMessage.type && (
+                  <p className={editMessage.type === "error" ? "text-red-500" : "text-green-500"}>
+                    {editMessage.message}
+                  </p>
+                )}
+                <div className={styles.editActions}>
+                  <button
+                    onClick={handleCancelEdit}
+                    className={styles.cancelButton}
+                    disabled={isLoading}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    className={styles.saveButton}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "保存中..." : "変更を保存"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.eventTitleContainer}>
+              <h1 className={styles.eventName}>{eventData.name}</h1>
+              {isOrganizer && (
+                <button
+                  onClick={handleStartEdit}
+                  className={styles.editButton}
+                  title="イベント情報を編集"
+                >
+                  <FaEdit />
+                </button>
+              )}
+            </div>
+          )}
+
           <section className={styles.eventTitleSection}>
-            {eventData.memo && (
+            {!isEditing && eventData.memo && (
               <>
                 <Image src={eventData.image ? eventData.image : '/default.png'}
                   width={50}
@@ -337,7 +475,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             )}
           </section>
 
-          <div className={`relative overflow-x-auto ${styles.table}`} ref={containerRef}>
+          <div className={`relative overflow-x-auto ${styles.table}`} ref={tableRef}>
             <table className={styles.tableDesign}>
               <tbody>
                 <tr>

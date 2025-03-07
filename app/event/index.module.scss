@@ -10,85 +10,145 @@
 }
 
 .eventContainer {
-  // display: flex;
-  // justify-content: center;
   margin: auto;
-  padding: 24px;
+  padding: 2rem;
   position: relative;
-  overflow: auto;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  max-width: 1200px;
 }
 
 .eventFormContainer {
   display: flex;
   justify-content: center;
-  padding: 24px;
+  padding: 2rem;
 }
 
 @media (max-width: 428px) {
   .eventContainer {
     display: block;
-    padding: 24px;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem;
   }
 
   .eventFormContainer {
     display: block;
-    padding: 10px;
+    padding: 1rem;
   }
 }
 
 .eventName {
-  color: #de3163; /*文字色*/
+  color: #de3163;
   font-weight: bold;
-  font-size: 24px;
-  padding: 0.5em 0; /*上下の余白*/
-  border-top: solid 3px #de3163; /*上線*/
-  border-bottom: solid 3px #de3163; /*下線*/
+  font-size: 28px;
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
   text-align: center;
-  margin-bottom: 16px;
+  position: relative;
+  background: linear-gradient(to right, transparent, rgba(222, 49, 99, 0.1), transparent);
+  
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, transparent, #de3163, transparent);
+  }
+  
+  &::before {
+    top: 0;
+  }
+  
+  &::after {
+    bottom: 0;
+  }
 }
 
 .eventTitleSection {
   display: flex;
-  margin-bottom: 12px;
+  align-items: center;
   width: 100%;
   text-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 2rem;
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  
   img {
     width: 70px;
     height: 70px;
-    margin-right: 12px;
+    margin-right: 1rem;
+    border-radius: 50%;
+    border: 3px solid rgba(222, 49, 99, 0.2);
+    object-fit: cover;
   }
 }
 
 .h2Title {
-  padding: 4px;
-  border-left: 6px double #000;
-  background: #ffedfa;
+  padding: 0.75rem 1rem;
+  border-left: 6px solid #de3163;
+  background: linear-gradient(to right, rgba(255, 237, 250, 0.8), rgba(255, 255, 255, 0.5));
   color: #333;
-  margin-bottom: 12px;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  border-radius: 0 8px 8px 0;
 }
 
 .table {
-  // display: flex;
-  // justify-content: center;
   position: relative;
   width: 100%;
-  // スクロールバー（幅・高さ）
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  
+  /* スクロールインジケーターの追加 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    width: 8px;
+    height: 50px;
+    background-color: rgba(222, 49, 99, 0.2);
+    border-radius: 4px;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  /* テーブルがスクロール可能なときにのみ表示 */
+  &.scrollable::after {
+    opacity: 1;
+  }
+  
+  /* マウスホバー時のスタイル */
+  &:hover::after {
+    background-color: rgba(222, 49, 99, 0.4);
+  }
+  
+  /* 実際のスクロールバーのスタイル */
   &::-webkit-scrollbar {
-    width: 30px;
-    height: 20px;
+    width: 8px;
+    height: 8px;
   }
 
-  // スクロールバーのつまみ
   &::-webkit-scrollbar-thumb {
-    background-color: #c792a3;
-    border-radius: 10px;
+    background-color: rgba(222, 49, 99, 0.6);
+    border-radius: 4px;
+    
+    &:hover {
+      background-color: rgba(222, 49, 99, 0.8);
+    }
   }
-}
-
-@media (max-width: 428px) {
-  .table {
-    display: block;
+  
+  &::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
   }
 }
 
@@ -96,26 +156,26 @@
   border-collapse: collapse;
   min-width: 700px;
   width: 100%;
-  font-weight: bold;
+  font-weight: 500;
   text-align: center;
-  background-color: #ffedfa;
-  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
 }
+
 .tableDesign th,
 .tableDesign td {
-  padding: 0.5em 1em;
-  border: 2px solid #de3163;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(222, 49, 99, 0.2);
   color: #333;
 }
+
 .tableDesign th {
-  background: #de3163;
+  background: linear-gradient(to right, #de3163, #e195ab);
   text-align: center;
   color: #fff;
-  border-right: 2px solid #e195ab;
-  border-top: 2px solid #de3163;
-}
-.tableDesign th:last-of-type {
-  border-right: 2px solid #de3163;
+  font-weight: 600;
+  border: none;
 }
 
 .reactIcon {
@@ -271,23 +331,30 @@
 }
 
 .createBtn {
-  border-radius: 9999;
   display: block;
-  bottom: -3rem;
-  text-align: center;
   width: 100%;
-  color: #333;
-  background-color: #99c2aa;
-  transition: 0.3s;
-  padding: 24px 12px;
+  padding: 1rem 1.5rem;
+  margin-top: 1.5rem;
+  text-align: center;
+  color: white;
+  background: linear-gradient(45deg, #99c2aa, #b8e2c8);
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.3s;
-  margin-top: 12px;
-}
-
-.createBtn:hover {
-  transition: 0.3s;
-  background-color: #ccdf92;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 15px rgba(153, 194, 170, 0.3);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(153, 194, 170, 0.4);
+    background: linear-gradient(45deg, #8ab89e, #a9d6bc);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(153, 194, 170, 0.3);
+  }
 }
 
 .disabled {
@@ -529,5 +596,190 @@
   
   &:hover {
     background-color: #e0e0e0;
+  }
+}
+
+// イベントタイトルコンテナ（タイトルと編集ボタンを横に並べる）
+.eventTitleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+// 編集ボタン
+.editButton {
+  position: absolute;
+  right: 0;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    color: #de3163;
+    background-color: rgba(222, 49, 99, 0.1);
+    transform: scale(1.1);
+  }
+}
+
+// 編集コンテナ
+.editContainer {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(222, 49, 99, 0.2);
+}
+
+// 編集タイトル
+.editTitle {
+  font-size: 1.4rem;
+  color: #333;
+  margin: 0 0 1.5rem;
+  text-align: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(222, 49, 99, 0.2);
+}
+
+// 編集フォーム
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// フォームグループ
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+// 編集ラベル
+.editLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+}
+
+// 編集インプット
+.editInput {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #de3163;
+    box-shadow: 0 0 0 2px rgba(222, 49, 99, 0.1);
+  }
+}
+
+// 編集テキストエリア
+.editTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  resize: vertical;
+  min-height: 100px;
+  transition: all 0.3s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #de3163;
+    box-shadow: 0 0 0 2px rgba(222, 49, 99, 0.1);
+  }
+}
+
+// 編集アクション
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+// キャンセルボタン
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: #eee;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// 保存ボタン
+.saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #de3163;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: #c72a56;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(222, 49, 99, 0.2);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .editContainer {
+    padding: 1.25rem;
+  }
+  
+  .editTitle {
+    font-size: 1.2rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .editActions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+  
+  .cancelButton,
+  .saveButton {
+    width: 100%;
+    padding: 0.6rem 1rem;
   }
 }

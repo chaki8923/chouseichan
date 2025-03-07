@@ -48,3 +48,58 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// イベントのタイトルとメモを更新するエンドポイント
+export async function PATCH(request: NextRequest) {
+    try {
+        const { eventId, name, memo } = await request.json();
+
+        // バリデーション
+        if (!eventId) {
+            return new Response(JSON.stringify({ error: 'イベントIDが必要です' }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+        }
+
+        // イベントが存在するか確認
+        const existingEvent = await prisma.event.findUnique({
+            where: { id: eventId },
+        });
+
+        if (!existingEvent) {
+            return new Response(JSON.stringify({ error: '指定されたイベントが見つかりませんでした' }), {
+                status: 404,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+        }
+
+        // イベントを更新
+        const updatedEvent = await prisma.event.update({
+            where: { id: eventId },
+            data: {
+                ...(name !== undefined && { name }),
+                ...(memo !== undefined && { memo }),
+            },
+        });
+
+        return new Response(JSON.stringify(updatedEvent), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+    } catch (error) {
+        console.error('イベント更新エラー:', error);
+        return new Response(JSON.stringify({ error: 'イベントの更新に失敗しました' }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+    }
+}

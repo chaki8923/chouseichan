@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import styles from './index.module.scss';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiTrash2, FiPlus, FiAlertCircle, FiSend } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiAlertCircle, FiSend, FiMove } from 'react-icons/fi';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import History from '../strage/history';
@@ -13,6 +13,98 @@ import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
 import { setOwnerEvent } from "@/app/utils/strages";
 import Modal from "../modal/modal";
 import SpinLoader from "../loader/spin";
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { UseFormRegister } from 'react-hook-form';
+
+// ドラッグ可能な日程項目のコンポーネント
+interface SortableScheduleItemProps {
+  schedule: { id: number; date: string; time: string };
+  index: number;
+  onRemove: (id: number) => void;
+  onDateChange: (index: number, value: string) => void;
+  onTimeChange: (index: number, value: string) => void;
+  timeOptions: string[];
+  register: UseFormRegister<ScheduleSchemaType>; // react-hook-formのregister関数
+}
+
+const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({ 
+  schedule, 
+  index, 
+  onRemove, 
+  onDateChange, 
+  onTimeChange, 
+  timeOptions, 
+  register 
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition
+  } = useSortable({ id: schedule.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className={styles.scheduleItem}
+    >
+      <div className={styles.dragHandle} {...attributes} {...listeners}>
+        <FiMove />
+      </div>
+      <div className={styles.scheduleInputs}>
+        <input
+          type="date"
+          {...register(`schedules.${index}.date`)}
+          value={schedule.date}
+          onChange={(e) => onDateChange(index, e.target.value)}
+          className={styles.formInput}
+        />
+        <select
+          {...register(`schedules.${index}.time`)}
+          value={schedule.time}
+          onChange={(e) => onTimeChange(index, e.target.value)}
+          className={styles.formInput}
+        >
+          {timeOptions.map((time: string) => (
+            <option key={time} value={time}>
+              {time}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => onRemove(schedule.id)}
+          className={styles.deleteButton}
+        >
+          <FiTrash2 />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default function Form({ categoryName }: { categoryName: string }) {
   const [schedules, setSchedules] = useState([
@@ -25,6 +117,15 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [memoLength, setMemoLength] = useState(0);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true); // 初期状態は無効
   const [file, setFile] = useState<File | null>(null);
+  const [hasHistory, setHasHistory] = useState(false);
+
+  // DnD用のセンサーを設定
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const methods = useForm<ScheduleSchemaType>({
     mode: 'onChange',
@@ -36,10 +137,10 @@ export default function Form({ categoryName }: { categoryName: string }) {
     handleSubmit,
     reset,
     watch,
-    setValue,  // ✅ react-hook-form の値を更新するための関数
-    trigger,   // ✅ バリデーションを手動で実行
+    setValue,
+    trigger,
     formState: { errors },
-  } = methods
+  } = methods;
 
   // 本文の文字数を監視
   const memoValue = watch("memo", "");  // デフォルト値を設定
@@ -63,16 +164,50 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const handleRemove = (id: number) => {
     // 削除対象のインデックスを特定
     const updatedSchedules = schedules.filter((schedule) => schedule.id !== id);
+    
     // フォームデータを schedules に同期
-    reset({
-      schedules: updatedSchedules.map((schedule) => ({
-        date: schedule.date || '',
-        time: schedule.time || '',
-      })),
-    });
-    setSchedules((prevSchedules) =>
-      prevSchedules.filter((schedule) => schedule.id !== id)
-    );
+    setValue("schedules", updatedSchedules.map((schedule) => ({
+      date: schedule.date || '',
+      time: schedule.time || '',
+    })));
+    
+    setSchedules(updatedSchedules);
+    
+    // バリデーションを実行
+    trigger("schedules");
+  };
+
+  // ドラッグ終了時の処理
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setSchedules((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        
+        const newSchedules = arrayMove(items, oldIndex, newIndex);
+        
+        // react-hook-formのフィールドも更新
+        newSchedules.forEach((schedule, index) => {
+          setValue(`schedules.${index}.date`, schedule.date);
+          setValue(`schedules.${index}.time`, schedule.time);
+        });
+        
+        return newSchedules;
+      });
+    }
+  };
+
+  // 時間変更ハンドラー
+  const handleTimeChange = (index: number, value: string) => {
+    const updatedSchedules = [...schedules];
+    updatedSchedules[index].time = value;
+    setSchedules(updatedSchedules);
+
+    // react-hook-form に値をセットし、バリデーションをトリガー
+    setValue(`schedules.${index}.time`, value);
+    trigger(`schedules.${index}.time`);
   };
 
   // 時間リストを生成（00:00 から 23:30 を 30 分刻み）
@@ -97,9 +232,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
     schedules: {
       date: string;
       time: string;
-      // isConfirmed: boolean;
     }[];
-    // image: any
   }
 
   // 子から受け取ったデータを更新する関数
@@ -149,7 +282,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
         setLoading(false);
         setIsOpen(true);
         alert(response.statusText);
-        // console.error("Error:", response.status, response.statusText);
       }
     } catch (error) {
       setLoading(false);
@@ -201,31 +333,17 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   // フォームの入力値が変更されたときにバリデーションを実行
   useEffect(() => {
-    let currentValidationError: string | null = null;
+    const timeoutId = setTimeout(() => {
+      setIsSubmitDisabled(!checkFormValidity());
+    }, 300); // 少し遅延を入れることでレンダリングが落ち着いてから評価
 
-    // 各項目のバリデーションチェック
-    if (eventNameValue.trim().length === 0) {
-      currentValidationError = `${categoryName}名を入力してください`;
-    } else if (!schedules.some(s => s.date && s.time)) {
-      currentValidationError = "少なくとも1つの日程を設定してください";
-    } else if (memoValue.length > 200) {
-      currentValidationError = "メモは200文字以内で入力してください";
-    }
+    return () => clearTimeout(timeoutId);
+  }, [eventNameValue, schedules, memoValue, validationError, checkFormValidity]);
 
-    // validationErrorを更新（cropperのエラーは上書きしない）
-    if (currentValidationError) {
-      setValidationError(currentValidationError);
-    } else if (validationError &&
-      !validationError.includes('画像形式') &&
-      !validationError.includes('ファイルサイズ')) {
-      // cropperからのエラーでなければクリア
-      setValidationError(null);
-    }
-
-    // 最終的なバリデーション結果に基づいて送信ボタンの状態を更新
-    setIsSubmitDisabled(!checkFormValidity());
-
-  }, [eventNameValue, schedules, memoValue, categoryName, validationError, file]);
+  // 履歴の有無を確認するコールバック
+  const handleHistoryExists = useCallback((exists: boolean) => {
+    setHasHistory(exists);
+  }, []);
 
   if (loading) {
     return <SpinLoader></SpinLoader>;
@@ -301,60 +419,26 @@ export default function Form({ categoryName }: { categoryName: string }) {
           </div>
 
           <div className={styles.scheduleList}>
-            {schedules.map((schedule, index) => (
-              <div key={schedule.id} className={styles.scheduleItem}>
-                <div className={styles.scheduleInputGroup}>
-                  <div className={styles.scheduleInputWrapper}>
-                    <label className={styles.scheduleLabel}>
-                      日付
-                    </label>
-                    <input
-                      type="date"
-                      {...register(`schedules.${index}.date`, { required: true })}
-                      onChange={(e) => handleDateChange(index, e.target.value)}
-                      value={schedule.date}
-                      className={styles.dateInput}
-                    />
-                    {errors?.schedules?.[index]?.date && (
-                      <span className={styles.errorMessage}>
-                        {errors.schedules[index]?.date?.message}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className={styles.scheduleInputWrapper}>
-                    <label className={styles.scheduleLabel}>
-                      時間
-                    </label>
-                    <select
-                      className={styles.timeSelect}
-                      {...register(`schedules.${index}.time`)}
-                      value={schedule.time}
-                      onChange={(e) => {
-                        const updatedSchedules = [...schedules];
-                        updatedSchedules[index].time = e.target.value;
-                        setSchedules(updatedSchedules);
-                      }}
-                    >
-                      {timeOptions.map((time) => (
-                        <option key={time} value={time}>
-                          {time}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleRemove(schedule.id)}
-                  className={styles.removeScheduleBtn}
-                >
-                  <FiTrash2 />
-                  削除
-                </button>
-              </div>
-            ))}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={schedules.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                {schedules.map((schedule, index) => (
+                  <SortableScheduleItem
+                    key={schedule.id}
+                    schedule={schedule}
+                    index={index}
+                    onRemove={handleRemove}
+                    onDateChange={handleDateChange}
+                    onTimeChange={handleTimeChange}
+                    timeOptions={timeOptions}
+                    register={register}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
 
             <button
               type="button"
@@ -372,7 +456,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
           disabled={isSubmitDisabled}
           className={`${styles.submitButton} ${isSubmitDisabled ? styles.disabled : styles.enableSubmit}`}
         >
-
           <>
             <FiSend style={{ marginRight: '8px' }} />
             {isSubmitDisabled ? `入力情報を確認してください` : `${categoryName}を登録する`}
@@ -380,10 +463,12 @@ export default function Form({ categoryName }: { categoryName: string }) {
         </button>
       </form>
 
-      <div className={styles.historySection}>
-        <h2 className={styles.sectionTitle}>過去の{categoryName}</h2>
-        <History />
-      </div>
+      {/* 履歴がある場合のみ表示 */}
+      {hasHistory && (
+        <div className={styles.historySection}>
+          <History onHistoryExists={handleHistoryExists} />
+        </div>
+      )}
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <div className={styles.modalContent}>
