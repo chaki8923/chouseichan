@@ -92,7 +92,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         
         // 画像データはイベントデータに含まれているので直接設定
         if (data && data.images) {
-          console.log("フェッチ時に取得した画像:", data.images);
           setEventImages(Array.isArray(data.images) ? [...data.images] : []);
         }
       }
@@ -233,7 +232,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   // 画像アップロード後に画像リストを更新
   const handleImageUploaded = async () => {
-    console.log("画像がアップロードされました - リロード前の処理");
     
     // アップロード成功を示すフラグをローカルストレージに保存
     // リロード後もアップロード完了を認識できるようにする
@@ -246,7 +244,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       if (response.ok) {
         const data = await response.json();
         if (data && data.images) {
-          console.log("アップロード後に画像データを更新:", data.images);
           setEventImages([...data.images]);
         }
       }
@@ -269,7 +266,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         const uploadTimeNum = parseInt(uploadTime);
         const now = Date.now();
         if (now - uploadTimeNum < 10 * 60 * 1000) {
-          console.log("リロード後のアップロード検知 - Swiperを表示");
           // ローカルストレージをクリア
           localStorage.removeItem(`image_uploaded_${eventId}`);
           localStorage.removeItem(`image_upload_time_${eventId}`);
@@ -334,12 +330,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const highlightScheduleIds = schedulesWithAttendCount
     .filter((s: maxAttend) => s.attendCount === maxAttendCount && maxAttendCount != 0)
     .map((s: maxAttend) => s.id);
-  console.log("eventData", eventData.images);
   
   // eventData.imagesの構造を詳しく確認
-  if (eventData.images && eventData.images.length > 0) {
-    console.log("First image structure:", JSON.stringify(eventData.images[0]));
-  }
+  // if (eventData.images && eventData.images.length > 0) {
+  //   console.log("First image structure:", JSON.stringify(eventData.images[0]));
+  // }
 
   // イベント編集を開始する関数
   const handleStartEdit = () => {

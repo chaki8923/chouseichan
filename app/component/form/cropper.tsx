@@ -61,6 +61,10 @@ export default function App(props: onDataChange) {
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [isCrop, setIsCrop] = useState<boolean>(false);
   
+  // コンポーネントがマウントされたとき、画像は任意なのでエラーを消去
+  React.useEffect(() => {
+    props.setValidationError(null);
+  }, [props.setValidationError]);
 
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {

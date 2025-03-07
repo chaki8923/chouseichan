@@ -60,10 +60,7 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
   
   useEffect(() => {
     // デバッグログを出力
-    if (debugId) {
-      console.log(`ImageSwiper(${debugId}) - 受け取った画像:`, images);
-    }
-    
+
     // 画像URLを正規化
     const processed = images
       .filter(img => img) // null/undefinedをフィルタリング
@@ -71,9 +68,6 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
     
     setNormalizedImages(processed);
     
-    if (debugId) {
-      console.log(`ImageSwiper(${debugId}) - 処理後の画像:`, processed);
-    }
   }, [images, debugId]);
   
   const swiperParams = {
