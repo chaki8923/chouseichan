@@ -51,8 +51,6 @@ export async function POST(request: NextRequest) {
 
       const imageUrl = `${process.env.R2_PUBLIC_BUCKET_DOMAIN}/${key}`;
       uploadedUrls.push(imageUrl);
-
-      console.log("入った:", imageUrl);
       
       // EventImages テーブルに登録
       await prisma.eventImage.create({

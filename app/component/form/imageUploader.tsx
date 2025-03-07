@@ -52,7 +52,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
         setIsUploading(true);
 
         try {
-            const result = await uploadImagesToCloudflare(selectedImages, eventData.id);
+            await uploadImagesToCloudflare(selectedImages, eventData.id);
             
             // フォームをリセット
             setSelectedImages([]);
@@ -273,9 +273,7 @@ const uploadImagesToCloudflare = async (files: File[], eventId: string) => {
 
     if (!response.ok) throw new Error('Upload failed');
     const result = await response.json();
-    
-    // デバッグログ
-    console.log("アップロードAPIレスポンス:", result);
+
     
     return result;
 };

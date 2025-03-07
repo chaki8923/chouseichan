@@ -42,7 +42,8 @@ export default function History({ onHistoryExists }: HistoryProps) {
             } else {
                 // console.log("History component - onHistoryExists is not provided");
             }
-        } catch (error) {
+        } catch (err) {
+            console.error("History component - Error in loadEventHistory:", err);
             // エラー時は空の配列に設定
             setEvents([]);
             // 親コンポーネントにも通知
@@ -117,7 +118,6 @@ export default function History({ onHistoryExists }: HistoryProps) {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                console.log("削除ボタンがクリックされました - eventId:", event.eventId);
                                                 handleRemoveEvent(event.eventId);
                                             }} 
                                             title="削除"

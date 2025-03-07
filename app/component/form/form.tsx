@@ -391,10 +391,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
     return null; // サーバーサイドレンダリング時は何も表示しない
   }
 
-  console.log("isClient", isClient);
-  console.log("hasHistory", hasHistory);
-  
-
   return (
     <div className={styles.formContainer}>
       <h1 className={styles.pageTitle}>{categoryName}の登録</h1>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Session } from "@auth/core/types";
 import SigninButton from "@/app/component/calendar/SignInButton"
@@ -51,7 +51,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedMemo, setEditedMemo] = useState("");
-  const [editMessage, setEditMessage] = useState({ type: "", message: "" });
+  const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
@@ -63,27 +63,38 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   async function fetchEventWithSchedules(eventId: string) {
     try {
       const response = await fetch(`/api/events?eventId=${eventId}`);
-
-      if (!response.ok) {
-        throw new Error(`エラーが発生しました: ${response.status}`);
-      }
-
       const data = await response.json();
 
-      return {
-        ...data,
-        images: data.images || [],
-      };
+      if (!response.ok) {
+        throw new Error(data.error || "エラーが発生しました");
+      }
+
+      return data;
     } catch (error) {
-      console.error("Error fetching event data:", error);
+      console.error("Error fetching event:", error);
       throw error;
     }
   }
 
-  // 初回と更新時にデータ取得
-  const fetchSchedules = async () => {
+  const getEventData = useCallback(async () => {
     try {
-      // クエリパラメータの追加方法を修正 - evntIdは単独で渡す
+      setLoading(true);
+      const data = await fetchEventWithSchedules(eventId!);
+      setEventData(data);
+      setError(null); // エラーをリセット
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("データ取得中に予期しないエラーが発生しました");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId]);
+
+  const fetchSchedules = useCallback(async () => {
+    try {
       const data = await fetchEventWithSchedules(eventId);
       
       if (data) {
@@ -99,15 +110,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       console.error("スケジュールの取得中にエラーが発生しました:", error);
       setError("データの取得に失敗しました");
     }
-  };
+  }, [eventId]);
 
   useEffect(() => {
     getEventData();
-  }, []);
+  }, [getEventData]);
 
   useEffect(() => {
     fetchSchedules(); // 初回ロード時に取得
-  }, [eventId]);
+  }, [fetchSchedules]);
 
   useEffect(() => {
     if (eventId) {
@@ -115,144 +126,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   }, [eventId]);
 
-  if (!eventId) return <p>イベントidがありません</p>
-
-  const getEventData = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchEventWithSchedules(eventId!);
-      setEventData(data);
-      setError(null); // エラーをリセット
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("データ取得中に予期しないエラーが発生しました");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const changeUpdate = (userId: string, userName: string) => {
-    setUserId(userId)
-    setUserName(userName)
-    setIsCreateForm(false)
-
-  };
-
-  const handleCreate = () => {
-    setUserId('');
-    setUserName('');
-    setIsCreateForm(true);
-  }
-
-  const handleConfirmSchedule = (scheduleId: number) => {
-    setIsOpen(true);
-    setTimeout(function () {
-      setIsOpen(false);
-
-    }, 1500);
-    setEventData((prev: Event | null) => {
-      if (!prev) return prev; // prev が null の場合はそのまま返す
-
-      const confirmedSchedule = prev.schedules.find(
-        (schedule) => schedule.id === scheduleId
-      );
-
-      if (!confirmedSchedule) {
-        setModalText("キャンセルしました");
-        return {
-          ...prev,
-          schedules: prev.schedules.map((schedule) => ({
-            ...schedule,
-            isConfirmed: false,
-          })),
-        };
-      }
-
-      setModalText("以下の日程で決定しました");
-
-      const dateTimeString = `${confirmedSchedule.date.split("T")[0]}T${confirmedSchedule.time}:00`;
-      const date = new Date(dateTimeString);
-      const formattedDate = format(date, "yyyy/M/d(E) - HH:mm", { locale: ja });
-
-      setFormattedDate(formattedDate);
-
-      return {
-        ...prev,
-        schedules: prev.schedules.map((schedule) => ({
-          ...schedule,
-          isConfirmed: schedule.id === scheduleId,
-        })),
-      };
-    });
-  };
-
-  const handleCopyLink = async (eventId: string) => {
-    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/event?eventId=${eventId}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setIsCopyModal(true);
-      setTimeout(function () {
-        setIsCopyModal(false);
-
-      }, 1200);
-    } catch (err) {
-      console.error("リンクのコピーに失敗しました", err);
-    }
-  };
-
-  // イベント開催日が確定していて、かつ現在の日付が開催日以降かどうかを確認
-  const canUploadImages = () => {
-    if (!eventData || !eventData.schedules) return false;
-    
-    // 確定されたスケジュールを検索
-    const confirmedSchedule = eventData.schedules.find(schedule => schedule.isConfirmed === true);
-    if (!confirmedSchedule || !confirmedSchedule.date) return false;
-    
-    // イベント開催日と現在の日付を比較
-    const eventDate = new Date(confirmedSchedule.date);
-    const today = new Date();
-    // 日付のみを比較するため、時刻部分をリセット
-    eventDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    
-    // イベント開催日以降の場合にtrueを返す
-    return eventDate <= today;
-  };
-
-  // 画像アップロードモーダルを表示する関数
-  const handleImageUploadClick = () => {
-    if (!canUploadImages()) {
-      setModalText("画像はイベント開催日以降に投稿できます");
-      setIsImageUploadModalOpen(true);
-    }
-  };
-
-  // 画像アップロード後に画像リストを更新
-  const handleImageUploaded = async () => {
-    
-    // アップロード成功を示すフラグをローカルストレージに保存
-    // リロード後もアップロード完了を認識できるようにする
-    localStorage.setItem(`image_uploaded_${eventId}`, 'true');
-    localStorage.setItem(`image_upload_time_${eventId}`, Date.now().toString());
-    
-    // 画像データ取得の代わりに既存のイベントデータAPIを使用
-    try {
-      const response = await fetch(`/api/events?eventId=${eventId}&_t=${Date.now()}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.images) {
-          setEventImages([...data.images]);
-        }
-      }
-    } catch (error) {
-      console.error("画像データの更新に失敗:", error);
-    }
-  };
-
-  // リロード後のアップロード完了チェック
   useEffect(() => {
     // ブラウザ環境でのみ実行
     if (typeof window !== 'undefined') {
@@ -281,7 +154,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   }, [eventId]);
 
-  // テーブルがスクロール可能かどうかを確認するロジック
   useEffect(() => {
     const checkTableScrollable = () => {
       if (tableRef.current) {
@@ -294,16 +166,21 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       }
     };
 
-    // 初期読み込み時にチェック
-    checkTableScrollable();
+    // ブラウザ環境でのみ実行
+    if (typeof window !== 'undefined') {
+      // 初期読み込み時にチェック
+      checkTableScrollable();
 
-    // ウィンドウサイズが変更されたときにチェック
-    window.addEventListener('resize', checkTableScrollable);
-    
-    return () => {
-      window.removeEventListener('resize', checkTableScrollable);
-    };
-  }, []); // 依存配列を空にする
+      // ウィンドウサイズが変更されたときにチェック
+      window.addEventListener('resize', checkTableScrollable);
+      
+      return () => {
+        window.removeEventListener('resize', checkTableScrollable);
+      };
+    }
+  }, []);
+
+  if (!eventId) return <p>イベントidがありません</p>
 
   if (loading) {
     return <SpinLoader></SpinLoader>;
@@ -374,6 +251,56 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         throw new Error("更新に失敗しました");
       }
 
+      // localStorageのイベント履歴も更新する
+      if (typeof window !== 'undefined') {
+        try {
+          // eventHistoryを更新
+          const historyData = localStorage.getItem("eventHistory");
+          if (historyData) {
+            const history = JSON.parse(historyData);
+            const updatedHistory = Array.isArray(history) 
+              ? history.map(event => 
+                  event.eventId === eventData.id 
+                    ? { ...event, eventName: editedTitle } 
+                    : event
+                )
+              : history;
+            localStorage.setItem("eventHistory", JSON.stringify(updatedHistory));
+          }
+
+          // eventsも更新（互換性のため）
+          const eventsData = localStorage.getItem("events");
+          if (eventsData) {
+            const events = JSON.parse(eventsData);
+            const updatedEvents = Array.isArray(events) 
+              ? events.map(event => 
+                  event.eventId === eventData.id 
+                    ? { ...event, eventName: editedTitle } 
+                    : event
+                )
+              : events;
+            localStorage.setItem("events", JSON.stringify(updatedEvents));
+          }
+
+          // ownerEventsも更新
+          const ownerEventsData = localStorage.getItem("ownerEvents");
+          if (ownerEventsData) {
+            const ownerEvents = JSON.parse(ownerEventsData);
+            const updatedOwnerEvents = Array.isArray(ownerEvents) 
+              ? ownerEvents.map(event => 
+                  event.eventId === eventData.id 
+                    ? { ...event, eventName: editedTitle } 
+                    : event
+                )
+              : ownerEvents;
+            localStorage.setItem("ownerEvents", JSON.stringify(updatedOwnerEvents));
+          }
+        
+        } catch (err) {
+          console.error("ローカルストレージの更新に失敗しました:", err);
+        }
+      }
+
       // 更新が成功した場合、ページをリロードして最新のデータを表示
       window.location.reload();
     } catch (error) {
@@ -381,6 +308,126 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       setEditMessage({ type: "error", message: "更新に失敗しました。再度お試しください。" });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // イベント開催日が確定していて、かつ現在の日付が開催日以降かどうかを確認
+  const canUploadImages = () => {
+    if (!eventData || !eventData.schedules) return false;
+    
+    // 確定されたスケジュールを検索
+    const confirmedSchedule = eventData.schedules.find(schedule => schedule.isConfirmed === true);
+    if (!confirmedSchedule || !confirmedSchedule.date) return false;
+    
+    // イベント開催日と現在の日付を比較
+    const eventDate = new Date(confirmedSchedule.date);
+    const today = new Date();
+    // 日付のみを比較するため、時刻部分をリセット
+    eventDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    // イベント開催日以降の場合にtrueを返す
+    return eventDate <= today;
+  };
+
+  // イベントリンクをコピーする関数
+  const handleCopyLink = async (eventId: string) => {
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/event?eventId=${eventId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopyModal(true);
+      setTimeout(function () {
+        setIsCopyModal(false);
+      }, 1200);
+    } catch (err) {
+      console.error("リンクのコピーに失敗しました", err);
+    }
+  };
+
+  // フォーム作成モードを切り替える関数
+  const handleCreate = () => {
+    setUserId('');
+    setUserName('');
+    setIsCreateForm(true);
+  };
+
+  // ユーザー情報を更新する関数
+  const changeUpdate = (userId: string, userName: string) => {
+    setUserId(userId);
+    setUserName(userName);
+    setIsCreateForm(false);
+  };
+
+  // スケジュール確定処理の関数
+  const handleConfirmSchedule = (scheduleId: number) => {
+    setIsOpen(true);
+    setTimeout(function () {
+      setIsOpen(false);
+    }, 1500);
+    
+    setEventData((prev: Event | null) => {
+      if (!prev) return prev; // prev が null の場合はそのまま返す
+
+      const confirmedSchedule = prev.schedules.find(
+        (schedule) => schedule.id === scheduleId
+      );
+
+      if (!confirmedSchedule) {
+        setModalText("キャンセルしました");
+        return {
+          ...prev,
+          schedules: prev.schedules.map((schedule) => ({
+            ...schedule,
+            isConfirmed: false,
+          })),
+        };
+      }
+
+      setModalText("以下の日程で決定しました");
+
+      const dateTimeString = `${confirmedSchedule.date.split("T")[0]}T${confirmedSchedule.time}:00`;
+      const date = new Date(dateTimeString);
+      const formattedDate = format(date, "yyyy/M/d(E) - HH:mm", { locale: ja });
+
+      setFormattedDate(formattedDate);
+
+      return {
+        ...prev,
+        schedules: prev.schedules.map((schedule) => ({
+          ...schedule,
+          isConfirmed: schedule.id === scheduleId,
+        })),
+      };
+    });
+  };
+
+  // 画像アップロードモーダルを表示する関数
+  const handleImageUploadClick = () => {
+    if (!canUploadImages()) {
+      setModalText("画像はイベント開催日以降に投稿できます");
+      setIsOpen(true);
+      setTimeout(() => setIsOpen(false), 1500);
+    }
+  };
+
+  // 画像アップロード後に画像リストを更新
+  const handleImageUploaded = async () => {
+    // アップロード成功を示すフラグをローカルストレージに保存
+    // リロード後もアップロード完了を認識できるようにする
+    localStorage.setItem(`image_uploaded_${eventId}`, 'true');
+    localStorage.setItem(`image_upload_time_${eventId}`, Date.now().toString());
+    
+    // 画像データ取得の代わりに既存のイベントデータAPIを使用
+    try {
+      const response = await fetch(`/api/events?eventId=${eventId}&_t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.images) {
+          setEventImages([...data.images]);
+        }
+      }
+    } catch (error) {
+      console.error("画像データの更新に失敗:", error);
     }
   };
 
@@ -684,7 +731,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 if (response.ok) {
                   const data = await response.json();
                   if (data && data.images) {
-                    console.log("画像表示前に最新データを取得:", data.images);
                     setEventImages([...data.images]);
                     setIsImageSwiperOpen(true);
                   }
