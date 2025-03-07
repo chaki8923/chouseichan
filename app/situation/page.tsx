@@ -88,21 +88,19 @@ export default async function Page({ searchParams }: PageProps) {
                                     href={post.id ? `/blog/${post.id}` : '/'}
                                     className={styles.blogLink}
                                 >
-                                    <p className={styles.blogTitle}>{post.title}</p>
                                     <div className={styles.imageWrapper}>
                                         <img src={post.eyecatch!.url} alt={post.title} className={styles.eyeCatch} />
                                     </div>
-                                    <ul className={styles.tagList}>
-                                        {post.tags.length > 0 ? (
-                                            post.tags.map((tag) => (
+                                    <h3 className={styles.blogTitle}>{post.title}</h3>
+                                    {post.tags.length > 0 && (
+                                        <ul className={styles.tagList}>
+                                            {post.tags.map((tag) => (
                                                 <li key={tag.id} className={styles.tagItem}>
                                                     #{tag.name}
                                                 </li>
-                                            ))
-                                        ) : (
-                                            ''
-                                        )}
-                                    </ul>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </Link>
                             </li>
                         ))}

@@ -408,7 +408,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   return (
     <div className={styles.formContainer}>
-      <h1 className={styles.pageTitle}>{categoryName}の登録</h1>
       <form onSubmit={handleSubmit(onSubmit)} className={styles.modernForm}>
         <div className={styles.formCard}>
           <div className={styles.formStep}>
