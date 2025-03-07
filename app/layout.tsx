@@ -27,13 +27,24 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: "調整ちゃん | 日程登録",
   description: "たったの2ステップでイベント登録。本アプリは、Googleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。",
-  keywords: ["イベント", "スケジュール", "調整", "日程調整"],
+  keywords: ["イベント", "スケジュール", "調整", "日程調整", "カレンダー", "予定", "出欠", "グループ", "チーム", "オンライン"],
   robots: "index, follow",
+  metadataBase: new URL('https://www.chouseichan.com'),
+  alternates: {
+    canonical: '/',
+    languages: {
+      'ja': '/',
+    },
+  },
+  authors: [{ name: '調整ちゃん運営チーム' }],
+  creator: '調整ちゃん',
+  publisher: '調整ちゃん',
   openGraph: {
     type: "website",
     url: "https://www.chouseichan.com/",
     title: "調整ちゃん | 日程登録",
-    description: "たったの2ステップでイベント登録",
+    description: "たったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。",
+    siteName: "調整ちゃん",
     images: [
       {
         url: "/logo.png", // `public` フォルダの画像を使用
@@ -42,14 +53,21 @@ export const metadata: Metadata = {
         alt: "調整ちゃんロゴ",
       },
     ],
+    locale: 'ja_JP',
   },
   twitter: {
     card: "summary_large_image",
     site: "@chousei", // 公式アカウントがあれば追加
     title: "調整ちゃん | 日程登録",
-    description: "たったの2ステップでイベント登録",
+    description: "たったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。",
     images: ["/logo.png"],
+    creator: "@chousei",
   },
+  verification: {
+    google: "あなたのGoogle Search Consoleの確認コード", // 必要に応じて実際のコードに置き換えてください
+  },
+  applicationName: "調整ちゃん",
+  category: "イベント管理・スケジュール調整",
 };
 
 export default function RootLayout({
