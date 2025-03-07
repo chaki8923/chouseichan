@@ -150,6 +150,81 @@
     background-color: rgba(0, 0, 0, 0.05);
     border-radius: 4px;
   }
+
+  /* モバイル用のスクロールヒント（スクロール可能な場合のみ） */
+  &.scrollable {
+    position: relative;
+
+    /* スクロールヒントを追加（左右のグラデーション） */
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 30px;
+      height: 100%;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(222, 49, 99, 0.1));
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* スクロールアイコンのアニメーション（モバイル向け） */
+    &::after {
+      content: '⟸ スワイプ ⟹';
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: auto;
+      bottom: 10px;
+      right: 50%;
+      transform: translateX(50%);
+      width: 120px;
+      height: 30px;
+      color: white;
+      font-size: 12px;
+      background-color: rgba(222, 49, 99, 0.75);
+      border-radius: 15px;
+      opacity: 0.9;
+      animation: fadeInOut 2.5s ease-in-out infinite;
+      animation-delay: 0.5s;
+      z-index: 3;
+    }
+
+    @media (min-width: 769px) {
+      &::after {
+        content: '';
+        top: 50%;
+        right: 0.5rem;
+        bottom: auto;
+        width: 8px;
+        height: 50px;
+        font-size: 0;
+        background-color: rgba(222, 49, 99, 0.2);
+        border-radius: 4px;
+        transform: translateY(-50%);
+        animation: none;
+      }
+    }
+  }
+
+  /* スクロールヒントのアニメーション */
+  @keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.9; }
+  }
+}
+
+/* モバイル用追加スタイル */
+@media (max-width: 768px) {
+  .tableDesign {
+    position: relative;
+    /* 横スクロールの存在を示すための視覚的エフェクト */
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0) 0%, 
+                               rgba(255, 255, 255, 0) 95%, 
+                               rgba(222, 49, 99, 0.1) 100%);
+  }
 }
 
 .tableDesign {
@@ -205,7 +280,7 @@
 
 .formContent {
   width: 640px;
-  margin: 0.5rem 0;
+  margin: auto;
 }
 
 .formContent p {
@@ -782,4 +857,106 @@
     width: 100%;
     padding: 0.6rem 1rem;
   }
+}
+
+.table {
+  overflow-x: auto;
+  position: relative;
+
+  &.scrollable {
+    // スクロール可能なことを示すグラデーション
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 30px;
+      height: 100%;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(0, 0, 0, 0.1));
+      pointer-events: none;
+    }
+  }
+
+  // カスタムスクロールバー
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+// モバイルスクロールヒント
+.mobileScrollHint {
+  display: none;
+  text-align: center;
+  padding: 8px;
+  background-color: rgba(245, 245, 245, 0.9);
+  color: #333;
+  font-size: 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  animation: fadeInOut 3s ease-in-out infinite;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  // スワイプアニメーション
+  &::before, &::after {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid #555;
+    border-right: 2px solid #555;
+    margin: 0 5px;
+    vertical-align: middle;
+  }
+  
+  &::before {
+    transform: rotate(-135deg); // 左向き矢印
+    animation: slideLeft 1.5s infinite;
+  }
+  
+  &::after {
+    transform: rotate(45deg); // 右向き矢印
+    animation: slideRight 1.5s infinite;
+  }
+  
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+}
+
+// 矢印のアニメーション
+@keyframes slideLeft {
+  0%, 100% { transform: rotate(-135deg) translateX(0); }
+  50% { transform: rotate(-135deg) translateX(-3px); }
+}
+
+@keyframes slideRight {
+  0%, 100% { transform: rotate(45deg) translateX(0); }
+  50% { transform: rotate(45deg) translateX(3px); }
+}
+
+// スクロールヒント用のアニメーション
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }

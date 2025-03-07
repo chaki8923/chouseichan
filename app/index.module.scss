@@ -216,6 +216,9 @@
   cursor: pointer;
   padding: 0.5rem;
 }
+.mobileMenuButton:hover {
+  background: none;
+}
 
 .headerDescription {
   background-color: var(--background-secondary);

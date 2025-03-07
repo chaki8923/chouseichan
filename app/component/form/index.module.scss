@@ -1041,9 +1041,23 @@
   padding: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
+  position: relative;
   
   &:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 14px;
+    border: 1px solid rgba(222, 49, 99, 0.15);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    position: relative;
+    padding-right: 50px;
+    padding-bottom: 50px;
+    margin-bottom: 20px;
   }
 }
 
@@ -1066,6 +1080,23 @@
     background-color: rgba(222, 49, 99, 0.1);
     color: #de3163;
   }
+  
+  @media (max-width: 768px) {
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border-radius: 6px;
+    background-color: rgba(222, 49, 99, 0.1);
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
 }
 
 .scheduleInputs {
@@ -1074,10 +1105,9 @@
   align-items: center;
   gap: 10px;
   
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  @media (max-width: 768px) {
+    width: calc(100% - 56px);
+    padding-right: 10px;
   }
 }
 
@@ -1099,6 +1129,64 @@
     background-color: rgba(222, 49, 99, 0.1);
     color: #de3163;
   }
+  
+  @media (max-width: 768px) {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    
+    svg {
+      width: 24px;
+      height: 24px;
+      color: #de3163;
+    }
+    
+    &:hover {
+      background-color: rgba(222, 49, 99, 0.1);
+      color: #de3163;
+      transform: scale(1.1);
+    }
+  }
+}
+
+/* モバイル表示用の削除ボタン */
+.mobileDeleteButton {
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 14px;
+    top: 0; /* 上部の位置指定を上書き */
+    background-color: rgba(222, 49, 99, 0.1);
+    color: #de3163;
+    width: auto;
+    min-width: 44px;
+    padding: 5px;
+    border-radius: 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background-color: rgba(222, 49, 99, 0.2);
+    }
+  }
+}
+
+.mobileDeleteText {
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 14px;
+  }
 }
 
 .scheduleInputGroup {
@@ -1107,17 +1195,33 @@
   flex-wrap: wrap;
   gap: 1rem;
   flex: 1;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    gap: 12px;
+    margin-bottom: 5px;
+  }
 }
 
 .scheduleInputWrapper {
   display: flex;
   flex-direction: column;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    margin-bottom: 5px;
+  }
 }
 
 .scheduleLabel {
   font-size: 0.8rem;
   color: var(--gray-dark);
   margin-bottom: 0.25rem;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+  }
 }
 
 .dateInput,
@@ -1133,6 +1237,15 @@
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 2px var(--primary-light);
+  }
+  
+  @media (max-width: 768px) {
+    min-width: 100%;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 16px; /* モバイルでズームを防ぐ */
+    height: 48px; /* タップしやすい高さ */
+    margin-bottom: 10px;
   }
 }
 
@@ -1478,12 +1591,12 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    width: 100%;
   }
   
   .scheduleItem {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    padding: 12px;
+    gap: 10px;
   }
   
   .scheduleInputWrapper {
@@ -1493,10 +1606,6 @@
   .dateInput,
   .timeSelect {
     width: 100%;
-  }
-  
-  .removeScheduleBtn {
-    align-self: flex-end;
   }
 }
 

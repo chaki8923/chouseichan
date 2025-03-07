@@ -52,6 +52,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [editedTitle, setEditedTitle] = useState("");
   const [editedMemo, setEditedMemo] = useState("");
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
+  const [isEditCompleteModal, setIsEditCompleteModal] = useState(false);
+  const [isResponseCompleteModal, setIsResponseCompleteModal] = useState(false);
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
@@ -105,6 +107,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         if (data && data.images) {
           setEventImages(Array.isArray(data.images) ? [...data.images] : []);
         }
+
+        // 編集モードから戻る（ユーザー名、IDをリセットして新規登録モードへ）
+        setUserId('');
+        setUserName('');
+        setIsCreateForm(true);
       }
     } catch (error) {
       console.error("スケジュールの取得中にエラーが発生しました:", error);
@@ -160,6 +167,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         const isScrollable = tableRef.current.scrollWidth > tableRef.current.clientWidth;
         if (isScrollable) {
           tableRef.current.classList.add('scrollable');
+          
+          // モバイルデバイスでのスクロールヒントを強化（データが多いことを示す）
+          if (window.innerWidth <= 768) {
+            // スクロールアフォーダンス（ユーザーに横スクロールができることを示すヒント）
+            const scheduleCount = eventData?.schedules?.length || 0;
+            console.log(`Table is scrollable with ${scheduleCount} schedules`);
+          }
         } else {
           tableRef.current.classList.remove('scrollable');
         }
@@ -170,9 +184,18 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     if (typeof window !== 'undefined') {
       // 初期読み込み時にチェック
       checkTableScrollable();
+      
+      // DOM完全読み込み後に再チェック（より確実に）
+      setTimeout(checkTableScrollable, 500);
+      setTimeout(checkTableScrollable, 1000);  // 念のためもう一度
 
       // ウィンドウサイズが変更されたときにチェック
       window.addEventListener('resize', checkTableScrollable);
+      
+      // コンテンツが変わる可能性があるので、eventDataが変わったときもチェック
+      if (eventData && eventData.schedules) {
+        checkTableScrollable();
+      }
       
       return () => {
         window.removeEventListener('resize', checkTableScrollable);
@@ -301,8 +324,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         }
       }
 
-      // 更新が成功した場合、ページをリロードして最新のデータを表示
-      window.location.reload();
+      // 編集完了モーダルを表示
+      setIsEditing(false);
+      setIsEditCompleteModal(true);
+      
+      // モーダルを表示して少し待ってからリロード
+      setTimeout(() => {
+        setIsEditCompleteModal(false);
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error("イベント更新エラー:", error);
       setEditMessage({ type: "error", message: "更新に失敗しました。再度お試しください。" });
@@ -431,6 +461,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   };
 
+  // フォーム送信後の処理
+  const handleFormSuccess = () => {
+    // 完了モーダルを表示
+    setIsResponseCompleteModal(true);
+    // 2秒後に閉じる
+    setTimeout(() => {
+      setIsResponseCompleteModal(false);
+    }, 2000);
+    
+    // スケジュールとイベントデータを再取得（fetchSchedules関数に記述されているリセット処理は実行される）
+    fetchSchedules();
+  };
+
   return (
     <>
       <div className={styles.eventContainer}>
@@ -518,6 +561,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </section>
 
           <div className={`relative overflow-x-auto ${styles.table}`} ref={tableRef}>
+            {eventData.schedules.length > 0 && (
+              <div className={styles.mobileScrollHint}>
+                ← 横にスワイプしてください →
+              </div>
+            )}
             <table className={styles.tableDesign}>
               <tbody>
                 <tr>
@@ -658,29 +706,42 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </div>
         </div>
       </div>
-      <div className={styles.eventFormContainer}>
+      <div id="response_area" className="mt-12">
+        <h2 className={styles.h2Title}>回答フォーム</h2>
         {isCreateForm ? (
-          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules.map((schedule) => ({
-            ...schedule,
-            responses: schedule.responses.map((response) => ({
-              ...response,
-              user: {
-                ...response.user,
-                comment: response.user.comment || "", // undefined を空文字に変換
-              },
-            })),
-          }))} />
+          <Form 
+            onSuccess={handleFormSuccess} 
+            onCreate={handleCreate} 
+            schedules={eventData.schedules.map((schedule) => ({
+              ...schedule,
+              responses: schedule.responses.map((response) => ({
+                ...response,
+                user: {
+                  ...response.user,
+                  comment: response.user.comment || "", 
+                },
+              })),
+            }))} 
+            userId={userId} 
+            userName={userName} 
+          />
         ) : (
-          <Form onSuccess={fetchSchedules} onCreate={handleCreate} schedules={eventData.schedules.map((schedule) => ({
-            ...schedule,
-            responses: schedule.responses.map((response) => ({
-              ...response,
-              user: {
-                ...response.user,
-                comment: response.user.comment || "", // undefined を空文字に変換
-              },
-            })),
-          }))} userId={userId} userName={userName} />
+          <Form 
+            onSuccess={handleFormSuccess} 
+            onCreate={handleCreate} 
+            schedules={eventData.schedules.map((schedule) => ({
+              ...schedule,
+              responses: schedule.responses.map((response) => ({
+                ...response,
+                user: {
+                  ...response.user,
+                  comment: response.user.comment || "", 
+                },
+              })),
+            }))} 
+            userId={userId} 
+            userName={userName} 
+          />
         )}
       </div>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
@@ -708,6 +769,18 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             </button>
           </div>
         </div>
+      </Modal>
+      
+      {/* 編集完了モーダル */}
+      <Modal isOpen={isEditCompleteModal} onClose={() => setIsEditCompleteModal(false)} type="info">
+        <h2 className={styles.modalTitle}>編集が完了しました</h2>
+        <p className={styles.modalText}>イベント情報が正常に更新されました。</p>
+      </Modal>
+      
+      {/* 参加登録完了モーダル */}
+      <Modal isOpen={isResponseCompleteModal} onClose={() => setIsResponseCompleteModal(false)} type="info">
+        <h2 className={styles.modalTitle}>参加登録が完了しました</h2>
+        <p className={styles.modalText}>イベントへの参加情報が正常に登録されました。</p>
       </Modal>
       
       {canUploadImages() ? (

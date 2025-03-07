@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styles from './index.module.scss';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiTrash2, FiPlus, FiAlertCircle, FiSend, FiMove } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiAlertCircle, FiSend, FiMove, FiCheckCircle } from 'react-icons/fi';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import History from '../strage/history';
@@ -83,37 +83,47 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
         <FiMove />
       </div>
       <div className={styles.scheduleInputs}>
-        <input
-          type="date"
-          {...register(`schedules.${index}.date`)}
-          value={schedule.date}
-          onChange={(e) => onDateChange(index, e.target.value)}
-          className={styles.formInput}
-          onClick={handleDateInputClick}
-        />
-        <select
-          {...register(`schedules.${index}.time`)}
-          value={schedule.time}
-          onChange={(e) => onTimeChange(index, e.target.value)}
-          className={styles.formInput}
-        >
-          {timeOptions.map((time: string) => (
-            <option key={time} value={time}>
-              {time}
-            </option>
-          ))}
-        </select>
-        {/* 最初の日程項目（index === 0）では削除ボタンを非表示にする */}
-        {index !== 0 && (
-          <button
-            type="button"
-            onClick={() => onRemove(schedule.id)}
-            className={styles.deleteButton}
-          >
-            <FiTrash2 />
-          </button>
-        )}
+        <div className={styles.scheduleInputGroup}>
+          <div className={styles.scheduleInputWrapper}>
+            <label className={styles.scheduleLabel}>日付</label>
+            <input
+              type="date"
+              {...register(`schedules.${index}.date`)}
+              value={schedule.date}
+              onChange={(e) => onDateChange(index, e.target.value)}
+              className={styles.dateInput}
+              onClick={handleDateInputClick}
+            />
+          </div>
+          <div className={styles.scheduleInputWrapper}>
+            <label className={styles.scheduleLabel}>時間</label>
+            <select
+              {...register(`schedules.${index}.time`)}
+              value={schedule.time}
+              onChange={(e) => onTimeChange(index, e.target.value)}
+              className={styles.timeSelect}
+            >
+              {timeOptions.map((time: string) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
+      
+      {/* 最初の日程項目（index === 0）では削除ボタンを非表示にする */}
+      {index !== 0 && (
+        <button
+          type="button"
+          onClick={() => onRemove(schedule.id)}
+          className={`${styles.deleteButton} ${styles.mobileDeleteButton}`}
+          aria-label="日程を削除"
+        >
+          <FiTrash2 />
+        </button>
+      )}
     </div>
   );
 };
@@ -123,10 +133,10 @@ export default function Form({ categoryName }: { categoryName: string }) {
     { id: Date.now(), date: '', time: '19:00' }, // 初期のスケジュールデータ
   ]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // 成功モーダル用の状態
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string | null>(null); // 初期値をnullに変更
-  const [memoLength, setMemoLength] = useState(0);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true); // 初期状態は無効
   const [file, setFile] = useState<File | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
@@ -140,32 +150,27 @@ export default function Form({ categoryName }: { categoryName: string }) {
     })
   );
 
-  const methods = useForm<ScheduleSchemaType>({
-    mode: 'onChange',
-    resolver: zodResolver(ScheduleSchema)
-  });
-
+  // form-hookの設定
   const {
     register,
     handleSubmit,
-    reset,
-    watch,
+    formState: { errors },
     setValue,
     trigger,
-    formState: { errors },
-  } = methods;
+    reset,
+    watch,
+  } = useForm<ScheduleSchemaType>({
+    resolver: zodResolver(ScheduleSchema),
+    defaultValues: {
+      event_name: '',
+      memo: '',
+      schedules: [{ date: '', time: '19:00' }],
+    },
+  });
 
-  // 本文の文字数を監視
-  const memoValue = watch("memo", "");  // デフォルト値を設定
-  const eventNameValue = watch("event_name", "");  // デフォルト値を設定
-
-  useEffect(() => {
-    if (memoValue) {
-      setMemoLength(memoValue.length);
-    } else {
-      setMemoLength(0);
-    }
-  }, [memoValue]);
+  // フォームの値をwatch
+  const eventNameValue = watch('event_name');
+  const memoValue = watch('memo');
 
   // 日程を追加するボタンクリック時の処理
   const AddSchedule = () => {
@@ -240,21 +245,24 @@ export default function Form({ categoryName }: { categoryName: string }) {
     trigger(`schedules.${index}.time`);
   };
 
-  // 時間リストを生成（00:00 から 23:30 を 30 分刻み）
+  // 時間のオプションを生成する関数
   const generateTimeOptions = () => {
-    const times: string[] = [];
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const formattedTime = `${String(hour).padStart(2, "0")}:${String(
-          minute
-        ).padStart(2, "0")}`;
+    const times = [];
+    const startHour = 0;
+    const endHour = 23;
+    const interval = 30; // 分単位
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+      const intervals = [0, interval];
+      for (const minute of intervals) {
+        const formattedHour = hour.toString().padStart(2, '0');
+        const formattedMinute = minute.toString().padStart(2, '0');
+        const formattedTime = `${formattedHour}:${formattedMinute}`;
         times.push(formattedTime);
       }
     }
     return times;
   };
-
-  const timeOptions = generateTimeOptions();
 
   interface FormData {
     event_name: string;
@@ -305,8 +313,15 @@ export default function Form({ categoryName }: { categoryName: string }) {
         const eventId = result.id; // レスポンスに含まれるIDを取得
         setLoading(false);
         setOwnerEvent(eventId, result.name, result.schedules);
-        // 必要に応じてページ遷移
-        router.push(`/event?eventId=${eventId}`);
+        
+        // 成功モーダルを表示するための状態を設定
+        setIsSuccessModalOpen(true);
+        
+        // 3秒後にモーダルを閉じて遷移
+        setTimeout(() => {
+          setIsSuccessModalOpen(false);
+          router.push(`/event?eventId=${eventId}`);
+        }, 3000);
       } else {
         setLoading(false);
         setIsOpen(true);
@@ -421,76 +436,73 @@ export default function Form({ categoryName }: { categoryName: string }) {
             <label className={styles.formLabel}>
               メモ
               <span className={styles.badgeOptional}>任意</span>
-              <span className={styles.charCount} data-exceeded={memoLength > 200}>
-                {memoLength}/200
-              </span>
             </label>
             <textarea
               className={styles.modernTextarea}
-              placeholder="イベントについての詳細や注意事項を記入してください"
-              {...register('memo', {
-                maxLength: 200,
-                onChange: (e) => setMemoLength(e.target.value.length),
-              })}
+              placeholder="メモを入力してください"
+              {...register('memo')}
+              maxLength={300}
             />
-            {errors.memo && (
-              <span className={styles.errorMessage}>{errors.memo.message}</span>
-            )}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              イメージ画像
-              <span className={styles.badgeOptional}>任意</span>
-            </label>
-            <div className={styles.cropperContainer}>
-              <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
+            <div className={styles.textareaFooter}>
+              <span className={`${styles.charCount} ${memoValue && memoValue.length > 280 ? styles.charCountExceeded : ''}`}>
+                {memoValue ? memoValue.length : 0}/300文字
+              </span>
             </div>
-            {validationError && (
-              <div className={styles.formValidationError}>
-                <FiAlertCircle style={{ marginRight: '8px' }} />
-                {validationError}
-              </div>
-            )}
           </div>
 
           <div className={styles.formStepDivider}></div>
 
           <div className={styles.formStep}>
             <div className={styles.stepNumber}>2</div>
-            <h2 className={styles.stepTitle}>日程登録<span className={styles.badgeRequired}>必須</span></h2>
+            <h2 className={styles.stepTitle}>日程の選択</h2>
           </div>
 
-          <div className={styles.scheduleList}>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
+          <div className={styles.formGroup}>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={schedules.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                {schedules.map((schedule, index) => (
-                  <SortableScheduleItem
-                    key={schedule.id}
-                    schedule={schedule}
-                    index={index}
-                    onRemove={handleRemove}
-                    onDateChange={handleDateChange}
-                    onTimeChange={handleTimeChange}
-                    timeOptions={timeOptions}
-                    register={register}
-                  />
-                ))}
+                <div className={styles.scheduleList}>
+                  {schedules.map((schedule, index) => (
+                    <SortableScheduleItem
+                      key={schedule.id}
+                      schedule={schedule}
+                      index={index}
+                      onRemove={handleRemove}
+                      onDateChange={handleDateChange}
+                      onTimeChange={handleTimeChange}
+                      timeOptions={generateTimeOptions()}
+                      register={register}
+                    />
+                  ))}
+                </div>
               </SortableContext>
             </DndContext>
 
-            <button
-              type="button"
-              onClick={AddSchedule}
+            <button 
+              type="button" 
+              onClick={AddSchedule} 
               className={styles.addScheduleBtn}
             >
-              <FiPlus />
-              日程を追加
+              <FiPlus /> 日程を追加
             </button>
+
+            {errors.schedules && (
+              <span className={styles.errorMessage}>{errors.schedules.message}</span>
+            )}
+          </div>
+
+          <div className={styles.formStepDivider}></div>
+
+          {/* 画像アップロード */}
+          <div className={styles.formStep}>
+            <div className={styles.stepNumber}>3</div>
+            <h2 className={styles.stepTitle}>サムネイル画像（任意）</h2>
+          </div>
+
+          <div className={styles.formGroup}>
+            <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
+            {validationError && (
+              <span className={styles.errorMessage}>{validationError}</span>
+            )}
           </div>
         </div>
 
@@ -528,6 +540,16 @@ export default function Form({ categoryName }: { categoryName: string }) {
               お問い合わせフォーム
             </Link>
           </div>
+        </div>
+      </Modal>
+      
+      {/* 成功モーダル */}
+      <Modal isOpen={isSuccessModalOpen} onClose={() => setIsSuccessModalOpen(false)} type="info">
+        <div className={styles.modalContent}>
+          <FiCheckCircle size={50} color="#4BB543" style={{ marginBottom: '1rem' }} />
+          <h2 className={styles.modalTitle}>イベント登録が完了しました</h2>
+          <p>イベントの登録が完了しました。</p>
+          <p>イベント詳細ページに移動します...</p>
         </div>
       </Modal>
     </div>
