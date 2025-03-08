@@ -28,6 +28,7 @@ const Header: React.FC = () => {
                     <Link href="/description" className={styles.navLink}>使い方</Link>
                     <Link href="/rule" className={styles.navLink}>利用規約</Link>
                     <Link href="/privacy" className={styles.navLink}>プライバシー</Link>
+                    <Link href="/image-resize" className={styles.navLink}>画像リサイズ</Link>
                     <Link href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" 
                           className={styles.navLink} 
                           target="_blank">

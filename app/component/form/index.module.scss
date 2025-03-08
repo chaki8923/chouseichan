@@ -643,6 +643,12 @@
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
   background-color: #000;
   height: 100%;
+  
+  // 1枚だけの時のサイズを制限
+  .swiper-slide:only-child & {
+    max-width: 90%;
+    margin: 0 auto;
+  }
 }
 
 .albumImage {
@@ -652,6 +658,12 @@
   height: auto;
   object-fit: contain;
   margin: 0 auto;
+  
+  // 1枚だけの時のサイズを制限
+  .swiper-slide:only-child & {
+    max-width: 90%;
+    max-height: 70vh;
+  }
 }
 
 .filmInfo {
@@ -2103,50 +2115,262 @@
 }
 
 .errorContainer {
-  margin-top: 10px;
-  padding: 12px;
-  background-color: rgba(255, 99, 71, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid #ff6347;
-}
-
-.errorMessage {
-  color: #ff6347;
-  font-size: 14px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding: 12px;
+  margin-bottom: 16px;
+  background-color: rgba(255, 0, 0, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #DE3163;
 }
 
 .errorIcon {
+  color: #DE3163;
   margin-right: 8px;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+  margin-top: 3px;
 }
 
-@media (max-width: 768px) {
-  .uploadImageLabel {
-    padding: 1.5rem 1rem;
-  }
+.errorMessage {
+  color: #333;
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.resizeToolWrapper {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resizeToolLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #4A90E2;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  width: fit-content;
+  transition: all 0.2s ease;
   
-  .uploadImageIcon {
-    font-size: 2rem;
-  }
-  
-  .previewImageContainer {
-    width: 120px;
-    height: 120px;
+  &:hover {
+    color: #fff;
+    background-color: #357ABD;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
   }
 }
 
-@media (max-width: 480px) {
-  .uploadImageLabel {
-    padding: 1.2rem 1rem;
-  }
+.resizeToolIcon {
+  font-size: 1.1rem;
+}
+
+.resizeToolHint {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+  font-style: italic;
+}
+
+.deleteImageBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
   
-  .uploadImageIcon {
-    font-size: 1.75rem;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
+}
+
+/* アップロード中オーバーレイモーダル */
+.uploadOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  backdrop-filter: blur(5px);
+  transition: opacity 0.3s ease;
+}
+
+.uploadModalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  width: 85%;
+  max-width: 400px;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+.uploadModalTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.uploadModalImage {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  object-fit: contain;
+  animation: float 3s ease-in-out infinite;
+}
+
+.uploadModalText {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.uploadModalSubtext {
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
+}
+
+.uploadSpinner {
+  margin: 1rem auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(222, 49, 99, 0.2);
+  border-radius: 50%;
+  border-top-color: #DE3163;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.filmRemoveBtn {
+  position: absolute;
+  padding: 0;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
   
-  .previewImageContainer {
-    width: 100px;
-    height: 100px;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
+}
+
+// フィルムフレームプレビュー用のスタイル
+.filmFrame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #1f1f1f;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.filmHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 0.8rem;
+}
+
+.filmCounter {
+  font-weight: bold;
+}
+
+.filmDate {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.filmImageContainer {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filmImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: 70vh; // 1枚の時の高さを制限
+  
+  .swiper-slide:only-child & {
+    max-width: 80%; 
+    max-height: 300px; // 1枚だけの時にはサイズを制限
+  }
+}
+
+.filmFooter {
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.filmCaption {
+  font-style: italic;
+  opacity: 0.8;
 }

@@ -5,6 +5,7 @@ import { Navigation, Pagination, A11y, EffectFade, Autoplay } from 'swiper/modul
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/a11y';
 import 'swiper/css/effect-fade';
 import styles from './index.module.scss';
 
@@ -49,13 +50,14 @@ const getFormattedDate = () => {
 };
 
 type Props = {
-  images: (string | { imagePath?: string; id?: string; url?: string })[];
+  images: { imagePath?: string; id?: string; url?: string; }[];
   title?: string;
   onClose: () => void;
   debugId?: string;
+  onDelete?: (index: number) => void;
 };
 
-export default function ImageSwiper({ images = [], title = '登録した画像', onClose, debugId }: Props) {
+export default function ImageSwiper({ images = [], title = '登録した画像', onClose, debugId, onDelete }: Props) {
   const [normalizedImages, setNormalizedImages] = useState<string[]>([]);
   
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
     },
     effect: 'fade' as const,
     autoplay: {
-      delay: 2500,
+      delay: 5000,
       disableOnInteraction: false,
       pauseOnMouseEnter: true
     }
@@ -181,6 +183,16 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
                   className={styles.albumImage}
                 />
                 
+                {onDelete && (
+                  <button 
+                    className={styles.filmRemoveBtn}
+                    onClick={() => onDelete(index)}
+                    type="button"
+                    aria-label="画像を削除"
+                  >
+                    <FiX />
+                  </button>
+                )}
               </div>
               
               <div className={styles.filmPerforationRight}>

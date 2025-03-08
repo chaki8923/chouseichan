@@ -23,6 +23,7 @@ const Footer: React.FC = () => {
             <Link href="/description" className={styles.footerLink}>使い方</Link>
             <Link href="/rule" className={styles.footerLink}>利用規約</Link>
             <Link href="/privacy" className={styles.footerLink}>プライバシーポリシー</Link>
+            <Link href="/image-resize" className={styles.footerLink}>画像リサイズ</Link>
             <Link href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" 
                   className={styles.footerLink} 
                   target="_blank">

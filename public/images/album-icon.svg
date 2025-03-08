@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- 背景の円 -->
+  <circle cx="256" cy="256" r="248" fill="#f8f8f8" stroke="#DE3163" stroke-width="8"/>
+  
+  <!-- フィルムストリップ -->
+  <rect x="130" y="140" width="250" height="40" rx="5" fill="#333" stroke="#DE3163" stroke-width="2"/>
+  <rect x="140" y="150" width="10" height="20" fill="#555"/>
+  <rect x="170" y="150" width="10" height="20" fill="#555"/>
+  <rect x="200" y="150" width="10" height="20" fill="#555"/>
+  <rect x="230" y="150" width="10" height="20" fill="#555"/>
+  <rect x="260" y="150" width="10" height="20" fill="#555"/>
+  <rect x="290" y="150" width="10" height="20" fill="#555"/>
+  <rect x="320" y="150" width="10" height="20" fill="#555"/>
+  <rect x="350" y="150" width="10" height="20" fill="#555"/>
+  
+  <!-- 写真アルバム -->
+  <rect x="150" y="200" width="220" height="180" rx="10" fill="#fff" stroke="#DE3163" stroke-width="5"/>
+  <rect x="160" y="210" width="90" height="70" rx="5" fill="#f0f0f0" stroke="#DE3163" stroke-width="2"/>
+  <rect x="270" y="210" width="90" height="70" rx="5" fill="#f0f0f0" stroke="#DE3163" stroke-width="2"/>
+  <rect x="160" y="300" width="90" height="70" rx="5" fill="#f0f0f0" stroke="#DE3163" stroke-width="2"/>
+  <rect x="270" y="300" width="90" height="70" rx="5" fill="#f0f0f0" stroke="#DE3163" stroke-width="2"/>
+  
+  <!-- 装飾 -->
+  <circle cx="205" cy="245" r="15" fill="#DE3163" opacity="0.7"/>
+  <circle cx="315" cy="245" r="15" fill="#DE3163" opacity="0.7"/>
+  <circle cx="205" cy="335" r="15" fill="#DE3163" opacity="0.7"/>
+  <circle cx="315" cy="335" r="15" fill="#DE3163" opacity="0.7"/>
+</svg> 

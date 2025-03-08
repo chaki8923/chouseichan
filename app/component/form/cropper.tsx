@@ -9,6 +9,7 @@ import ReactCrop, {
 import { canvasPreview } from './canvasPreview'
 import { useDebounceEffect } from './useDebounceEffect'
 import { FiUpload, FiCrop, FiImage, FiAlertCircle } from 'react-icons/fi'
+import Link from 'next/link'
 
 import 'react-image-crop/dist/ReactCrop.css'
 
@@ -39,7 +40,7 @@ function centerAspectCrop(
 // Props の型定義
 type onDataChange = {
   onDataChange: (data: File) => void; // 親に通知する関数の型
-  setValidationError: (error: string | null) => void;
+  setValidationError: (error: string | null | React.ReactNode) => void;
 };
 
 
@@ -108,7 +109,7 @@ export default function App(props: onDataChange) {
     
     // 画像のバリデーションをここで実行
     if (!file.type.startsWith('image/')) {
-      const errorMsg = '画像形式が不正です。画像ファイルをアップロードしてください。';
+      const errorMsg = '画像形式が不正です。画像ファイルをアップロードしてください';
       setFileError(errorMsg);
       props.setValidationError(errorMsg);
       return;
@@ -118,7 +119,23 @@ export default function App(props: onDataChange) {
     if (file.size > maxSize) {
       const errorMsg = 'ファイルサイズが1MBを超えています。より小さい画像を選択してください。';
       setFileError(errorMsg);
-      props.setValidationError(errorMsg);
+      props.setValidationError(
+        <div className={styles.errorContainer}>
+          <FiAlertCircle className={styles.errorIcon} />
+          <div className={styles.errorMessage}>
+            {errorMsg}
+            <div className={styles.resizeToolWrapper}>
+              <Link href="/image-resize" className={styles.resizeToolLink}>
+                <FiCrop className={styles.resizeToolIcon} />
+                画像リサイズツールを使う
+              </Link>
+              <p className={styles.resizeToolHint}>
+                リサイズツールで画像を小さくしてから再度アップロードしてください！
+              </p>
+            </div>
+          </div>
+        </div>
+      );
       return;
     }
     
@@ -390,10 +407,21 @@ export default function App(props: onDataChange) {
       {/* エラーメッセージ表示エリア */}
       {fileError && (
         <div className={styles.errorContainer}>
-          <span className={styles.errorMessage}>
-            <FiAlertCircle className={styles.errorIcon} />
+          <FiAlertCircle className={styles.errorIcon} />
+          <div className={styles.errorMessage}>
             {fileError}
-          </span>
+            {fileError.includes('1MB') && (
+              <div className={styles.resizeToolWrapper}>
+                <Link href="/image-resize" className={styles.resizeToolLink}>
+                  <FiCrop className={styles.resizeToolIcon} />
+                  画像リサイズツールを使う
+                </Link>
+                <p className={styles.resizeToolHint}>
+                  リサイズツールで画像を小さくしてから再度アップロードしてください！
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

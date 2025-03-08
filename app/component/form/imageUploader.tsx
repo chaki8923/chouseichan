@@ -2,9 +2,10 @@ import { useState, useRef, useCallback } from 'react';
 import { Event } from "@/types/event";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss";
-import { FiUpload, FiX, FiImage, FiCamera, FiAlertCircle } from 'react-icons/fi';
+import { FiUpload, FiX, FiImage, FiCamera, FiAlertCircle, FiCrop } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, EffectCoverflow } from 'swiper/modules';
+import Link from 'next/link';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -22,6 +23,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
     const [isUploading, setIsUploading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [totalSize, setTotalSize] = useState<number>(0);
+    const [showAlbumOverlay, setShowAlbumOverlay] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,25 +101,22 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 fileInputRef.current.value = '';
             }
             
-            // 先に親コンポーネントに通知してから、モーダルを表示する
+            // 先に親コンポーネントに通知
             if (onImageUploaded) {
                 onImageUploaded();
             }
             
-            // 最後にモーダルを表示
-            setModalText('画像のアップロードが完了しました。ページをリロードします...');
-            setIsOpen(true);
+            // アルバム表示前のオーバーレイを表示
+            setShowAlbumOverlay(true);
             
-            // モーダルを表示した後、少し待ってからリロード
+            // アルバム表示前の待機時間（3秒後にリロード）
             setTimeout(() => {
-                // リロードする前に必要なデータをすべて保存済みなので安全
                 window.location.reload();
-            }, 1500);
+            }, 3000);
         } catch (error) {
             console.error("Error uploading images:", error);
             setModalText('画像のアップロードに失敗しました');
             setIsOpen(true);
-        } finally {
             setIsUploading(false);
         }
     };
@@ -190,123 +189,170 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
     };
 
     return (
-        <div className={`${styles.formCard} ${styles['fade-in']}`}>
-            <div className={styles.formStep}>
-                <div className={styles.stepNumber}>3</div>
-                <h3 className={styles.stepTitle}>イベント写真のアップロード</h3>
-            </div>
-            
-            {errorMessage && (
-                <div className={styles.errorContainer}>
-                    <FiAlertCircle className={styles.errorIcon} />
-                    <span className={styles.errorMessage}>{errorMessage}</span>
+        <>
+            {/* アップロード完了後のオーバーレイモーダル */}
+            {showAlbumOverlay && (
+                <div className={styles.uploadOverlay}>
+                    <div className={styles.uploadModalContent}>
+                        <img 
+                            src="/images/album-icon.png" 
+                            alt="アルバムアイコン" 
+                            className={styles.uploadModalImage}
+                            onError={(e) => {
+                                // 画像が存在しない場合のフォールバック
+                                e.currentTarget.style.display = 'none';
+                            }}
+                        />
+                        <h3 className={styles.uploadModalTitle}>アップロード完了！</h3>
+                        <div className={styles.uploadSpinner}></div>
+                        <p className={styles.uploadModalText}>アルバムを表示します</p>
+                        <p className={styles.uploadModalSubtext}>しばらくお待ちください...</p>
+                    </div>
                 </div>
             )}
             
-            <div className={styles.uploadStats}>
-                <div className={styles.uploadStat}>
-                    <span className={styles.uploadStatLabel}>選択:</span>
-                    <span className={styles.uploadStatValue}>{selectedImages.length}枚</span>
+            {/* アップロード中のオーバーレイ */}
+            {isUploading && !showAlbumOverlay && (
+                <div className={styles.uploadOverlay}>
+                    <div className={styles.uploadModalContent}>
+                        <div className={styles.uploadSpinner}></div>
+                        <h3 className={styles.uploadModalTitle}>アップロード中...</h3>
+                        <p className={styles.uploadModalText}>画像をアップロードしています</p>
+                        <p className={styles.uploadModalSubtext}>しばらくお待ちください</p>
+                    </div>
                 </div>
-                <div className={styles.uploadStat}>
-                    <span className={styles.uploadStatLabel}>合計:</span>
-                    <span className={`${styles.uploadStatValue} ${totalSize > MAX_TOTAL_SIZE ? styles.uploadStatValueError : ''}`}>
-                        {formatFileSize(totalSize)} / 2MB
-                    </span>
-                </div>
-            </div>
+            )}
             
-            <div className={styles.formSection}>
-                <div 
-                    className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ''}`}
-                    onDragEnter={handleDragEnter}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <input 
-                        type="file" 
-                        multiple 
-                        accept="image/*" 
-                        onChange={handleImageChange} 
-                        className={styles.fileInput}
-                        ref={fileInputRef}
-                    />
-                    <FiUpload className={styles.uploadIcon} />
-                    <p className={styles.dropZoneText}>
-                        画像をドラッグ＆ドロップ<br />
-                        または<span>クリックして選択</span>
-                    </p>
-                    <p className={styles.uploadLimitText}>※合計サイズ2MBまで</p>
+            <div className={`${styles.formCard} ${styles['fade-in']}`}>
+                <div className={styles.formStep}>
+                    <div className={styles.stepNumber}>3</div>
+                    <h3 className={styles.stepTitle}>イベント写真のアップロード</h3>
                 </div>
+                
+                {errorMessage && (
+                    <div className={styles.errorContainer}>
+                        <FiAlertCircle className={styles.errorIcon} />
+                        <span className={styles.errorMessage}>
+                            {errorMessage}
+                            {errorMessage.includes('画像の合計サイズが2MBを超えています') && (
+                                <div className={styles.resizeToolWrapper}>
+                                    <Link href={`/image-resize?eventId=${eventData.id}`} className={styles.resizeToolLink}>
+                                        <FiCrop className={styles.resizeToolIcon} />
+                                        <span>大きな画像を縮小するツールを使う</span>
+                                    </Link>
+                                    <p className={styles.resizeToolHint}>スマホで撮影した画像が大きすぎる場合はこちらをご利用ください</p>
+                                </div>
+                            )}
+                        </span>
+                    </div>
+                )}
+                
+                <div className={styles.uploadStats}>
+                    <div className={styles.uploadStat}>
+                        <span className={styles.uploadStatLabel}>選択:</span>
+                        <span className={styles.uploadStatValue}>{selectedImages.length}枚</span>
+                    </div>
+                    <div className={styles.uploadStat}>
+                        <span className={styles.uploadStatLabel}>合計:</span>
+                        <span className={`${styles.uploadStatValue} ${totalSize > MAX_TOTAL_SIZE ? styles.uploadStatValueError : ''}`}>
+                            {formatFileSize(totalSize)} / 2MB
+                        </span>
+                    </div>
+                </div>
+                
+                <div className={styles.formSection}>
+                    <div 
+                        className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ''}`}
+                        onDragEnter={handleDragEnter}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <input 
+                            type="file" 
+                            multiple 
+                            accept="image/*" 
+                            onChange={handleImageChange} 
+                            className={styles.fileInput}
+                            ref={fileInputRef}
+                            disabled={isUploading || showAlbumOverlay}
+                        />
+                        <FiUpload className={styles.uploadIcon} />
+                        <p className={styles.dropZoneText}>
+                            画像をドラッグ＆ドロップ<br />
+                            または<span>クリックして選択</span>
+                        </p>
+                        <p className={styles.uploadLimitText}>※合計サイズ2MBまで</p>
+                    </div>
 
-                {previewUrls.length > 0 && (
-                    <div className={styles.filmStripContainer}>
-                        <div className={styles.filmEdge}>
-                            {[...Array(8)].map((_, i) => (
-                                <div key={`hole-top-${i}`} className={styles.filmHole}></div>
-                            ))}
-                        </div>
-                        
-                        <div className={styles.filmStripContent}>
-                            <div className={styles.filmCountText}>
-                                <FiCamera className={styles.filmIcon} /> {previewUrls.length}枚の画像 ({formatFileSize(totalSize)})
+                    {previewUrls.length > 0 && (
+                        <div className={styles.filmStripContainer}>
+                            <div className={styles.filmEdge}>
+                                {[...Array(8)].map((_, i) => (
+                                    <div key={`hole-top-${i}`} className={styles.filmHole}></div>
+                                ))}
                             </div>
                             
-                            <Swiper
-                                modules={[Navigation, Pagination, EffectCoverflow]}
-                                effect="coverflow"
-                                grabCursor={true}
-                                centeredSlides={true}
-                                slidesPerView={previewUrls.length > 2 ? 3 : previewUrls.length}
-                                coverflowEffect={{
-                                    rotate: 5,
-                                    stretch: 0,
-                                    depth: 100,
-                                    modifier: 1,
-                                    slideShadows: true,
-                                }}
-                                pagination={{ clickable: true }}
-                                navigation={previewUrls.length > 3}
-                                className={styles.filmStripSwiper}
-                            >
-                                {renderPreviewSlides()}
-                            </Swiper>
+                            <div className={styles.filmStripContent}>
+                                <div className={styles.filmCountText}>
+                                    <FiCamera className={styles.filmIcon} /> {previewUrls.length}枚の画像 ({formatFileSize(totalSize)})
+                                </div>
+                                
+                                <Swiper
+                                    modules={[Navigation, Pagination, EffectCoverflow]}
+                                    effect="coverflow"
+                                    grabCursor={true}
+                                    centeredSlides={true}
+                                    slidesPerView={previewUrls.length > 2 ? 3 : previewUrls.length}
+                                    coverflowEffect={{
+                                        rotate: 5,
+                                        stretch: 0,
+                                        depth: 100,
+                                        modifier: 1,
+                                        slideShadows: true,
+                                    }}
+                                    pagination={{ clickable: true }}
+                                    navigation={previewUrls.length > 3}
+                                    className={styles.filmStripSwiper}
+                                >
+                                    {renderPreviewSlides()}
+                                </Swiper>
+                            </div>
+                            
+                            <div className={styles.filmEdge}>
+                                {[...Array(8)].map((_, i) => (
+                                    <div key={`hole-bottom-${i}`} className={styles.filmHole}></div>
+                                ))}
+                            </div>
                         </div>
-                        
-                        <div className={styles.filmEdge}>
-                            {[...Array(8)].map((_, i) => (
-                                <div key={`hole-bottom-${i}`} className={styles.filmHole}></div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                    )}
 
-                {selectedImages.length > 0 && (
-                    <div className={styles.uploadActionContainer}>
-                        <button 
-                            onClick={handleUpload} 
-                            className={styles.submitButton}
-                            disabled={isUploading || totalSize > MAX_TOTAL_SIZE}
-                        >
-                            {isUploading ? (
-                                <>アップロード中...</>
-                            ) : (
-                                <>
-                                    <FiImage style={{ marginRight: '8px' }} />
-                                    画像をアップロード
-                                </>
-                            )}
-                        </button>
-                    </div>
-                )}
+                    {selectedImages.length > 0 && (
+                        <div className={styles.uploadActionContainer}>
+                            <button 
+                                onClick={handleUpload} 
+                                className={styles.submitButton}
+                                disabled={isUploading || showAlbumOverlay || totalSize > MAX_TOTAL_SIZE}
+                            >
+                                {isUploading ? (
+                                    <>アップロード中...</>
+                                ) : (
+                                    <>
+                                        <FiImage style={{ marginRight: '8px' }} />
+                                        画像をアップロード
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
+                </div>
+                
+                <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+                    <h2 className={styles.modalTitle}>{modalText}</h2>
+                </Modal>
             </div>
-            
-            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-                <h2 className={styles.modalTitle}>{modalText}</h2>
-            </Modal>
-        </div>
+        </>
     );
 };
 

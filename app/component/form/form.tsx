@@ -136,7 +136,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // 成功モーダル用の状態
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [validationError, setValidationError] = useState<string | null>(null); // 初期値をnullに変更
+  const [validationError, setValidationError] = useState<string | null | React.ReactNode>(null); // JSXも受け取れるように修正
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true); // 初期状態は無効
   const [file, setFile] = useState<File | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
@@ -288,7 +288,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
     setFile(data);
   };
 
-  const handleValidationError = (error: string | null) => {
+  const handleValidationError = (error: string | null | React.ReactNode) => {
     setValidationError(error);
     // エラーが更新されたら、ボタンの状態も更新
     setTimeout(() => {

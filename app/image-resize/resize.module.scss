@@ -46,16 +46,16 @@
 }
 
 .backLink {
-  composes: variables;
-  display: inline-block;
-  padding: 0.6rem 1.2rem;
+  display: inline-flex;
+  padding: .6rem 1.2rem;
+  align-items: anchor-center;
   background-color: var(--primary-light);
-  color: white;
+  color: #fff;
   border-radius: 8px;
   text-decoration: none;
   font-weight: 500;
-  transition: all 0.3s ease;
-  
+  transition: all .3s;
+
   &:hover {
     background-color: var(--primary);
     transform: translateY(-2px);
@@ -78,7 +78,7 @@
 .uploadSection {
   composes: variables;
   flex: 1;
-  
+
   @media (min-width: 992px) {
     max-width: 45%;
   }
@@ -99,7 +99,7 @@
   background-color: rgba(222, 49, 99, 0.05);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  
+
   &:hover {
     border-color: var(--primary);
     background-color: rgba(222, 49, 99, 0.1);
@@ -199,7 +199,7 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   background-color: white;
-  
+
   &:focus {
     outline: none;
     border-color: var(--primary);
@@ -220,13 +220,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background-color: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(222, 49, 99, 0.3);
   }
-  
+
   &:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
@@ -239,7 +239,7 @@
 .previewSection {
   composes: variables;
   flex: 1;
-  
+
   @media (min-width: 992px) {
     max-width: 55%;
   }
@@ -249,7 +249,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
   }
@@ -320,7 +320,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background-color: #3A7BC8;
     transform: translateY(-2px);
@@ -378,7 +378,7 @@
   color: var(--text);
   line-height: 1.6;
   padding-left: 1.5rem;
-  
+
   li {
     margin-bottom: 0.75rem;
   }
@@ -389,15 +389,15 @@
   .title {
     font-size: 2rem;
   }
-  
+
   .description {
     font-size: 1rem;
   }
-  
+
   .settingsGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .previewContainer {
     flex-direction: column;
   }
@@ -407,19 +407,19 @@
   .container {
     padding: 1rem 0.75rem;
   }
-  
+
   .title {
     font-size: 1.75rem;
   }
-  
+
   .dropZone {
     height: 180px;
   }
-  
+
   .uploadIcon {
     font-size: 2.5rem;
   }
-  
+
   .settingsPanel,
   .previewCard,
   .instructionsSection {
@@ -436,4 +436,4 @@
   background-color: #f5f5f7;
   font-size: 1.2rem;
   color: #555;
-} 
+}

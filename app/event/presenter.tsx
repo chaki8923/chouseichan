@@ -541,6 +541,57 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     fetchSchedules();
   };
 
+  // 画像の削除処理関数を追加
+  const handleDeleteImage = async (index: number) => {
+    if (!eventData || !eventData.id || !eventImages[index]) return;
+    
+    // ユーザーに確認
+    if (!confirm('この画像を削除してもよろしいですか？')) {
+      return;
+    }
+
+    try {
+      // APIを呼び出して画像を削除
+      const imageId = typeof eventImages[index] === 'object' && eventImages[index].id 
+        ? eventImages[index].id
+        : null;
+        
+      if (!imageId) {
+        console.error('画像IDが取得できません');
+        return;
+      }
+      
+      const response = await fetch(`/api/delete-event-image`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId: eventData.id,
+          imageId
+        })
+      });
+
+      if (response.ok) {
+        // 成功したら、画像リストから削除
+        const newImages = [...eventImages];
+        newImages.splice(index, 1);
+        setEventImages(newImages);
+        
+        // 画像がなくなったらSwiperを閉じる
+        if (newImages.length === 0) {
+          setIsImageSwiperOpen(false);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`削除に失敗しました: ${errorData.message || 'エラーが発生しました'}`);
+      }
+    } catch (error) {
+      console.error('画像削除エラー:', error);
+      alert('画像の削除中にエラーが発生しました');
+    }
+  };
+
   return (
     <>
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
@@ -918,6 +969,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           title={`${eventData.name}の画像`}
           onClose={() => setIsImageSwiperOpen(false)}
           debugId={eventData.id}
+          onDelete={isOrganizer ? handleDeleteImage : undefined} // オーナーのみ削除可能
         />
       )}
     </>
