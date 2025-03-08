@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from "next";
-import { getBlogPosts } from '@/app/utils/getBlogPosts';
+import { getBlogPosts, getCategoryById } from '@/app/utils/getBlogPosts';
 import Form from '../component/form/form';
 import styles from "./index.module.scss";
 
@@ -21,6 +22,11 @@ type Blog = {
         id: string;
         name: string;
         description: string;
+        eyecatch?: {
+            url: string;
+            height: number;
+            width: number;
+        };
     } | null;
     tags: { id: string; name: string; }[]
 };
@@ -65,15 +71,40 @@ export default async function Page({ searchParams }: PageProps) {
         return <p>カテゴリーIDが指定されていません</p>;
     }
 
-    // `generateMetadata` で取得したデータを再利用
+    // カテゴリー情報を直接取得
+    const categoryData = await getCategoryById(categoryId);
+    
+    // ブログ記事を取得
     const posts = await getBlogPosts(categoryId);
 
-    const categoryName = posts.length > 0 ? posts[0].category?.name || "カテゴリなし" : "カテゴリなし";
-    const description = posts.length > 0 ? posts[0].category?.description || "カテゴリなし" : "カテゴリなし";
+    const categoryName = categoryData?.name || (posts.length > 0 ? posts[0].category?.name || "カテゴリなし" : "カテゴリなし");
+    const description = categoryData?.description || (posts.length > 0 ? posts[0].category?.description || "カテゴリなし" : "カテゴリなし");
+    const eyecatchUrl = categoryData?.eyecatch?.url || (posts.length > 0 && posts[0].category?.eyecatch?.url) || null;
 
     return (
         <>
+            {/* カテゴリーのアイキャッチヘッダー */}
+            {eyecatchUrl && (
+                <div className={styles.categoryHeader}>
+                    <div className={styles.categoryHeaderOverlay}>
+                        <h1 className={styles.categoryHeaderTitle}>{categoryName}<span className={styles.categoryHeaderTitleSub}>の予定登録も調整ちゃんで2ステップ</span></h1>
+                    </div>
+                    <div className={styles.categoryHeaderImage}>
+                        <Image 
+                            src={eyecatchUrl} 
+                            alt={categoryName}
+                            fill
+                            style={{ objectFit: 'cover', objectPosition: 'center 30%' }}
+                            priority
+                            sizes="100vw"
+                            quality={90}
+                        />
+                    </div>
+                </div>
+            )}
+
             <Form categoryName={categoryName} />
+            
             {posts.length > 0 && (
                 <div className={styles.blogContainer}>
                     <div className={styles.descriptionContainer}>

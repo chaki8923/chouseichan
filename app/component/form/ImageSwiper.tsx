@@ -181,9 +181,6 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
                   className={styles.albumImage}
                 />
                 
-                <div className={styles.caption}>
-                  <p>{title} - フレーム {index + 1}</p>
-                </div>
               </div>
               
               <div className={styles.filmPerforationRight}>

@@ -8,7 +8,7 @@ import ReactCrop, {
 } from 'react-image-crop'
 import { canvasPreview } from './canvasPreview'
 import { useDebounceEffect } from './useDebounceEffect'
-import { FiUpload, FiCrop, FiCheck, FiImage } from 'react-icons/fi'
+import { FiUpload, FiCrop, FiImage, FiAlertCircle } from 'react-icons/fi'
 
 import 'react-image-crop/dist/ReactCrop.css'
 
@@ -60,41 +60,135 @@ export default function App(props: onDataChange) {
 
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [isCrop, setIsCrop] = useState<boolean>(false);
+  const [fileError, setFileError] = useState<string | null>(null); // ファイルエラー状態を追加
+  const [isDragging, setIsDragging] = useState<boolean>(false); // ドラッグ状態を追加
   
   // コンポーネントがマウントされたとき、画像は任意なのでエラーを消去
   React.useEffect(() => {
-    props.setValidationError(null);
+    const { setValidationError } = props;
+    setValidationError(null);
   }, [props.setValidationError]);
+
+  // ドラッグ&ドロップ用のハンドラ
+  const handleDragEnter = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+  
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  // ファイル処理のロジックを共通関数として抽出
+  const processFile = (file: File) => {
+    // setCrop(undefined) // Makes crop preview update between images.
+    setIsCrop(false);
+    setFileError(null); // エラーをリセット
+    
+    // 画像のバリデーションをここで実行
+    if (!file.type.startsWith('image/')) {
+      const errorMsg = '画像形式が不正です。画像ファイルをアップロードしてください。';
+      setFileError(errorMsg);
+      props.setValidationError(errorMsg);
+      return;
+    }
+
+    const maxSize = 1024 * 1024 * 1; // 1MB
+    if (file.size > maxSize) {
+      const errorMsg = 'ファイルサイズが1MBを超えています。より小さい画像を選択してください。';
+      setFileError(errorMsg);
+      props.setValidationError(errorMsg);
+      return;
+    }
+    
+    // バリデーションが通ったらエラーをクリア
+    setFileError(null);
+    props.setValidationError(null);
+
+    const reader = new FileReader()
+    reader.addEventListener('load', () =>
+      setImgSrc(reader.result?.toString() || ''),
+    )
+    reader.readAsDataURL(file)
+  };
 
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
-      // setCrop(undefined) // Makes crop preview update between images.
-      setIsCrop(false);
-
-      const reader = new FileReader()
-      reader.addEventListener('load', () =>
-        setImgSrc(reader.result?.toString() || ''),
-      )
-      reader.readAsDataURL(e.target.files[0])
+      processFile(e.target.files[0]);
     }
   }
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const { width, height } = e.currentTarget
-    setCrop(centerAspectCrop(width, height, 1))
+    // 画像の読み込み時にクロップを設定
+    const initialCrop = centerAspectCrop(width, height, 1)
+    setCrop(initialCrop)
+    
+    // 初期クロップをcompletedCropにも設定（これにより生成関数が動作可能になる）
+    const pixelCrop: PixelCrop = {
+      x: Math.round(initialCrop.x * width / 100),
+      y: Math.round(initialCrop.y * height / 100),
+      width: Math.round(initialCrop.width * width / 100),
+      height: Math.round(initialCrop.height * height / 100),
+      unit: 'px'
+    }
+    
+    setCompletedCrop(pixelCrop)
+    
+    // 画像が読み込まれた直後に少し遅延を持たせて自動クロップを実行
+    // useDebounceEffectが完了するのを待つため、遅延時間を長めに設定
+    setTimeout(() => {
+      try {
+        if (imgRef.current && previewCanvasRef.current && completedCrop) {
+          // まずcanvasPreviewを手動で実行して確実に描画する
+          canvasPreview(
+            imgRef.current,
+            previewCanvasRef.current,
+            pixelCrop
+          )
+          // その後クロップを実行
+          generateCroppedImage().catch(err => {
+            console.warn("初期クロップ処理中にエラーが発生しました", err);
+          });
+        }
+      } catch (error) {
+        console.warn("初期クロップ設定中にエラーが発生しました", error);
+      }
+    }, 500) // 十分な遅延を設定
   }
 
   async function generateCroppedImage() {
     // クロップ前のスクロール位置を保存
     const scrollPosition = window.scrollY;
     
-    // クロップコンテナの高さを取得
-    const cropContainerHeight = cropContainerRef.current?.offsetHeight || 0;
-    
     const image = imgRef.current
     const previewCanvas = previewCanvasRef.current
+    
+    // エラーをスローする代わりに早期リターン
     if (!image || !previewCanvas || !completedCrop) {
-      throw new Error('Crop canvas does not exist')
+      console.warn("クロップに必要な要素が見つかりません");
+      return;
     }
 
     // This will size relative to the uploaded image
@@ -131,19 +225,19 @@ export default function App(props: onDataChange) {
     // BlobをFileに変換（ファイル名を適当につける）
     const file = new File([blob], "cropped-image.png", { type: "image/png" });
 
-    // バリデーションチェック
-    if (!file.type.startsWith('image/')) {
-      props.setValidationError('画像形式が不正です。画像ファイルをアップロードしてください。');
-      return;
-    }
-
+    // ここでファイルサイズをチェック
     const maxSize = 1024 * 1024 * 1; // 1MB
     if (file.size > maxSize) {
-      props.setValidationError('ファイルサイズが1MBを超えています。');
+      const errorMsg = 'クロップ後の画像が1MBを超えています。より小さく切り取るか、別の画像を選択してください。';
+      setFileError(errorMsg);
+      props.setValidationError(errorMsg);
       return;
     }
 
+    // バリデーションが通過したらエラーをクリア
+    setFileError(null);
     props.setValidationError(null);
+    
     // 親コンポーネントにFileを送る
     props.onDataChange(file);
 
@@ -162,7 +256,7 @@ export default function App(props: onDataChange) {
     // DOM更新後にスクロール位置を復元するため、setTimeout を使用
     setTimeout(() => {
       // 切り取り前の画像の高さを考慮したスクロール位置に調整
-      const adjustedPosition = Math.max(0, scrollPosition - cropContainerHeight * 0.7);
+      const adjustedPosition = Math.max(0, scrollPosition);
       window.scrollTo({
         top: adjustedPosition,
         behavior: 'auto'
@@ -195,9 +289,16 @@ export default function App(props: onDataChange) {
       <div className={styles.cropperControls}>
         {!imgSrc ? (
           <div className={styles.imageUploadArea}>
-            <label htmlFor="cropImageUpload" className={styles.uploadImageLabel}>
+            <label 
+              htmlFor="cropImageUpload" 
+              className={`${styles.uploadImageLabel} ${isDragging ? styles.dragActive : ''}`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
               <FiImage className={styles.uploadImageIcon} />
-              <span>画像を選択</span>
+              <span>{isDragging ? 'ここに画像をドロップ' : '画像を選択またはドラッグ＆ドロップ'}</span>
               <input
                 id="cropImageUpload"
                 type="file"
@@ -206,7 +307,9 @@ export default function App(props: onDataChange) {
                 className={styles.fileInput}
               />
             </label>
-            <p className={styles.uploadImageHint}>1MB以下の画像をアップロードしてください</p>
+            <p className={styles.uploadImageHint}>
+              <strong>制限:</strong> 1MB以下の画像をアップロードしてください
+            </p>
           </div>
         ) : (
           <button
@@ -222,67 +325,75 @@ export default function App(props: onDataChange) {
         )}
       </div>
 
-      {(!!imgSrc && !isCrop) && (
-        <div className={styles.cropContainer} ref={cropContainerRef}>
-          <p className={styles.cropInstructions}>画像の表示範囲を調整してください（円形にクロップされます）</p>
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={1}
-            minWidth={50}
-            minHeight={50}
-            circularCrop
-            className={styles.reactCrop}
-          >
-            <img
-              ref={imgRef}
-              alt="クロップする画像"
-              src={imgSrc}
-              style={{ transform: `scale(${1}) rotate(${0}deg)` }}
-              onLoad={onImageLoad}
-              className={styles.cropperImage}
-            />
-          </ReactCrop>
+      {/* クロップエリアとクロップ済み画像のレイアウトを整理 */}
+      {!!imgSrc && (
+        <div className={styles.imageEditContainer}>
+          {/* クロップエリア - 常に表示 */}
+          <div className={styles.cropContainer} ref={cropContainerRef}>
+            <p className={styles.cropInstructions}>画像の表示範囲を調整できます（円形にクロップされます）</p>
+            <ReactCrop
+              crop={crop}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={1}
+              minWidth={50}
+              minHeight={50}
+              circularCrop
+              className={styles.reactCrop}
+            >
+              <img
+                ref={imgRef}
+                alt="クロップする画像"
+                src={imgSrc}
+                style={{ transform: `scale(${1}) rotate(${0}deg)` }}
+                onLoad={onImageLoad}
+                className={styles.cropperImage}
+              />
+            </ReactCrop>
 
-          {!!completedCrop && (
-            <div className={styles.cropActions}>
-              <div className={styles.previewContainer}>
-                <p className={styles.previewLabel}>プレビュー</p>
+            {!!completedCrop && (
+              <div className={styles.cropActions}>
+                {/* プレビューcanvasは非表示にする（必要だが表示しない） */}
                 <canvas
                   ref={previewCanvasRef}
                   className={styles.previewCanvas}
                   style={{
+                    position: 'absolute',
+                    visibility: 'hidden',
                     width: completedCrop.width,
                     height: completedCrop.height,
                   }}
                 />
+                <button type="button" className={styles.cropBtn} onClick={generateCroppedImage}>
+                  <FiCrop /> 切り取る
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={generateCroppedImage}
-                className={styles.cropButton}
-              >
-                <FiCrop /> この範囲で切り取る
-              </button>
+            )}
+          </div>
+
+          {/* アイコンプレビュー - クロップ完了後に表示 */}
+          {isCrop && (
+            <div className={styles.previewCropped}>
+              <p className={styles.previewTitle}>アイコンプレビュー</p>
+              <div className={styles.previewImageContainer}>
+                <img
+                  alt="切り取り後の画像"
+                  className={styles.previewImage}
+                  src={blobUrlRef.current}
+                />
+              </div>
             </div>
           )}
         </div>
       )}
-
-      {(!!imgSrc && isCrop) && (
-        <div className={styles.croppedImageContainer}>
-          <p className={styles.croppedImageLabel}>切り取り済み</p>
-          <div className={styles.croppedImagePreview}>
-            <img 
-              src={blobUrlRef.current} 
-              alt="切り取り後の画像" 
-              className={styles.croppedImageResult}
-            />
-            <span className={styles.croppedImageSuccess}>
-              <FiCheck /> 切り取り完了
-            </span>
-          </div>
+      
+      {/* エラーメッセージ表示エリア */}
+      {fileError && (
+        <div className={styles.errorContainer}>
+          <span className={styles.errorMessage}>
+            <FiAlertCircle className={styles.errorIcon} />
+            {fileError}
+          </span>
         </div>
       )}
     </div>

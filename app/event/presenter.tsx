@@ -24,7 +24,7 @@ import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { FiCamera } from 'react-icons/fi';
+import { FiCamera, FiAlertTriangle } from 'react-icons/fi';
 
 type maxAttend = {
   id: number;
@@ -40,6 +40,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [userName, setUserName] = useState<string>();
   const [isOpen, setIsOpen] = useState(false);
   const [isCopyModal, setIsCopyModal] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
   const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
   const [isImageSwiperOpen, setIsImageSwiperOpen] = useState(false);
@@ -52,6 +53,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [editedTitle, setEditedTitle] = useState("");
   const [editedMemo, setEditedMemo] = useState("");
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
+  const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
+  const [eventNotFound, setEventNotFound] = useState(false);
+  const [isTableScrollable, setIsTableScrollable] = useState(false);
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
@@ -76,10 +80,37 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   }
 
+  // コンポーネントのアンマウント時にタイマーをクリア
+  useEffect(() => {
+    return () => {
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+    };
+  }, [redirectTimer]);
+
+  // ページ遷移を処理する関数
+  const redirectToHome = useCallback(() => {
+    const timer = setTimeout(() => {
+      window.location.href = '/';
+    }, 5000); // 5秒後に遷移
+    setRedirectTimer(timer);
+  }, []);
+
   const getEventData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchEventWithSchedules(eventId!);
+      
+      if (!data) {
+        // イベントが見つからない場合の処理
+        setError("指定されたイベントが見つかりませんでした");
+        setEventNotFound(true);
+        // 5秒後にTOPページに遷移
+        redirectToHome();
+        return;
+      }
+      
       setEventData(data);
       setError(null); // エラーをリセット
     } catch (err: unknown) {
@@ -88,10 +119,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       } else {
         setError("データ取得中に予期しないエラーが発生しました");
       }
+      
+      // エラー発生時も同様の処理
+      setEventNotFound(true);
+      redirectToHome();
     } finally {
       setLoading(false);
     }
-  }, [eventId]);
+  }, [eventId, redirectToHome]);
 
   const fetchSchedules = useCallback(async () => {
     try {
@@ -163,6 +198,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     const checkTableScrollable = () => {
       if (tableRef.current) {
         const isScrollable = tableRef.current.scrollWidth > tableRef.current.clientWidth;
+        setIsTableScrollable(isScrollable);
         if (isScrollable) {
           tableRef.current.classList.add('scrollable');
           
@@ -202,6 +238,27 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   }, []);
 
   if (!eventId) return <p>イベントidがありません</p>
+
+  if (eventNotFound) {
+    return (
+      <div className={styles.eventNotFoundContainer}>
+        <div className={styles.eventNotFoundCard}>
+          <FiAlertTriangle size={60} color="#FF6B6B" />
+          <h1 className={styles.eventNotFoundTitle}>イベントが見つかりません</h1>
+          <p className={styles.eventNotFoundText}>該当のイベントは削除されました。トップページに戻ります</p>
+          <div className={styles.redirectCountdown}>
+            <div className={styles.countdownBar}></div>
+          </div>
+          <button 
+            className={styles.redirectButton}
+            onClick={() => window.location.href = '/'}
+          >
+            今すぐトップページへ
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return <SpinLoader></SpinLoader>;
@@ -378,10 +435,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       setIsCopyModal(true);
       setTimeout(function () {
         setIsCopyModal(false);
-      }, 1200);
+      }, 1500);
     } catch (err) {
       console.error("リンクのコピーに失敗しました", err);
     }
+  };
+
+  // URLの表示/非表示を切り替える関数
+  const toggleUrlDisplay = () => {
+    setShowUrlInput(!showUrlInput);
   };
 
   // フォーム作成モードを切り替える関数
@@ -396,6 +458,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     setUserId(userId);
     setUserName(userName);
     setIsCreateForm(false);
+    
+    // 回答フォームまでスクロール
+    const responseArea = document.getElementById('response_area');
+    if (responseArea) {
+      responseArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   // スケジュール確定処理の関数
@@ -484,9 +552,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   return (
     <>
-      <div className={styles.eventContainer}>
+      <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
         <div>
-          <p className={styles.eventLink} onClick={() => handleCopyLink(eventData.id)}><FaRegCopy className={styles.copyIcon} />{`${baseUrl}/event?eventId=${eventData.id}`}</p>
           
           {isEditing ? (
             <div className={styles.editContainer}>
@@ -568,12 +635,42 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             )}
           </section>
 
-          <div className={`relative overflow-x-auto ${styles.table}`} ref={tableRef}>
-            {eventData.schedules.length > 0 && (
-              <div className={styles.mobileScrollHint}>
-                ← 横にスワイプしてください →
-              </div>
-            )}
+          <div className={styles.eventDetailsContainer}>
+            
+            {/* イベント共有ボタン - イベント名の下に配置 */}
+            <div className={styles.shareContainer}>
+              <button 
+                className={styles.eventShareButton} 
+                onClick={toggleUrlDisplay}
+                aria-label="イベントURLを共有"
+              >
+                <FaRegCopy className={styles.copyIcon} />
+                仲間と予定を共有する
+              </button>
+              
+              {showUrlInput && (
+                <div className={styles.eventLinkDisplay}>
+                  <span className={styles.urlText}>{`${baseUrl}/event?eventId=${eventData.id}`}</span>
+                  <button 
+                    className={styles.copyButton} 
+                    onClick={() => handleCopyLink(eventData.id)}
+                  >
+                    コピー
+                  </button>
+                </div>
+              )}
+            </div>
+            
+          </div>
+
+          {/* テーブルの前にスワイプ案内を移動し、シンプルな表示に変更 */}
+          {eventData.schedules.length > 0 && isTableScrollable && (
+            <div className={styles.mobileScrollHint} style={{ width: '100%', maxWidth: '100%', overflow: 'visible', position: 'relative', left: 0, right: 0 }}>
+              <span className={styles.swipeText}>スワイプできます</span>
+            </div>
+          )}
+          
+          <div className={`relative overflow-x-auto ${styles.table} ${isTableScrollable ? styles.scrollable : ''}`} ref={tableRef}>
             <table className={styles.tableDesign}>
               <tbody>
                 <tr>
@@ -598,7 +695,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                         .map((user: User) => [user.id, user]) // Map のキーとして user.id を指定
                     ).values()
                   ).map((user) => (
-                    <th key={user.id} onClick={() => changeUpdate(user.id, user.name)} className={styles.userName}>
+                    <th key={user.id} onClick={() => changeUpdate(user.id, user.name)} className={styles.userName} role="button" title={`${user.name}さんの回答を編集する`}>
                       {user.name}
                     </th>
                   ))}
@@ -756,9 +853,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         <h2 className={styles.modalTitle}>{modalText}</h2>
         <p className={styles.modalText}>{formattedDate}</p>
       </Modal>
-      <Modal isOpen={isCopyModal} onClose={() => setIsCopyModal(false)}>
-        <h2 className={styles.modalTitle}>コピーしました</h2>
-      </Modal>
+      
+      {isCopyModal && (
+        <div className={styles.copySuccess}>
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+          </svg>
+          コピーしました
+        </div>
+      )}
+      
       <Modal isOpen={isImageUploadModalOpen} onClose={() => setIsImageUploadModalOpen(false)} type="info">
         <div className={styles.modalContent}>
           <h2 className={styles.modalTitle}>画像投稿について</h2>

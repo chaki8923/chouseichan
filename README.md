@@ -35,3 +35,68 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # shukketuchan
+
+## MicroCMSのカテゴリースキーマ拡張ガイド
+
+カテゴリー一覧のUI/UX改善に伴い、MicroCMSの「categories」コンテンツタイプに以下のフィールドを追加する必要があります。
+
+### 追加するフィールド
+
+1. **categoryGroup** (テキストフィールド):
+   - フィールドID: `categoryGroup`
+   - 表示名: カテゴリーグループ
+   - 種類: テキストフィールド
+   - 値の候補: 
+     - `business` (ビジネス)
+     - `family` (家族・友人)
+     - `hobby` (趣味・娯楽)
+     - `other` (その他)
+
+2. **description** (テキストエリア):
+   - フィールドID: `description`
+   - 表示名: 説明文
+   - 種類: テキストエリア
+   - 説明: カテゴリーの簡単な説明を入力してください（50文字程度推奨）
+
+3. **eyecatch** (画像):
+   - フィールドID: `eyecatch`
+   - 表示名: アイキャッチ画像
+   - 種類: 画像
+   - 説明: カテゴリーを表すアイコン画像（推奨サイズ: 100x100px）
+
+### 手順
+
+1. MicroCMSの管理画面にログイン
+2. 「categories」コンテンツを選択
+3. 「API設定」→「スキーマ設定」を開く
+4. 「＋フィールドを追加」から上記のフィールドを追加
+5. 既存のカテゴリーに新しいフィールドの値を設定
+
+### カテゴリーグループの例
+
+- **ビジネス** (`business`):
+  - 会議
+  - 面接
+  - ミーティング
+  - 商談
+  - 研修
+  - セミナー
+
+- **家族・友人** (`family`):
+  - 結婚式
+  - 同窓会
+  - 誕生日会
+  - 家族旅行
+  - ホームパーティー
+
+- **趣味・娯楽** (`hobby`):
+  - スポーツ観戦
+  - ライブ・コンサート
+  - 旅行
+  - キャンプ
+  - オンラインゲーム
+
+- **その他** (`other`):
+  - その他のカテゴリー
+
+このスキーマ拡張により、カテゴリーをグループ化し、より視覚的に魅力的なUIでユーザーに提示することができます。

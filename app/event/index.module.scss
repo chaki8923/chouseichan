@@ -69,7 +69,7 @@
 
 .eventTitleSection {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   text-wrap: wrap;
   margin-bottom: 2rem;
@@ -78,6 +78,13 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0.75rem;
+  }
+  
   img {
     width: 70px;
     height: 70px;
@@ -85,6 +92,11 @@
     border-radius: 50%;
     border: 3px solid rgba(222, 49, 99, 0.2);
     object-fit: cover;
+    
+    @media (max-width: 768px) {
+      margin-right: 0;
+      margin-bottom: 0.75rem;
+    }
   }
 }
 
@@ -104,6 +116,35 @@
   overflow-x: auto;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  clear: both; /* 追加：浮動要素のクリア */
+  
+  @media (max-width: 768px) {
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    -webkit-overflow-scrolling: touch; /* iOS用の慣性スクロール */
+    
+    // スクロール可能であることを視覚的に示す要素を追加
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 15px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    
+    &::before {
+      left: 0;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+    }
+    
+    &::after {
+      right: 0;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+    }
+  }
   
   /* スクロールインジケーターの追加 */
   &::after {
@@ -121,11 +162,7 @@
     pointer-events: none;
   }
   
-  /* テーブルがスクロール可能なときにのみ表示 */
-  &.scrollable::after {
-    opacity: 1;
-  }
-  
+
   /* マウスホバー時のスタイル */
   &:hover::after {
     background-color: rgba(222, 49, 99, 0.4);
@@ -155,42 +192,7 @@
   &.scrollable {
     position: relative;
 
-    /* スクロールヒントを追加（左右のグラデーション） */
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 30px;
-      height: 100%;
-      background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(222, 49, 99, 0.1));
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    /* スクロールアイコンのアニメーション（モバイル向け） */
-    &::after {
-      content: '⟸ スワイプ ⟹';
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: absolute;
-      top: auto;
-      bottom: 10px;
-      right: 50%;
-      transform: translateX(50%);
-      width: 120px;
-      height: 30px;
-      color: white;
-      font-size: 12px;
-      background-color: rgba(222, 49, 99, 0.75);
-      border-radius: 15px;
-      opacity: 0.9;
-      animation: fadeInOut 2.5s ease-in-out infinite;
-      animation-delay: 0.5s;
-      z-index: 3;
-    }
-
+    /* スクロールアイコンのアニメーション（モバイル向け） - 削除 */
     @media (min-width: 769px) {
       &::after {
         content: '';
@@ -206,12 +208,6 @@
         animation: none;
       }
     }
-  }
-
-  /* スクロールヒントのアニメーション */
-  @keyframes fadeInOut {
-    0%, 100% { opacity: 0; }
-    50% { opacity: 0.9; }
   }
 }
 
@@ -382,31 +378,47 @@
   text-align: left;
   font-size: 16px;
   font-weight: 400;
-  line-height: 2;
+  line-height: 1.6;
   color: #000000;
   overflow-wrap: anywhere;
+  flex: 1;
+  
+  @media (max-width: 768px) {
+    margin-left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
 }
 
 .memo::before {
   content: "";
   position: absolute;
-  top: 15%;
+  top: 25px;
   left: 0;
   border-style: solid;
   border-width: 10px 20px 10px 0;
   border-color: transparent #de3163 transparent transparent;
   translate: -100% -50%;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .memo::after {
   content: "";
   position: absolute;
-  top: 15%;
+  top: 25px;
   left: 0;
   border-style: solid;
   border-width: 7.8px 15.5px 7.8px 0;
   border-color: transparent #ffffff transparent transparent;
   translate: -100% -50%;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .selected {
@@ -898,19 +910,7 @@
   overflow-x: auto;
   position: relative;
 
-  &.scrollable {
-    // スクロール可能なことを示すグラデーション
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 30px;
-      height: 100%;
-      background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(0, 0, 0, 0.1));
-      pointer-events: none;
-    }
-  }
+  
 
   // カスタムスクロールバー
   &::-webkit-scrollbar {
@@ -937,61 +937,613 @@
 .mobileScrollHint {
   display: none;
   text-align: center;
-  padding: 8px;
-  background-color: rgba(245, 245, 245, 0.9);
-  color: #333;
-  font-size: 12px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  animation: fadeInOut 3s ease-in-out infinite;
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  
-  // スワイプアニメーション
-  &::before, &::after {
-    content: "";
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-top: 2px solid #555;
-    border-right: 2px solid #555;
-    margin: 0 5px;
-    vertical-align: middle;
-  }
-  
-  &::before {
-    transform: rotate(-135deg); // 左向き矢印
-    animation: slideLeft 1.5s infinite;
-  }
-  
-  &::after {
-    transform: rotate(45deg); // 右向き矢印
-    animation: slideRight 1.5s infinite;
-  }
+  padding: 8px 0;
+  margin: 0 0 10px 0;
+  position: relative;
+  z-index: 5;
+  width: 100% !important;
+  box-sizing: border-box;
+  max-width: 100% !important;
+  overflow: visible !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
   
   @media (max-width: 768px) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+  }
+}
+
+// スワイプテキスト
+.swipeText {
+  display: inline-block;
+  font-size: 14px;
+  color: #777;
+  padding: 5px 12px;
+  background-color: rgba(242, 242, 242, 0.7);
+  border-radius: 20px;
+  border: 1px dashed #ccc;
+  position: relative;
+  
+  // 右向き矢印（小さいもの）
+  &::after {
+    content: '→';
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 14px;
+  }
+  
+  // 左向き矢印（小さいもの）
+  &::before {
+    content: '←';
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 14px;
+  }
+}
+
+// 回答フォームのスタイル
+.modernFormCard {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-bottom: 30px;
+}
+
+.formHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
+}
+
+.formTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.formSection {
+  margin-bottom: 28px;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #444;
+  margin: 0 0 16px 0;
+  padding-left: 10px;
+  border-left: 4px solid #af1740;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formLabel {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+.badgeRequired,
+.badgeOptional {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+.badgeRequired {
+  background-color: #af1740;
+  color: white;
+}
+
+.badgeOptional {
+  background-color: #e8e8e8;
+  color: #777;
+}
+
+.modernInput,
+.modernTextarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #af1740;
+    box-shadow: 0 0 0 3px rgba(175, 23, 64, 0.1);
+  }
+}
+
+.modernTextarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.errorMessage {
+  display: block;
+  color: #af1740;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.scheduleCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #fafafa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.scheduleDate {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #333;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.responseOptions {
+  display: flex;
+  gap: 8px;
+}
+
+.responseOption {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.responseSelected {
+  border-color: #af1740;
+  background-color: rgba(175, 23, 64, 0.05);
+  box-shadow: 0 2px 8px rgba(175, 23, 64, 0.1);
+}
+
+.responseIcon {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circleIcon {
+  color: #28a745;
+}
+
+.triangleIcon {
+  color: #ffc107;
+}
+
+.crossIcon {
+  color: #dc3545;
+}
+
+.responseText {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.formActions {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.submitButton {
+  background-color: #af1740;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 180px;
+
+  &:hover:not(:disabled) {
+    background-color: #910023;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(175, 23, 64, 0.2);
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+}
+
+// レスポンシブ対応
+@media (max-width: 768px) {
+  .modernFormCard {
+    padding: 20px;
+  }
+
+  .formHeading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .scheduleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduleCard {
+    padding: 12px;
+  }
+
+  .formTitle {
+    font-size: 1.3rem;
+  }
+
+  .submitButton {
+    width: 100%;
+  }
+}
+
+.blurContainer {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.modalCountdown {
+  width: 100%;
+  height: 4px;
+  background-color: #eee;
+  border-radius: 2px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.modalCountdownBar {
+  height: 100%;
+  width: 100%;
+  background-color: #FF6B6B;
+  animation: countdown 3s linear forwards;
+}
+
+@keyframes countdown {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
+  }
+}
+
+// イベントが見つからない場合の専用スタイル
+.eventNotFoundContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 2rem;
+  background-color: #f9f9f9;
+}
+
+.eventNotFoundCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.eventNotFoundTitle {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 1.5rem 0 1rem;
+  font-weight: 600;
+}
+
+.eventNotFoundText {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.redirectCountdown {
+  width: 100%;
+  height: 6px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.countdownBar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #FF6B6B, #de3163);
+  border-radius: 3px;
+  animation: countdown 5s linear forwards;
+}
+
+@keyframes countdown {
+  from { width: 100%; }
+  to { width: 0; }
+}
+
+.redirectButton {
+  padding: 1rem 2rem;
+  background-color: #de3163;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(222, 49, 99, 0.2);
+  
+  &:hover {
+    background-color: #c7265a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(222, 49, 99, 0.3);
+  }
+}
+
+@media (max-width: 576px) {
+  .eventNotFoundCard {
+    padding: 2rem 1.5rem;
+  }
+  
+  .eventNotFoundTitle {
+    font-size: 1.5rem;
+  }
+  
+  .eventNotFoundText {
+    font-size: 1rem;
+  }
+  
+  .redirectButton {
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+// イベントリンク共有ボタンの新しいスタイル
+.shareContainer {
+  margin: 1.5rem 0 0.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.eventShareButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(45deg, #DE3163, #E195AB);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(222, 49, 99, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(222, 49, 99, 0.25);
+    background: linear-gradient(45deg, #DC1F56, #DE3163);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(222, 49, 99, 0.15);
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 15px;
+    padding: 12px 20px;
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+.copyIcon {
+  height: 18px;
+  width: 18px;
+  margin-right: 2px;
+}
+
+.eventLinkDisplay {
+  position: relative;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 600px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  word-break: break-all;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-out;
+  
+  @media (max-width: 480px) {
+    font-size: 12px;
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
   }
 }
 
-// 矢印のアニメーション
-@keyframes slideLeft {
-  0%, 100% { transform: rotate(-135deg) translateX(0); }
-  50% { transform: rotate(-135deg) translateX(-3px); }
+.urlText {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
+  color: #555;
+  
+  @media (max-width: 480px) {
+    white-space: normal;
+    word-break: break-all;
+    padding-right: 0;
+    padding-bottom: 5px;
+    text-align: center;
+  }
 }
 
-@keyframes slideRight {
-  0%, 100% { transform: rotate(45deg) translateX(0); }
-  50% { transform: rotate(45deg) translateX(3px); }
+.copyButton {
+  background: #DE3163;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+  
+  &:hover {
+    background: #C42A56;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 8px 10px;
+    width: 100%;
+  }
 }
 
-// スクロールヒント用のアニメーション
+.copySuccess {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  z-index: 1000;
+  animation: fadeInOut 1.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  
+  svg {
+    fill: #4CAF50;
+  }
+}
+
 @keyframes fadeInOut {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+}
+
+// 従来のスタイルを非表示に
+.eventLink {
+  display: none;
+}
+
+.eventDetailsContainer {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(222, 49, 99, 0.1);
+  
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+}
+
+.formTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.cancelButton {
+  background-color: #f5f5f5;
+  color: #666;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
 }

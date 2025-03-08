@@ -99,6 +99,26 @@
     }
 }
 
+.categoryHeaderTitleSub {
+    display: block;
+    font-size: 18px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+    
+    @media (max-width: 768px) {
+        font-size: 16px;
+        margin-top: 6px;
+    }
+    
+    @media (max-width: 480px) {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -247,4 +267,122 @@
     .tagList {
         padding: 8px 12px 12px;
     }
+}
+
+// アイキャッチヘッダースタイル
+.categoryHeader {
+  position: relative;
+  width: 100%;
+  height: 350px;
+  margin-bottom: 50px;
+  overflow: hidden;
+  border-radius: 0 0 30px 30px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  animation: fadeInHeader 1s ease-out;
+  
+  @media (max-width: 768px) {
+    height: 250px;
+    margin-bottom: 30px;
+    border-radius: 0 0 20px 20px;
+  }
+  
+  @media (max-width: 480px) {
+    height: 220px;
+    margin-bottom: 25px;
+  }
+}
+
+@keyframes fadeInHeader {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.categoryHeaderImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, 
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
+      rgba(0, 0, 0, 0.7) 100%);
+    z-index: 2;
+  }
+}
+
+.categoryHeaderOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 40px;
+  z-index: 3;
+  background: linear-gradient(to top, 
+    rgba(0, 0, 0, 0.8) 0%, 
+    rgba(0, 0, 0, 0.6) 30%, 
+    rgba(0, 0, 0, 0.3) 60%, 
+    transparent 100%);
+  
+  @media (max-width: 768px) {
+    padding: 25px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 20px;
+  }
+}
+
+.categoryHeaderTitle {
+  color: white;
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(to right, #de3163, transparent);
+    border-radius: 3px;
+    animation: expandHeaderWidth 1.2s ease-out forwards;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 28px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 24px;
+  }
+}
+
+@keyframes expandHeaderWidth {
+  from {
+    width: 0;
+  }
+  to {
+    width: 80px;
+  }
 }

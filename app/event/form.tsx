@@ -1,6 +1,6 @@
 'use client'
 
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserResponseSchema, UserResponseSchemaType } from '@/schemas/UserResponse';
@@ -36,6 +36,8 @@ export default function Form(props: SchedulesProp) {
   const [duplicateUserName, setDuplicateUserName] = useState('');
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isEditSuccessModalOpen, setIsEditSuccessModalOpen] = useState(false);
+  const [isNameValid, setIsNameValid] = useState(!!userName); // ユーザー名が渡されている場合は初期値trueに
+  
   const methods = useForm<UserResponseSchemaType>({
     mode: 'onChange', // バリデーションのタイミングを変更
     resolver: zodResolver(UserResponseSchema),
@@ -66,7 +68,7 @@ export default function Form(props: SchedulesProp) {
         return {
           ...schedule,
           response: userResponse ? userResponse.response : "ATTEND", // 該当レスポンスがない場合デフォルト値を設定
-          comment: userResponse ? userResponse.user.comment : "ああああ",
+          comment: userResponse ? userResponse.user.comment : "",
         };
       });
 
@@ -81,7 +83,7 @@ export default function Form(props: SchedulesProp) {
   }, [userId, schedules, methods]);
 
 
-  const { register, handleSubmit, setValue, reset, formState: { errors, isValid, isSubmitting } } = methods;
+  const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting }, watch } = methods;
 
   useEffect(() => {
     if (userId && userName) {
@@ -94,8 +96,18 @@ export default function Form(props: SchedulesProp) {
         setValue("user_name", userResponse.user.name);        // ユーザー名も設定
       }
     }
-  }, [userId, userName, setValue]);
+  }, [userId, userName, setValue, schedules]);
 
+  // ユーザー名の入力状態を監視
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'user_name' || name === undefined) {
+        const userName = value.user_name;
+        setIsNameValid(!!userName && userName.trim() !== '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
 
   const handleIconClick = (index: number, value: string) => {
     setValue(`schedules.${index}.response`, value, { shouldValidate: true });
@@ -206,7 +218,6 @@ export default function Form(props: SchedulesProp) {
       }
     } catch (error) {
       console.log("Fetch エラー:", error);
-    } finally {
     }
   };
 
@@ -253,20 +264,40 @@ export default function Form(props: SchedulesProp) {
       </Modal>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className={styles.formContent}>
-          <div className={styles.formInner}>
-            <p className="text-gray-600">お名前<span className={styles.tagRequire}>必須</span></p>
-            <input
-              type="text"
-              className={styles.formInput}
-              {...register('user_name')}
-            />
-            {errors.user_name && (
-              <span className="self-start text-xs text-red-500">{errors.user_name.message}</span>
+        <div className={styles.modernFormCard}>
+          <div className={styles.formHeading}>
+            <h3 className={styles.formTitle}>{userId ? `${userName}さんの回答を編集` : "参加登録"}</h3>
+            {userId && (
+              <button 
+                type="button" 
+                onClick={handleClickCreate} 
+                className={styles.cancelButton}
+              >
+                新規登録へ戻る
+              </button>
             )}
           </div>
-          <div>
-            <div className={styles.formInner}>
+
+          <div className={styles.formSection}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
+                お名前 <span className={styles.badgeRequired}>必須</span>
+              </label>
+              <input
+                type="text"
+                placeholder="あなたのお名前を入力してください"
+                className={styles.modernInput}
+                {...register('user_name')}
+              />
+              {errors.user_name && (
+                <span className={styles.errorMessage}>{errors.user_name.message}</span>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.formSection}>
+            <h4 className={styles.sectionTitle}>参加可否</h4>
+            <div className={styles.scheduleGrid}>
               {props.schedules.map((schedule, index) => {
                 const formattedDate = new Date(schedule.date).toLocaleDateString("ja-JP", {
                   year: "numeric",
@@ -274,44 +305,81 @@ export default function Form(props: SchedulesProp) {
                   day: "numeric",
                   weekday: "short",
                 });
+
+                const responseValue = methods.getValues(`schedules.${index}.response`);
+                
                 return (
-                  <div key={schedule.id} className={styles.flex}>
-                    <p className={styles.date}>{formattedDate} - {schedule.time}</p>
+                  <div key={schedule.id} className={styles.scheduleCard}>
                     <input type="hidden" {...register(`schedules.${index}.id`)} />
-
-                    <img src={`${methods.getValues(`schedules.${index}.response`) === "ATTEND" ? 'circle_selected.png' : 'circle_no.png'
-                      }`} alt="Service Logo" className={styles.userResponse} onClick={() => handleIconClick(index, "ATTEND")} />
-
-                    <img src={`${methods.getValues(`schedules.${index}.response`) === "UNDECIDED" ? 'triangle_selected.png' : 'triangle_no.png'
-                      }`} alt="Service Logo" className={styles.userResponse_triangle} onClick={() => handleIconClick(index, "UNDECIDED")} />
-
-                    <img src={`${methods.getValues(`schedules.${index}.response`) === "ABSENT" ? 'batu_selected.png' : 'batu_no.png'
-                      }`} alt="Service Logo" className={styles.userResponse_batu} onClick={() => handleIconClick(index, "ABSENT")} />
+                    <div className={styles.scheduleDate}>
+                      {formattedDate} - {schedule.time}
+                    </div>
+                    <div className={styles.responseOptions}>
+                      <button
+                        type="button"
+                        className={`${styles.responseOption} ${responseValue === "ATTEND" ? styles.responseSelected : ''}`}
+                        onClick={() => handleIconClick(index, "ATTEND")}
+                      >
+                        <div className={styles.responseIcon}>
+                          <span className={styles.circleIcon}>○</span>
+                        </div>
+                        <span className={styles.responseText}>参加</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        className={`${styles.responseOption} ${responseValue === "UNDECIDED" ? styles.responseSelected : ''}`}
+                        onClick={() => handleIconClick(index, "UNDECIDED")}
+                      >
+                        <div className={styles.responseIcon}>
+                          <span className={styles.triangleIcon}>△</span>
+                        </div>
+                        <span className={styles.responseText}>未定</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        className={`${styles.responseOption} ${responseValue === "ABSENT" ? styles.responseSelected : ''}`}
+                        onClick={() => handleIconClick(index, "ABSENT")}
+                      >
+                        <div className={styles.responseIcon}>
+                          <span className={styles.crossIcon}>×</span>
+                        </div>
+                        <span className={styles.responseText}>不参加</span>
+                      </button>
+                    </div>
                   </div>
                 );
               })}
-              <p className="text-gray-600">コメント<span className={styles.tagNoRequire}>任意</span></p>
+            </div>
+          </div>
+
+          <div className={styles.formSection}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
+                コメント <span className={styles.badgeOptional}>任意</span>
+              </label>
               <textarea
-                className={styles.formTextarea}
+                placeholder="伝えたいことがあれば入力してください"
+                className={styles.modernTextarea}
                 {...register('comment')}
               />
               {errors.comment && (
-                <span className="self-start text-xs text-red-500">{errors.comment.message}</span>
+                <span className={styles.errorMessage}>{errors.comment.message}</span>
               )}
             </div>
           </div>
+
+          <div className={styles.formActions}>
+            <button
+              type="submit"
+              disabled={isSubmitting || !isNameValid}
+              className={`${styles.submitButton} ${(!isNameValid || isSubmitting) ? styles.disabled : ''}`}
+            >
+              {isSubmitting ? "送信中..." : userId ? "編集を完了する" : "登録する"}
+            </button>
+          </div>
         </div>
-        <button
-          type="submit"
-          disabled={!isValid || isSubmitting}
-          className={`${styles.formSubmit} ${!isValid || isSubmitting ? `${styles.disabled}` : `${styles.enableSubmit}`
-            }`}
-        >
-          {userId ? "編集完了" : "新規登録"}
-        </button>
-        {userId && (
-          <span onClick={() => handleClickCreate()} className={styles.createBtn}>キャンセル</span>
-        )}
       </form>
     </FormProvider>
   );

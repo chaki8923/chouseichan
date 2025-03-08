@@ -2,13 +2,16 @@ import { useState, useRef, useCallback } from 'react';
 import { Event } from "@/types/event";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss";
-import { FiUpload, FiX, FiImage, FiCamera } from 'react-icons/fi';
+import { FiUpload, FiX, FiImage, FiCamera, FiAlertCircle } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, EffectCoverflow } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-coverflow';
+
+// 最大サイズ (2MB)
+const MAX_TOTAL_SIZE = 2 * 1024 * 1024;
 
 const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => void; }> = ({ eventData, onImageUploaded }) => {
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -17,6 +20,8 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
     const [modalText, setModalText] = useState<string>('');
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [totalSize, setTotalSize] = useState<number>(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,8 +30,21 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
     };
 
     const addFiles = (files: File[]) => {
+        setErrorMessage(null);
+        
         // 画像ファイルのみフィルタリング
         const imageFiles = files.filter(file => file.type.startsWith('image/'));
+        
+        // 合計サイズを計算
+        const newTotalSize = imageFiles.reduce((sum, file) => sum + file.size, totalSize);
+        
+        // 合計サイズのチェック
+        if (newTotalSize > MAX_TOTAL_SIZE) {
+            setErrorMessage(`画像の合計サイズが2MBを超えています（現在: ${(newTotalSize / (1024 * 1024)).toFixed(2)}MB）`);
+            return;
+        }
+        
+        setTotalSize(newTotalSize);
         setSelectedImages(prev => [...prev, ...imageFiles]);
         
         // プレビューURLを生成
@@ -35,17 +53,32 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
     };
 
     const removeImage = (index: number) => {
+        // 削除する画像のサイズを計算
+        const sizeToRemove = selectedImages[index].size;
+        
         setSelectedImages(prev => prev.filter((_, i) => i !== index));
         
         // プレビューURLを解放してメモリリークを防止
         URL.revokeObjectURL(previewUrls[index]);
         setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+        
+        // 合計サイズを更新
+        setTotalSize(prev => prev - sizeToRemove);
+        
+        // エラーメッセージをクリア（削除後にサイズが適切になる可能性があるため）
+        setErrorMessage(null);
     };
 
     const handleUpload = async () => {
         if (selectedImages.length === 0) {
             setModalText('アップロードする画像を選択してください');
             setIsOpen(true);
+            return;
+        }
+
+        // 合計サイズの最終チェック
+        if (totalSize > MAX_TOTAL_SIZE) {
+            setErrorMessage(`画像の合計サイズが2MBを超えています（現在: ${(totalSize / (1024 * 1024)).toFixed(2)}MB）`);
             return;
         }
 
@@ -61,6 +94,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 prev.forEach(url => URL.revokeObjectURL(url));
                 return [];
             });
+            setTotalSize(0);
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -116,16 +150,12 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
         }
     }, []);
 
-    // 現在の日付をフォーマットする関数
-    const getFormattedDate = () => {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}.${month}.${day}`;
+    // ファイルサイズを人間が読みやすい形式に変換する関数
+    const formatFileSize = (bytes: number): string => {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
     };
-
-    const currentDate = getFormattedDate();
 
     // プレビュー表示用のスライド生成
     const renderPreviewSlides = () => {
@@ -134,7 +164,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 <div className={styles.filmFrame}>
                     <div className={styles.filmHeader}>
                         <span className={styles.filmCounter}>#{index + 1}</span>
-                        <span className={styles.filmDate}>{currentDate}</span>
+                        <span className={styles.filmDate}>{formatFileSize(selectedImages[index].size)}</span>
                     </div>
                     <div className={styles.filmImageContainer}>
                         <img 
@@ -166,6 +196,26 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 <h3 className={styles.stepTitle}>イベント写真のアップロード</h3>
             </div>
             
+            {errorMessage && (
+                <div className={styles.errorContainer}>
+                    <FiAlertCircle className={styles.errorIcon} />
+                    <span className={styles.errorMessage}>{errorMessage}</span>
+                </div>
+            )}
+            
+            <div className={styles.uploadStats}>
+                <div className={styles.uploadStat}>
+                    <span className={styles.uploadStatLabel}>選択:</span>
+                    <span className={styles.uploadStatValue}>{selectedImages.length}枚</span>
+                </div>
+                <div className={styles.uploadStat}>
+                    <span className={styles.uploadStatLabel}>合計:</span>
+                    <span className={`${styles.uploadStatValue} ${totalSize > MAX_TOTAL_SIZE ? styles.uploadStatValueError : ''}`}>
+                        {formatFileSize(totalSize)} / 2MB
+                    </span>
+                </div>
+            </div>
+            
             <div className={styles.formSection}>
                 <div 
                     className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ''}`}
@@ -188,6 +238,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                         画像をドラッグ＆ドロップ<br />
                         または<span>クリックして選択</span>
                     </p>
+                    <p className={styles.uploadLimitText}>※合計サイズ2MBまで</p>
                 </div>
 
                 {previewUrls.length > 0 && (
@@ -200,7 +251,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                         
                         <div className={styles.filmStripContent}>
                             <div className={styles.filmCountText}>
-                                <FiCamera className={styles.filmIcon} /> {previewUrls.length}枚の画像
+                                <FiCamera className={styles.filmIcon} /> {previewUrls.length}枚の画像 ({formatFileSize(totalSize)})
                             </div>
                             
                             <Swiper
@@ -237,7 +288,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                         <button 
                             onClick={handleUpload} 
                             className={styles.submitButton}
-                            disabled={isUploading}
+                            disabled={isUploading || totalSize > MAX_TOTAL_SIZE}
                         >
                             {isUploading ? (
                                 <>アップロード中...</>
@@ -251,7 +302,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                     </div>
                 )}
             </div>
-
+            
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
                 <h2 className={styles.modalTitle}>{modalText}</h2>
             </Modal>

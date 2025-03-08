@@ -10,14 +10,25 @@
 }
 
 .cropBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #DE3163;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
-  display: block;
-  padding: 12px 4px;
-  color: #fff;
-  background-color: #AF1740;
-  text-align: center;
-  width: 230px;
-  margin-top: 12px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: 120px;
+  
+  &:hover {
+    background-color: #AF1740;
+    transform: translateY(-2px);
+  }
 }
 
 .modalTitle {
@@ -631,14 +642,16 @@
   border: 4px solid rgba(0, 0, 0, 0.8);
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
   background-color: #000;
+  height: 100%;
 }
 
 .albumImage {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
-  filter: contrast(1.05);
-  transition: all 0.5s ease;
+  margin: 0 auto;
 }
 
 .filmInfo {
@@ -735,7 +748,7 @@
 /* Swiperのナビゲーションボタンをカスタマイズ */
 .swiperButtonNext,
 .swiperButtonPrev {
-  color: white;
+  color: #DE3163!important;
   background-color: rgba(0, 0, 0, 0.5);
   width: 50px;
   height: 50px;
@@ -750,7 +763,6 @@
   }
   
   &:hover {
-    background-color: rgba(var(--primary-rgb), 0.7);
     transform: scale(1.1);
   }
 }
@@ -1788,9 +1800,8 @@
 .previewImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
+  object-fit: contain;
+  background-color: #fafafa;
 }
 
 .removeImageBtn {
@@ -1871,14 +1882,12 @@
 /* 画像クロッパーのスタイル */
 .cropperWrapper {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  margin: 0.5rem 0;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .cropperControls {
+  margin-bottom: 20px;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -1890,6 +1899,7 @@
   align-items: center;
   gap: 0.75rem;
   width: 100%;
+  max-width: 500px;
 }
 
 .uploadImageLabel {
@@ -1899,28 +1909,35 @@
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  max-width: 300px;
+  max-width: 500px;
   padding: 2rem 1rem;
-  background-color: var(--background-secondary);
-  border: 2px dashed var(--gray);
-  border-radius: var(--border-radius);
+  background-color: #f8f8f8;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   
   &:hover {
-    border-color: var(--primary);
-    background-color: rgba(93, 95, 239, 0.05);
+    border-color: #DE3163;
+    background-color: rgba(222, 49, 99, 0.05);
   }
+}
+
+.dragActive {
+  border-color: #DE3163;
+  background-color: rgba(222, 49, 99, 0.1);
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .uploadImageIcon {
   font-size: 2.5rem;
-  color: var(--primary);
+  color: #DE3163;
 }
 
 .uploadImageHint {
   font-size: 0.8rem;
-  color: var(--gray-dark);
+  color: #666;
   text-align: center;
   margin: 0;
 }
@@ -1930,46 +1947,82 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.2rem;
-  background-color: var(--background-secondary);
-  color: var(--primary);
-  border: 1px solid var(--primary);
-  border-radius: var(--border-radius);
+  background-color: #f8f8f8;
+  color: #DE3163;
+  border: 1px solid #DE3163;
+  border-radius: 8px;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   
   &:hover {
-    background-color: var(--primary-light);
+    background-color: #DE3163;
     color: white;
   }
 }
 
+.fileInput {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.imageEditContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .imageEditContainer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .cropContainer {
+    flex: 1;
+    max-width: 60%;
+  }
+  
+  .previewCropped {
+    flex: 1;
+    max-width: 35%;
+    margin-left: 5%;
+    align-self: center;
+  }
+}
+
 .cropContainer {
+  width: 100%;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  width: 100%;
-  max-width: 550px;
 }
 
 .cropInstructions {
   text-align: center;
-  color: var(--gray-dark);
+  color: #666;
   font-size: 0.9rem;
   margin: 0 0 0.5rem;
 }
 
 .reactCrop {
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
   
   :global(.ReactCrop__crop-selection) {
-    border: 2px solid var(--primary);
+    border: 2px solid #DE3163;
   }
 }
 
@@ -1987,101 +2040,88 @@
   width: 100%;
 }
 
-.previewContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.previewLabel {
-  font-size: 0.9rem;
-  color: var(--gray-dark);
-  margin: 0;
-}
-
-.previewCanvas {
-  border-radius: 50%;
-  border: 2px solid var(--primary-light);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-.cropButton {
+.cropBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: var(--primary);
+  background-color: #DE3163;
   color: white;
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: 120px;
   
   &:hover {
-    background-color: var(--primary-dark);
+    background-color: #AF1740;
     transform: translateY(-2px);
   }
 }
 
-.croppedImageContainer {
+.previewCropped {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
+  padding: 1.5rem;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  margin-top: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.croppedImageLabel {
-  font-size: 0.9rem;
-  color: var(--gray-dark);
-  margin: 0;
+.previewTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #333;
 }
 
-.croppedImagePreview {
-  position: relative;
-  width: 150px;
-  height: 150px;
+.previewImageContainer {
+  display: inline-block;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: var(--shadow-md);
-  border: 3px solid var(--success);
+  width: 150px;
+  height: 150px;
+  border: 3px solid #DE3163;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.croppedImageResult {
+.previewImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.croppedImageSuccess {
+.previewCanvas {
+  /* プレビューcanvasは非表示だがレンダリングに必要 */
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(72, 187, 120, 0.85);
-  color: white;
-  text-align: center;
-  padding: 0.4rem 0;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
+  visibility: hidden;
 }
 
-@media (max-width: 480px) {
-  .cropContainer {
-    padding: 0 0.5rem;
-  }
-  
-  .cropInstructions {
-    font-size: 0.8rem;
-  }
-  
+.errorContainer {
+  margin-top: 10px;
+  padding: 12px;
+  background-color: rgba(255, 99, 71, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #ff6347;
+}
+
+.errorMessage {
+  color: #ff6347;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.errorIcon {
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
   .uploadImageLabel {
     padding: 1.5rem 1rem;
   }
@@ -2089,389 +2129,24 @@
   .uploadImageIcon {
     font-size: 2rem;
   }
-}
-
-.disabledUploader {
-  background-color: #f5f5f5;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  cursor: pointer;
-  transition: all 0.3s ease;
   
-  &:hover {
-    background-color: #eaeaea;
-    border-color: #999;
-  }
-}
-
-.uploadPlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  color: #666;
-  text-align: center;
-  padding: 20px;
-  
-  span {
-    font-size: 16px;
-    font-weight: 500;
-  }
-}
-
-.infoButton {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: #2980b9;
-  }
-}
-
-.modalContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  
-  h2.modalTitle {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: #333;
-  }
-  
-  p {
-    margin-bottom: 16px;
-    color: #555;
-    line-height: 1.5;
-  }
-}
-
-.modalList {
-  width: 100%;
-  text-align: left;
-  margin: 12px 0;
-  padding-left: 24px;
-  
-  li {
-    margin-bottom: 8px;
-    color: #555;
-    position: relative;
-    
-    &::before {
-      content: "•";
-      position: absolute;
-      left: -20px;
-      color: #3498db;
-      font-weight: bold;
-    }
-  }
-}
-
-.modalActions {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.modalButton {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: #2980b9;
-  }
-}
-
-.modalLink {
-  display: inline-block;
-  color: #3498db;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-  
-  &:hover {
-    color: #2980b9;
-    text-decoration: underline;
-  }
-}
-
-.viewImagesContainer {
-  margin-top: 12px;
-  display: flex;
-  justify-content: center;
-}
-
-.viewImagesButton {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  color: #333;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: #e0e0e0;
-    border-color: #ccc;
-  }
-  
-  &:before {
-    content: "\f030";
-    font-family: "Font Awesome 5 Free";
-    margin-right: 6px;
-  }
-}
-
-/* フィルムストリップ風のプレビュー表示スタイル */
-.filmStripContainer {
-  width: 100%;
-  border-radius: var(--border-radius, 8px);
-  background-color: #222;
-  margin: 1.5rem 0;
-  padding: 0;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-      repeating-linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.015),
-        rgba(255, 255, 255, 0.015) 2px,
-        transparent 2px,
-        transparent 4px
-      );
-    pointer-events: none;
-    z-index: 1;
-  }
-}
-
-.filmEdge {
-  width: 100%;
-  height: 30px;
-  background-color: #111;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 0 5%;
-}
-
-.filmHole {
-  width: 14px;
-  height: 18px;
-  background-color: #000;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 6px;
-    height: 10px;
-    background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 1px;
-  }
-}
-
-.filmStripContent {
-  width: 100%;
-  padding: 1rem;
-  background-color: #222;
-  position: relative;
-}
-
-.filmCountText {
-  display: flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-  font-family: 'Courier New', monospace;
-  letter-spacing: 1px;
-}
-
-.filmIcon {
-  margin-right: 0.5rem;
-  font-size: 1.1rem;
-}
-
-.filmStripSwiper {
-  width: 100%;
-  padding: 1rem 0;
-}
-
-.filmFrameSlide {
-  transition: transform 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-}
-
-.filmFrame {
-  background-color: #fff;
-  border-radius: 4px;
-  overflow: hidden;
-  margin: 0 auto;
-  width: 95%;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #ddd;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    box-shadow: 0 5px 15px rgba(222, 49, 99, 0.3);
-    border-color: var(--primary, #de3163);
-  }
-}
-
-.filmHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  background-color: var(--primary, #de3163);
-  color: white;
-  
-  .filmCounter {
-    font-weight: bold;
-    font-size: 0.8rem;
-  }
-  
-  .filmDate {
-    font-size: 0.7rem;
-    opacity: 0.9;
-  }
-}
-
-.filmImageContainer {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-}
-
-.filmImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-  
-  &:hover {
-    transform: scale(1.05);
-  }
-}
-
-.filmRemoveBtn {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #e53e3e;
-  border: none;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  z-index: 3;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  
-  &:hover {
-    opacity: 1;
-  }
-}
-
-.filmFrame:hover .filmRemoveBtn {
-  opacity: 1;
-}
-
-.filmFooter {
-  padding: 0.4rem;
-  background-color: #f5f5f5;
-  border-top: 1px dashed #ddd;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.filmCaption {
-  font-size: 0.7rem;
-  color: #888;
-  font-family: 'Courier New', monospace;
-  letter-spacing: 1px;
-}
-
-@media (max-width: 768px) {
-  .filmImageContainer {
-    height: 160px;
-  }
-  
-  .filmStripSwiper {
-    padding: 0.5rem 0;
+  .previewImageContainer {
+    width: 120px;
+    height: 120px;
   }
 }
 
 @media (max-width: 480px) {
-  .filmEdge {
-    height: 20px;
+  .uploadImageLabel {
+    padding: 1.2rem 1rem;
   }
   
-  .filmHole {
-    width: 10px;
-    height: 14px;
-    
-    &::after {
-      width: 4px;
-      height: 8px;
-    }
+  .uploadImageIcon {
+    font-size: 1.75rem;
   }
   
-  .filmImageContainer {
-    height: 140px;
-  }
-  
-  .filmHeader {
-    padding: 0.3rem 0.5rem;
-  }
-  
-  .filmFooter {
-    padding: 0.3rem;
+  .previewImageContainer {
+    width: 100px;
+    height: 100px;
   }
 }

@@ -6,9 +6,10 @@ type ModalProps = {
   onClose: () => void;
   children: React.ReactNode;
   type?: 'default' | 'warning' | 'info';
+  showCloseButton?: boolean;
 };
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, type = 'default' }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, type = 'default', showCloseButton = true }) => {
   const getModalStyles = () => {
     switch (type) {
       case 'warning':
@@ -52,13 +53,15 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, type = 'defaul
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              className={styles.closeButton}
-              onClick={onClose}
-              aria-label="閉じる"
-            >
-              <RxCross1 size={20} />
-            </button>
+            {showCloseButton && (
+              <button
+                className={styles.closeButton}
+                onClick={onClose}
+                aria-label="閉じる"
+              >
+                <RxCross1 size={20} />
+              </button>
+            )}
 
             {children}
           </motion.div>

@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://www.chouseichan.com/",
     title: "調整ちゃん | 日程登録",
-    description: "たったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。",
+    description: "たったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。イベントの画像もみんなで共有できて思い出に残せます。",
     siteName: "調整ちゃん",
     images: [
       {

@@ -174,10 +174,20 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   // 日程を追加するボタンクリック時の処理
   const AddSchedule = () => {
+    const newSchedule = { id: Date.now(), date: '', time: '19:00' };
     setSchedules((prevSchedules) => [
       ...prevSchedules,
-      { id: Date.now(), date: '', time: '19:00' }
+      newSchedule
     ]);
+    
+    // 追加した日程のfieldArrayへの追加
+    setValue(`schedules.${schedules.length}`, { date: '', time: '19:00' });
+    
+    // 日程が追加されたら、バリデーションを再評価する
+    setTimeout(() => {
+      trigger('schedules');
+      setIsSubmitDisabled(!checkFormValidity());
+    }, 0);
   };
 
   // 日程を削除する処理
@@ -292,6 +302,12 @@ export default function Form({ categoryName }: { categoryName: string }) {
     formData.append("schedules", JSON.stringify(params.schedules));
     formData.append("memo", params.memo);
 
+    // 画面の最上部にスクロール
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
     // ファイルは任意のため、存在する場合のみ追加
     if (file) {
       formData.append("image", file); // Fileとして送信
@@ -352,8 +368,8 @@ export default function Form({ categoryName }: { categoryName: string }) {
     // イベント名が入力されているか
     const titleValid = eventNameValue.trim().length > 0;
 
-    // 少なくとも1つのスケジュールが有効か（日付と時間が入力されているか）
-    const hasValidSchedule = schedules.some(s => s.date && s.time);
+    // すべてのスケジュールが有効か（日付と時間が入力されているか）
+    const allSchedulesValid = schedules.every(s => s.date && s.time);
 
     // メモが最大文字数以内か
     const memoValid = memoValue.length <= 200;
@@ -364,24 +380,28 @@ export default function Form({ categoryName }: { categoryName: string }) {
     // デバッグログ
     // console.log({
     //   titleValid,
-    //   hasValidSchedule,
+    //   allSchedulesValid,
     //   memoValid,
     //   noValidationError,
-    //   formValid: titleValid && hasValidSchedule && memoValid && noValidationError
+    //   formValid: titleValid && allSchedulesValid && memoValid && noValidationError
     // });
 
     // すべての必須条件を満たしていればtrueを返す（ファイルは任意）
-    return titleValid && hasValidSchedule && memoValid && noValidationError;
+    return titleValid && allSchedulesValid && memoValid && noValidationError;
   }, [eventNameValue, schedules, memoValue, validationError]);
 
   // フォームの入力値が変更されたときにバリデーションを実行
   useEffect(() => {
     const timeoutId = setTimeout(() => {
+      // 日程のバリデーションを強制的に実行
+      if (schedules.some(s => !s.date)) {
+        trigger('schedules');
+      }
       setIsSubmitDisabled(!checkFormValidity());
     }, 300); // 少し遅延を入れることでレンダリングが落ち着いてから評価
 
     return () => clearTimeout(timeoutId);
-  }, [eventNameValue, schedules, memoValue, validationError, checkFormValidity]);
+  }, [eventNameValue, schedules, memoValue, validationError, checkFormValidity, trigger]);
 
   // クライアントサイドのみで実行されるようにする
   useEffect(() => {
@@ -454,6 +474,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
           <div className={styles.formStep}>
             <div className={styles.stepNumber}>2</div>
             <h2 className={styles.stepTitle}>日程の選択</h2>
+            <span className={styles.badgeRequired}>必須</span>
           </div>
 
           <div className={styles.formGroup}>
@@ -485,24 +506,32 @@ export default function Form({ categoryName }: { categoryName: string }) {
             </button>
 
             {errors.schedules && (
-              <span className={styles.errorMessage}>{errors.schedules.message}</span>
+              <span className={styles.errorMessage}>
+                {errors.schedules.message || 
+                 (schedules.some(s => !s.date) ? "すべての日程に日付を入力してください" : "")}
+              </span>
             )}
           </div>
 
           <div className={styles.formStepDivider}></div>
 
-          {/* 画像アップロード */}
-          <div className={styles.formStep}>
-            <div className={styles.stepNumber}>3</div>
-            <h2 className={styles.stepTitle}>サムネイル画像（任意）</h2>
-          </div>
+          {/* 画像アップロード - コメントが入力されている場合のみ表示 */}
+          {memoValue && memoValue.trim() !== '' && (
+            <>
+              <div className={styles.formStep}>
+                <div className={styles.stepNumber}>3</div>
+                <h2 className={styles.stepTitle}>アイコン画像</h2>
+                <span className={styles.badgeOptional}>任意</span>
+              </div>
 
-          <div className={styles.formGroup}>
-            <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
-            {validationError && (
-              <span className={styles.errorMessage}>{validationError}</span>
-            )}
-          </div>
+              <div className={styles.formGroup}>
+                <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
+                {validationError && (
+                  <span className={styles.errorMessage}>{validationError}</span>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <button
@@ -517,13 +546,12 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
       {/* デバッグ情報 - 開発時のみ表示 */}
       {(() => { 
-        console.log("Form component - hasHistory:", hasHistory, "isClient:", isClient);
         return null;
       })()}
       
       {/* 履歴セクション - クライアントサイドのみ表示（表示・非表示はHistory内部で制御） */}
       {isClient && (
-        <div className={styles.historySection}>
+        <div className={`${styles.historySection} ${hasHistory ? styles.hasHistory : ''}`}>
           <History onHistoryExists={handleHistoryExists} />
         </div>
       )}
@@ -543,7 +571,12 @@ export default function Form({ categoryName }: { categoryName: string }) {
       </Modal>
       
       {/* 成功モーダル */}
-      <Modal isOpen={isSuccessModalOpen} onClose={() => setIsSuccessModalOpen(false)} type="info">
+      <Modal 
+        isOpen={isSuccessModalOpen} 
+        onClose={() => setIsSuccessModalOpen(false)} 
+        type="info"
+        showCloseButton={false}
+      >
         <div className={styles.modalContent}>
           <FiCheckCircle size={50} color="#4BB543" style={{ marginBottom: '1rem' }} />
           <h2 className={styles.modalTitle}>イベント登録が完了しました</h2>
