@@ -9,35 +9,50 @@ import 'swiper/css/a11y';
 import 'swiper/css/effect-fade';
 import styles from './index.module.scss';
 
+// 画像型の定義
+type ImageType = {
+  url: string;
+  id?: string;
+};
+
 // Cloudflareの画像URLを適切に処理する関数
-const normalizeImageUrl = (url: string | null | undefined | object) => {
-  // nullまたはundefinedの場合、空文字を返す
-  if (!url) {
-    return '';
+const normalizeImageUrl = (img: string | null | undefined | { imagePath?: string; id?: string; url?: string; }): ImageType => {
+  // nullまたはundefinedの場合、空URLを返す
+  if (!img) {
+    return { url: '' };
   }
 
-  // オブジェクトの場合、適切なプロパティを抽出
-  if (typeof url === 'object') {
+  // オブジェクトの場合
+  if (typeof img === 'object') {
+    const id = img.id;
+    let url = '';
+    
     // imagePath プロパティがあればそれを使用
-    if ('imagePath' in url && typeof url.imagePath === 'string') {
-      return url.imagePath;
+    if ('imagePath' in img && typeof img.imagePath === 'string') {
+      url = img.imagePath;
+    } else if ('url' in img && typeof img.url === 'string') {
+      url = img.url;
+    } else {
+      console.warn('画像URLがオブジェクト形式で、適切な文字列プロパティが見つかりません:', img);
     }
-    // id プロパティがあれば文字列に変換して返す（このケースは避けるべき）
-    console.warn('画像URLがオブジェクト形式で、適切な文字列プロパティが見つかりません:', url);
-    return '';
+    
+    // CDN URLに変換
+    if (url && url.startsWith('/')) {
+      url = `${process.env.NEXT_PUBLIC_CLOUDFLARE_DELIVERY_URL}${url}`;
+    }
+    
+    return { url, id };
   }
   
-  // 既にCDN URLの場合はそのまま返す
-  if (typeof url === 'string' && url.includes('imagedelivery.net')) {
-    return url;
-  }
+  // 文字列の場合
+  let url = img;
   
   // ローカルパスの場合、CDN URLに変換
-  if (typeof url === 'string' && url.startsWith('/')) {
-    return `${process.env.NEXT_PUBLIC_CLOUDFLARE_DELIVERY_URL}${url}`;
+  if (url.startsWith('/')) {
+    url = `${process.env.NEXT_PUBLIC_CLOUDFLARE_DELIVERY_URL}${url}`;
   }
   
-  return url;
+  return { url };
 };
 
 // 現在の日付をフォーマットする関数
@@ -50,16 +65,17 @@ const getFormattedDate = () => {
 };
 
 type Props = {
-  images: { imagePath?: string; id?: string; url?: string; }[];
+  images: (string | { imagePath?: string; id?: string; url?: string; })[];
   title?: string;
   onClose: () => void;
   debugId?: string;
-  onDelete?: (index: number) => void;
+  onDelete?: (imageId: string) => void;
   // 音声設定オプション
   audio?: {
     enabled?: boolean;        // 音声を有効にするかどうか（デフォルト: true）
-    src?: string;             // 音声ファイルのパス（デフォルト: '/audio/oda.m4a'）
-    volume?: number;          // 音量（0.0〜1.0、デフォルト: 0.5）
+    src?: string;             // カスタム音声ファイルのパス
+    volume?: number;          // 音量（0.0-1.0）
+    playOnOpen?: boolean;     // 開いた時に再生するか（デフォルト: true）
   };
 };
 
@@ -71,12 +87,20 @@ export default function ImageSwiper({
   onDelete,
   audio = { enabled: true, src: '/audio/oda.m4a', volume: 0.3 }
 }: Props) {
-  const [normalizedImages, setNormalizedImages] = useState<string[]>([]);
+  const [normalizedImages, setNormalizedImages] = useState<ImageType[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   useEffect(() => {
-    // デバッグログを出力
-
+    if (!images || images.length === 0) {
+      setNormalizedImages([]);
+      return;
+    }
+    
+    // デバッグ情報を出力
+    if (debugId) {
+      console.debug(`[ImageSwiper:${debugId}] 画像数: ${images.length}`);
+    }
+    
     // 画像URLを正規化
     const processed = images
       .filter(img => img) // null/undefinedをフィルタリング
@@ -228,15 +252,15 @@ export default function ImageSwiper({
                 </div>
                 
                 <img 
-                  src={image} 
+                  src={image.url} 
                   alt={`${title} - イメージ ${index + 1}`}
                   className={styles.albumImage}
                 />
                 
-                {onDelete && (
+                {onDelete && image.id && (
                   <button 
                     className={styles.deleteButton}
-                    onClick={() => onDelete(index)}
+                    onClick={() => image.id && onDelete(image.id)}
                     aria-label="画像を削除"
                   >
                     <FiTrash2 />

@@ -225,7 +225,6 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
             
             <div className={`${styles.formCard} ${styles['fade-in']}`}>
                 <div className={styles.formStep}>
-                    <div className={styles.stepNumber}>3</div>
                     <h3 className={styles.stepTitle}>イベント写真のアップロード</h3>
                 </div>
                 
