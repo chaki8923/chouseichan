@@ -31,21 +31,27 @@ const ImageResizeContent = () => {
   const [originalSizeBytes, setOriginalSizeBytes] = useState<number>(0);
   const [resizedSizeBytes, setResizedSizeBytes] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [progressValue, setProgressValue] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 入力値が無効になった場合にデフォルト値に戻す
+  // 入力値が無効になった場合の処理を修正
   useEffect(() => {
+    // 入力値がNaN、負数、またはゼロの場合のみ修正
+    // 空文字列('') の場合は何もしない
     if (
-      isNaN(settings.maxWidth) || 
-      settings.maxWidth <= 0 || 
-      isNaN(settings.maxHeight) || 
-      settings.maxHeight <= 0 ||
-      isNaN(settings.quality)
+      (typeof settings.maxWidth === 'number' && (isNaN(settings.maxWidth) || settings.maxWidth <= 0)) || 
+      (typeof settings.maxHeight === 'number' && (isNaN(settings.maxHeight) || settings.maxHeight <= 0)) ||
+      (isNaN(settings.quality))
     ) {
       setSettings(prev => ({
         ...prev,
-        maxWidth: isNaN(prev.maxWidth) || prev.maxWidth <= 0 ? DEFAULT_MAX_WIDTH : prev.maxWidth,
-        maxHeight: isNaN(prev.maxHeight) || prev.maxHeight <= 0 ? DEFAULT_MAX_HEIGHT : prev.maxHeight,
+        // 負数やNaNのみをデフォルト値に置き換え、空文字列('') はそのまま
+        maxWidth: typeof prev.maxWidth === 'number' && (isNaN(prev.maxWidth) || prev.maxWidth <= 0) 
+          ? DEFAULT_MAX_WIDTH 
+          : prev.maxWidth,
+        maxHeight: typeof prev.maxHeight === 'number' && (isNaN(prev.maxHeight) || prev.maxHeight <= 0) 
+          ? DEFAULT_MAX_HEIGHT 
+          : prev.maxHeight,
         quality: isNaN(prev.quality) ? DEFAULT_QUALITY : prev.quality
       }));
     }
@@ -96,10 +102,56 @@ const ImageResizeContent = () => {
     return Math.round((1 - (resizedSizeBytes / originalSizeBytes)) * 100);
   };
 
+  // 入力値が有効かどうかを検証する関数
+  const isInputValid = useCallback(() => {
+    // 画像が選択されていない場合は無効
+    if (!originalImage) return false;
+    
+    // リサイズ処理中は無効
+    if (isResizing) return false;
+    
+    // 幅の検証
+    if (
+      settings.maxWidth === '' as unknown as number || 
+      !settings.maxWidth
+    ) return false;
+    
+    // 高さの検証
+    if (
+      settings.maxHeight === '' as unknown as number || 
+      !settings.maxHeight
+    ) return false;
+    
+    // 入力が文字列型で、"0"や"000"などの無効な値を検出
+    if (typeof settings.maxWidth === 'string') {
+      const numWidth = parseInt(settings.maxWidth, 10);
+      if (isNaN(numWidth) || numWidth <= 0) return false;
+    }
+    
+    if (typeof settings.maxHeight === 'string') {
+      const numHeight = parseInt(settings.maxHeight, 10);
+      if (isNaN(numHeight) || numHeight <= 0) return false;
+    }
+    
+    // すべての検証をパスした場合は有効
+    return true;
+  }, [originalImage, isResizing, settings.maxWidth, settings.maxHeight]);
+
   // 画像をリサイズする処理
   const resizeImage = useCallback(async () => {
     if (!originalImage || !originalPreview) {
       setErrorMessage('リサイズする画像をアップロードしてください');
+      return;
+    }
+    
+    // 最大幅と最大高さの値をチェック
+    if (
+      settings.maxWidth === '' as unknown as number || 
+      settings.maxHeight === '' as unknown as number || 
+      !settings.maxWidth || 
+      !settings.maxHeight
+    ) {
+      setErrorMessage('有効な最大幅と最大高さを入力してください');
       return;
     }
 
@@ -118,8 +170,31 @@ const ImageResizeContent = () => {
       let width = img.width;
       let height = img.height;
       
-      const maxWidth = settings.maxWidth;
-      const maxHeight = settings.maxHeight;
+      // 値が文字列か数値かを確認し、適切に処理する
+      let maxWidth: number;
+      let maxHeight: number;
+      
+      if (typeof settings.maxWidth === 'string') {
+        // 文字列の場合は整数に変換（先頭の0を含む入力に対応）
+        maxWidth = parseInt(settings.maxWidth, 10);
+        if (isNaN(maxWidth) || maxWidth <= 0 || maxWidth > 10000) {
+          maxWidth = DEFAULT_MAX_WIDTH;
+        }
+      } else {
+        // すでに数値の場合はそのまま使用
+        maxWidth = typeof settings.maxWidth === 'number' ? settings.maxWidth : DEFAULT_MAX_WIDTH;
+      }
+      
+      if (typeof settings.maxHeight === 'string') {
+        // 文字列の場合は整数に変換（先頭の0を含む入力に対応）
+        maxHeight = parseInt(settings.maxHeight, 10);
+        if (isNaN(maxHeight) || maxHeight <= 0 || maxHeight > 10000) {
+          maxHeight = DEFAULT_MAX_HEIGHT;
+        }
+      } else {
+        // すでに数値の場合はそのまま使用
+        maxHeight = typeof settings.maxHeight === 'number' ? settings.maxHeight : DEFAULT_MAX_HEIGHT;
+      }
       
       // アスペクト比を維持しながらリサイズ
       if (width > maxWidth || height > maxHeight) {
@@ -181,8 +256,8 @@ const ImageResizeContent = () => {
 
     // ファイル名を生成（元のファイル名をベースに）
     const fileName = originalImage ? 
-      `resized-${originalImage.name.replace(/\.[^/.]+$/, '')}.${settings.format}` : 
-      `resized-image.${settings.format}`;
+      `chouseichan-${originalImage.name.replace(/\.[^/.]+$/, '')}.${settings.format}` : 
+      `chouseichan-resized-image.${settings.format}`;
 
     // ダウンロードリンクを作成
     const downloadLink = document.createElement('a');
@@ -208,7 +283,7 @@ const ImageResizeContent = () => {
         e.target.value = convertedValue;
       }
       
-      // 空の文字列の場合は一時的にその状態を保持
+      // 空の文字列の場合は空のままにする
       if (convertedValue === '') {
         setSettings(prev => ({
           ...prev,
@@ -217,16 +292,19 @@ const ImageResizeContent = () => {
         return;
       }
       
-      const numValue = parseInt(convertedValue, 10);
-      // 数値変換に失敗するか、0以下の場合は処理しない
-      if (isNaN(numValue) || numValue <= 0) {
-        return;
-      }
-      
+      // convertedValueをそのまま保持して、数値変換するのは実際のリサイズ操作時のみに
+      // 先頭の0を含む数値を許容する（例：000、01200など）
       setSettings(prev => ({
         ...prev,
-        [name]: numValue
+        [name]: convertedValue as unknown as number
       }));
+      
+      // 数値チェックは行うが、stateの更新には使用しない
+      const numValue = parseInt(convertedValue, 10);
+      // 数値が無効な場合はコンソールに警告だけ出す
+      if (isNaN(numValue) || numValue <= 0 || numValue > 10000) {
+        console.warn(`Invalid ${name} value: ${convertedValue}`);
+      }
     } 
     else if (name === 'quality') {
       // qualityの場合は0.1〜1.0の範囲に制限
@@ -250,22 +328,6 @@ const ImageResizeContent = () => {
     }
   };
 
-  // 入力が空になって一定時間が経過したらデフォルト値に戻す
-  useEffect(() => {
-    // 入力が空の場合のみタイマーを設定
-    if (settings.maxWidth === '' as unknown as number || settings.maxHeight === '' as unknown as number) {
-      const timer = setTimeout(() => {
-        setSettings(prev => ({
-          ...prev,
-          maxWidth: prev.maxWidth === '' as unknown as number ? DEFAULT_MAX_WIDTH : prev.maxWidth,
-          maxHeight: prev.maxHeight === '' as unknown as number ? DEFAULT_MAX_HEIGHT : prev.maxHeight
-        }));
-      }, 2000); // 2秒後にデフォルト値に戻す
-      
-      return () => clearTimeout(timer);
-    }
-  }, [settings.maxWidth, settings.maxHeight]);
-
   // 入力制限を適用する関数（数値のみ許可）
   const handleNumberInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // 数字、矢印キー、削除キー、バックスペース、タブ以外は入力を禁止
@@ -288,7 +350,7 @@ const ImageResizeContent = () => {
         </p>
         {eventId ? (
           <Link href={`/event?eventId=${eventId}`} className={styles.backLink}>
-            イベント登録に戻る
+            イベントページに戻る
           </Link>
         ) : (
           <Link href="/" className={styles.backLink}>
@@ -360,7 +422,7 @@ const ImageResizeContent = () => {
             
             <div className={styles.settingsGrid}>
               <div className={styles.settingGroup}>
-                <label htmlFor="maxWidth" className={styles.settingLabel}>最大幅 (px)</label>
+                <label htmlFor="maxWidth" className={styles.settingLabel}>最大幅 (px) <span className={styles.defaultValue}>(デフォルト: 1200)</span></label>
                 <input
                   id="maxWidth"
                   name="maxWidth"
@@ -369,16 +431,17 @@ const ImageResizeContent = () => {
                   pattern="[0-9]*"
                   min="100"
                   max="4000"
-                  value={settings.maxWidth === '' as unknown as number ? '' : settings.maxWidth.toString()}
+                  value={settings.maxWidth === '' as unknown as number ? '' : typeof settings.maxWidth === 'string' ? settings.maxWidth : settings.maxWidth.toString()}
                   onChange={handleSettingChange}
                   onKeyDown={handleNumberInputKeyDown}
-                  placeholder="1200"
+                  placeholder="最大幅を入力 (例: 1200)"
                   className={styles.settingInput}
                 />
+                <div className={styles.fieldHelp}>1以上の値を入力してください</div>
               </div>
               
               <div className={styles.settingGroup}>
-                <label htmlFor="maxHeight" className={styles.settingLabel}>最大高さ (px)</label>
+                <label htmlFor="maxHeight" className={styles.settingLabel}>最大高さ (px) <span className={styles.defaultValue}>(デフォルト: 1200)</span></label>
                 <input
                   id="maxHeight"
                   name="maxHeight"
@@ -387,12 +450,13 @@ const ImageResizeContent = () => {
                   pattern="[0-9]*"
                   min="100"
                   max="4000"
-                  value={settings.maxHeight === '' as unknown as number ? '' : settings.maxHeight.toString()}
+                  value={settings.maxHeight === '' as unknown as number ? '' : typeof settings.maxHeight === 'string' ? settings.maxHeight : settings.maxHeight.toString()}
                   onChange={handleSettingChange}
                   onKeyDown={handleNumberInputKeyDown}
-                  placeholder="1200"
+                  placeholder="最大高さを入力 (例: 1200)"
                   className={styles.settingInput}
                 />
+                <div className={styles.fieldHelp}>1以上の値を入力してください</div>
               </div>
               
               <div className={styles.settingGroup}>
@@ -429,7 +493,7 @@ const ImageResizeContent = () => {
             <button
               className={styles.resizeButton}
               onClick={resizeImage}
-              disabled={!originalImage || isResizing}
+              disabled={!isInputValid()}
             >
               {isResizing ? '処理中...' : '画像をリサイズ'}
             </button>

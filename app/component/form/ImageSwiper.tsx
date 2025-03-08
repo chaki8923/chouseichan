@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiTrash2 } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, A11y, EffectFade, Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -185,12 +185,11 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
                 
                 {onDelete && (
                   <button 
-                    className={styles.filmRemoveBtn}
+                    className={styles.deleteButton}
                     onClick={() => onDelete(index)}
-                    type="button"
                     aria-label="画像を削除"
                   >
-                    <FiX />
+                    <FiTrash2 />
                   </button>
                 )}
               </div>

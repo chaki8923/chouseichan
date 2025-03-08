@@ -194,17 +194,25 @@
 }
 
 .settingInput {
-  composes: variables;
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background-color: white;
-
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  
   &:focus {
+    border-color: #DE3163;
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(222, 49, 99, 0.2);
+    box-shadow: 0 0 0 2px rgba(222, 49, 99, 0.1);
   }
+}
+
+.fieldHelp {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 4px;
+  margin-left: 2px;
 }
 
 /* リサイズボタン */
@@ -436,4 +444,11 @@
   background-color: #f5f5f7;
   font-size: 1.2rem;
   color: #555;
+}
+
+.defaultValue {
+  font-size: 0.8rem;
+  color: #777;
+  font-weight: normal;
+  margin-left: 0.5rem;
 }
