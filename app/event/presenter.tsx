@@ -509,15 +509,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     });
   };
 
-  // 画像アップロードモーダルを表示する関数
-  const handleImageUploadClick = () => {
-    if (!canUploadImages()) {
-      setModalText("画像はイベント開催日以降に投稿できます");
-      setIsOpen(true);
-      setTimeout(() => setIsOpen(false), 1500);
-    }
-  };
-
   // 画像アップロード後に画像リストを更新
   const handleImageUploaded = async () => {
     // アップロード成功を示すフラグをローカルストレージに保存
