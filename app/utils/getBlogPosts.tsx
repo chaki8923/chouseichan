@@ -39,7 +39,6 @@ export async function getCategoryById(categoryId: string): Promise<Category | nu
       endpoint: 'categories',
       contentId: categoryId,
     });
-    
     return data;
   } catch (error) {
     console.error('Error fetching category:', error);

@@ -20,6 +20,7 @@ const categoryGroups = [
   { id: 'business', name: 'ビジネス' },
   { id: 'family', name: '家族・友人' },
   { id: 'hobby', name: '趣味・娯楽' },
+  { id: 'study', name: '学習' },
   { id: 'other', name: 'その他' }
 ];
 
@@ -48,7 +49,7 @@ export default async function Situation() {
   
   // カテゴリーをグループに振り分け
   categories.forEach(category => {
-    const groupId = category.categoryGroup || 'other';
+    const groupId = category.id || 'other';
     if (groupedCategories[groupId]) {
       groupedCategories[groupId].push(category);
     } else {
