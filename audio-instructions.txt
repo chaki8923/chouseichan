@@ -1,0 +1,9 @@
+注意: 実際の音声ファイルはプロジェクトにまだ含まれていません。
+/public/audio/camera-shutter.mp3 などの音声ファイルを追加する必要があります。
+
+音声ファイルは以下のサイトなどで入手できます：
+- freesound.org
+- soundsnap.com
+- pixabay.com/sound-effects/
+
+音声ファイルはMP3またはWAV形式で保存し、/public/audio/ディレクトリに配置してください。

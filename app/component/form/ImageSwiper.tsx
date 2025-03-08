@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, A11y, EffectFade, Autoplay } from 'swiper/modules';
@@ -55,10 +55,24 @@ type Props = {
   onClose: () => void;
   debugId?: string;
   onDelete?: (index: number) => void;
+  // 音声設定オプション
+  audio?: {
+    enabled?: boolean;        // 音声を有効にするかどうか（デフォルト: true）
+    src?: string;             // 音声ファイルのパス（デフォルト: '/audio/oda.m4a'）
+    volume?: number;          // 音量（0.0〜1.0、デフォルト: 0.5）
+  };
 };
 
-export default function ImageSwiper({ images = [], title = '登録した画像', onClose, debugId, onDelete }: Props) {
+export default function ImageSwiper({ 
+  images = [], 
+  title = '登録した画像', 
+  onClose, 
+  debugId, 
+  onDelete,
+  audio = { enabled: true, src: '/audio/oda.m4a', volume: 0.3 }
+}: Props) {
   const [normalizedImages, setNormalizedImages] = useState<string[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   useEffect(() => {
     // デバッグログを出力
@@ -71,6 +85,49 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
     setNormalizedImages(processed);
     
   }, [images, debugId]);
+  
+  // 音声再生のためのEffect
+  useEffect(() => {
+    // 音声が無効になっている場合は何もしない
+    if (!audio || audio.enabled === false) return;
+    
+    const audioSrc = audio.src || '/audio/oda.m4a';
+    const audioVolume = typeof audio.volume === 'number' ? audio.volume : 0.5;
+    
+    // audioRefが初期化されていない場合は作成
+    if (!audioRef.current) {
+      audioRef.current = new Audio(audioSrc);
+      audioRef.current.volume = audioVolume; // ボリュームを設定
+    } else {
+      // 既存のAudio要素に新しい設定を適用
+      audioRef.current.src = audioSrc;
+      audioRef.current.volume = audioVolume;
+    }
+    
+    // コンポーネントがマウントされたときに音声を再生
+    const playAudio = async () => {
+      try {
+        if (audioRef.current) {
+          // 再生が終了している場合は再度再生時間を0に戻す
+          audioRef.current.currentTime = 0;
+          await audioRef.current.play();
+        }
+      } catch (error) {
+        // ブラウザによっては自動再生ポリシーにより再生がブロックされる場合がある
+        console.warn('音声の自動再生がブラウザにより制限されました:', error);
+      }
+    };
+    
+    playAudio();
+    
+    // クリーンアップ関数
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, [audio]); // audioオプションが変更されたときにも再実行
   
   const swiperParams = {
     modules: [Navigation, Pagination, A11y, EffectFade, Autoplay],
@@ -86,8 +143,9 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
       crossFade: true
     },
     effect: 'fade' as const,
+    speed: 2200,
     autoplay: {
-      delay: 5000,
+      delay: 4000,
       disableOnInteraction: false,
       pauseOnMouseEnter: true
     }
@@ -95,6 +153,7 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
   
   const currentDate = getFormattedDate();
   
+  // 画像がない場合の表示
   if (!images || images.length === 0) {
     return (
       <div className={styles.albumContainer}>
@@ -108,34 +167,31 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
         <div className={styles.albumSwiper}>
           <div className={styles.filmTextTop}>FILM: ShukkeTU-400 | EXP: {currentDate}</div>
           <div className={`${styles.filmHoles} ${styles.top}`}>
-            {[...Array(12)].map((_, i) => (
-              <div className={styles.hole} key={`top-${i}`} />
+            {[...Array(8)].map((_, i) => (
+              <div key={`top-hole-${i}`} className={styles.hole}></div>
             ))}
           </div>
           
           <div className={styles.filmLightStrips}></div>
           
           <div className={styles.noImages}>
-            <p>登録された画像がありません</p>
-            <p className={styles.noImagesSubtext}>イベント登録時に画像をアップロードしてください</p>
+            <p>画像がありません</p>
+            <p className={styles.noImagesSubtext}>画像がアップロードされていないか、削除されています。</p>
           </div>
           
+          <div className={styles.filmTextBottom}>PROCESSED BY SHUKKETSU CHAN</div>
+          
           <div className={`${styles.filmHoles} ${styles.bottom}`}>
-            {[...Array(12)].map((_, i) => (
-              <div className={styles.hole} key={`bottom-${i}`} />
+            {[...Array(8)].map((_, i) => (
+              <div key={`bottom-hole-${i}`} className={styles.hole}></div>
             ))}
           </div>
-          <div className={styles.filmTextBottom}>PRODUCTION: ShukkeTU CAMERA CO., LTD.</div>
-        </div>
-        
-        <div className={styles.filmProductionInfo}>
-          <span>ISO 400</span>
-          <span>COLOR NEGATIVE 36 EXP.</span>
         </div>
       </div>
     );
   }
-  
+
+  // 画像がある場合のSwiperを表示
   return (
     <div className={styles.albumContainer}>
       <div className={styles.albumHeader}>
@@ -145,22 +201,16 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
         </button>
       </div>
       
-      <Swiper
-        {...swiperParams}
-        className={styles.albumSwiper}
-        modules={swiperParams.modules}
-        navigation={{
-          nextEl: `.${styles.swiperButtonNext}`,
-          prevEl: `.${styles.swiperButtonPrev}`
-        }}
-        pagination={{
-          clickable: true,
-          dynamicBullets: true,
-          bulletClass: styles.swiperPaginationBullet,
-          bulletActiveClass: styles.swiperPaginationBulletActive
-        }}
-        autoplay={swiperParams.autoplay}
-      >
+      <Swiper {...swiperParams} className={styles.albumSwiper}>
+        <div className={styles.filmTextTop}>FILM: ShukkeTU-400 | EXP: {currentDate}</div>
+        <div className={`${styles.filmHoles} ${styles.top}`}>
+          {[...Array(8)].map((_, i) => (
+            <div key={`top-hole-${i}`} className={styles.hole}></div>
+          ))}
+        </div>
+        
+        <div className={styles.filmLightStrips}></div>
+        
         {normalizedImages.map((image, index) => (
           <SwiperSlide key={index} className={styles.albumSlide}>
             <div className={styles.filmStrip}>
@@ -202,32 +252,15 @@ export default function ImageSwiper({ images = [], title = '登録した画像',
             </div>
           </SwiperSlide>
         ))}
+        
+        <div className={styles.filmTextBottom}>PROCESSED BY SHUKKETSU CHAN</div>
+        
+        <div className={`${styles.filmHoles} ${styles.bottom}`}>
+          {[...Array(8)].map((_, i) => (
+            <div key={`bottom-hole-${i}`} className={styles.hole}></div>
+          ))}
+        </div>
       </Swiper>
-      
-      <div className={`${styles.swiperButtonNext} swiper-button-next`}></div>
-      <div className={`${styles.swiperButtonPrev} swiper-button-prev`}></div>
-      
-      <div className={styles.filmTextTop}>FILM: ShukkeTU-400 | EXP: {currentDate}</div>
-      <div className={styles.filmTextBottom}>MADE IN JAPAN | © 出欠管理ちゃん</div>
-      
-      <div className={`${styles.filmHoles} ${styles.top}`}>
-        {[...Array(12)].map((_, i) => (
-          <div className={styles.hole} key={`top-${i}`} />
-        ))}
-      </div>
-      
-      <div className={`${styles.filmHoles} ${styles.bottom}`}>
-        {[...Array(12)].map((_, i) => (
-          <div className={styles.hole} key={`bottom-${i}`} />
-        ))}
-      </div>
-      
-      <div className={styles.filmLightStrips}></div>
-      
-      <div className={styles.filmProductionInfo}>
-        <span>ShukkeTU FILM</span>
-        <span>出欠管理ちゃん</span>
-      </div>
     </div>
   );
 }
