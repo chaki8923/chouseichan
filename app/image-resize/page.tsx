@@ -1,0 +1,515 @@
+'use client';
+
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
+import { FiUpload, FiDownload, FiSettings, FiX, FiImage, FiHome } from 'react-icons/fi';
+import styles from './resize.module.scss';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
+const DEFAULT_MAX_WIDTH = 1200;
+const DEFAULT_MAX_HEIGHT = 1200;
+const DEFAULT_QUALITY = 0.8;
+
+// クライアントコンポーネントとして実装
+const ImageResizeContent = () => {
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get('eventId');
+  
+  const [originalImage, setOriginalImage] = useState<File | null>(null);
+  const [originalPreview, setOriginalPreview] = useState<string | null>(null);
+  const [resizedImage, setResizedImage] = useState<Blob | null>(null);
+  const [resizedPreview, setResizedPreview] = useState<string | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const [settings, setSettings] = useState({
+    maxWidth: DEFAULT_MAX_WIDTH,
+    maxHeight: DEFAULT_MAX_HEIGHT,
+    quality: DEFAULT_QUALITY,
+    format: 'jpeg' as 'jpeg' | 'png' | 'webp',
+  });
+  const [originalSizeText, setOriginalSizeText] = useState<string>('');
+  const [resizedSizeText, setResizedSizeText] = useState<string>('');
+  const [originalSizeBytes, setOriginalSizeBytes] = useState<number>(0);
+  const [resizedSizeBytes, setResizedSizeBytes] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 入力値が無効になった場合にデフォルト値に戻す
+  useEffect(() => {
+    if (
+      isNaN(settings.maxWidth) || 
+      settings.maxWidth <= 0 || 
+      isNaN(settings.maxHeight) || 
+      settings.maxHeight <= 0 ||
+      isNaN(settings.quality)
+    ) {
+      setSettings(prev => ({
+        ...prev,
+        maxWidth: isNaN(prev.maxWidth) || prev.maxWidth <= 0 ? DEFAULT_MAX_WIDTH : prev.maxWidth,
+        maxHeight: isNaN(prev.maxHeight) || prev.maxHeight <= 0 ? DEFAULT_MAX_HEIGHT : prev.maxHeight,
+        quality: isNaN(prev.quality) ? DEFAULT_QUALITY : prev.quality
+      }));
+    }
+  }, [settings.maxWidth, settings.maxHeight, settings.quality]);
+
+  // 画像をアップロードする処理
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('画像ファイルをアップロードしてください');
+      return;
+    }
+
+    setErrorMessage(null);
+    setOriginalImage(file);
+    setOriginalSizeBytes(file.size);
+    setOriginalSizeText(formatFileSize(file.size));
+    
+    // 元の画像のプレビューを作成
+    const objectUrl = URL.createObjectURL(file);
+    setOriginalPreview(objectUrl);
+    
+    // リサイズ済み画像をリセット
+    if (resizedPreview) {
+      URL.revokeObjectURL(resizedPreview);
+      setResizedPreview(null);
+    }
+    setResizedImage(null);
+    setResizedSizeText('');
+    setResizedSizeBytes(0);
+  };
+
+  // ファイルサイズをフォーマットする関数
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // サイズ削減率を計算する関数
+  const calculateReduction = (): number => {
+    if (originalSizeBytes <= 0 || resizedSizeBytes <= 0) return 0;
+    return Math.round((1 - (resizedSizeBytes / originalSizeBytes)) * 100);
+  };
+
+  // 画像をリサイズする処理
+  const resizeImage = useCallback(async () => {
+    if (!originalImage || !originalPreview) {
+      setErrorMessage('リサイズする画像をアップロードしてください');
+      return;
+    }
+
+    setIsResizing(true);
+    setErrorMessage(null);
+
+    try {
+      const img = new Image();
+      img.src = originalPreview;
+      
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      // 画像のサイズを計算
+      let width = img.width;
+      let height = img.height;
+      
+      const maxWidth = settings.maxWidth;
+      const maxHeight = settings.maxHeight;
+      
+      // アスペクト比を維持しながらリサイズ
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.floor(width * ratio);
+        height = Math.floor(height * ratio);
+      }
+      
+      // Canvasを使用して画像をリサイズ
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Canvas 2D contextを取得できませんでした');
+      }
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // リサイズした画像をBlobとして取得
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(new Error('Blobの生成に失敗しました'));
+          }
+        }, `image/${settings.format}`, settings.quality);
+      });
+      
+      // リサイズした画像のサイズとプレビューを設定
+      setResizedImage(blob);
+      setResizedSizeBytes(blob.size);
+      setResizedSizeText(formatFileSize(blob.size));
+      
+      // 以前のプレビューがあれば解放
+      if (resizedPreview) {
+        URL.revokeObjectURL(resizedPreview);
+      }
+      
+      // 新しいプレビューを設定
+      const objectUrl = URL.createObjectURL(blob);
+      setResizedPreview(objectUrl);
+
+    } catch (error) {
+      setErrorMessage(`リサイズ中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
+    } finally {
+      setIsResizing(false);
+    }
+  }, [originalImage, originalPreview, settings, resizedPreview]);
+
+  // リサイズした画像をダウンロードする処理
+  const downloadResizedImage = useCallback(() => {
+    if (!resizedImage || !resizedPreview) {
+      setErrorMessage('ダウンロードする画像がありません');
+      return;
+    }
+
+    // ファイル名を生成（元のファイル名をベースに）
+    const fileName = originalImage ? 
+      `resized-${originalImage.name.replace(/\.[^/.]+$/, '')}.${settings.format}` : 
+      `resized-image.${settings.format}`;
+
+    // ダウンロードリンクを作成
+    const downloadLink = document.createElement('a');
+    downloadLink.href = resizedPreview;
+    downloadLink.download = fileName;
+    downloadLink.click();
+  }, [resizedImage, resizedPreview, originalImage, settings.format]);
+
+  // 値が変更されたときの処理
+  const handleSettingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    // 入力値の検証
+    if (name === 'maxWidth' || name === 'maxHeight') {
+      // 全角数字を半角に変換
+      const convertedValue = value.replace(/[０-９]/g, (s) => {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+      }).replace(/[^0-9]/g, ''); // 数字以外は削除
+      
+      // 変換後の値を入力欄に反映（元の値と変わっていれば）
+      if (convertedValue !== value) {
+        // inputのvalueを直接変更
+        e.target.value = convertedValue;
+      }
+      
+      // 空の文字列の場合は一時的にその状態を保持
+      if (convertedValue === '') {
+        setSettings(prev => ({
+          ...prev,
+          [name]: '' as unknown as number
+        }));
+        return;
+      }
+      
+      const numValue = parseInt(convertedValue, 10);
+      // 数値変換に失敗するか、0以下の場合は処理しない
+      if (isNaN(numValue) || numValue <= 0) {
+        return;
+      }
+      
+      setSettings(prev => ({
+        ...prev,
+        [name]: numValue
+      }));
+    } 
+    else if (name === 'quality') {
+      // qualityの場合は0.1〜1.0の範囲に制限
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) {
+        return;
+      }
+      
+      const clampedValue = Math.max(0.1, Math.min(1, numValue));
+      setSettings(prev => ({
+        ...prev,
+        quality: clampedValue
+      }));
+    } 
+    else {
+      // formatなど他の値の場合
+      setSettings(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  // 入力が空になって一定時間が経過したらデフォルト値に戻す
+  useEffect(() => {
+    // 入力が空の場合のみタイマーを設定
+    if (settings.maxWidth === '' as unknown as number || settings.maxHeight === '' as unknown as number) {
+      const timer = setTimeout(() => {
+        setSettings(prev => ({
+          ...prev,
+          maxWidth: prev.maxWidth === '' as unknown as number ? DEFAULT_MAX_WIDTH : prev.maxWidth,
+          maxHeight: prev.maxHeight === '' as unknown as number ? DEFAULT_MAX_HEIGHT : prev.maxHeight
+        }));
+      }, 2000); // 2秒後にデフォルト値に戻す
+      
+      return () => clearTimeout(timer);
+    }
+  }, [settings.maxWidth, settings.maxHeight]);
+
+  // 入力制限を適用する関数（数値のみ許可）
+  const handleNumberInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // 数字、矢印キー、削除キー、バックスペース、タブ以外は入力を禁止
+    const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'ArrowLeft', 'ArrowRight', 'Delete', 'Backspace', 'Tab'];
+    // 制御キーやAlt、Ctrlとの組み合わせは許可
+    if (e.ctrlKey || e.altKey || e.metaKey) {
+      return;
+    }
+    if (!allowedKeys.includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>画像リサイズツール</h1>
+        <p className={styles.description}>
+          スマホで撮影した大きな画像を軽量化してアップロードしやすくします
+        </p>
+        {eventId ? (
+          <Link href={`/event?eventId=${eventId}`} className={styles.backLink}>
+            イベント登録に戻る
+          </Link>
+        ) : (
+          <Link href="/" className={styles.backLink}>
+            <FiHome style={{ marginRight: '6px' }} />
+            トップに戻る
+          </Link>
+        )}
+      </div>
+
+      <div className={styles.mainContent}>
+        <div className={styles.uploadSection}>
+          <div 
+            className={styles.dropZone}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const files = Array.from(e.dataTransfer.files);
+              if (files.length > 0 && files[0].type.startsWith('image/')) {
+                setOriginalImage(files[0]);
+                setOriginalSizeBytes(files[0].size);
+                setOriginalSizeText(formatFileSize(files[0].size));
+                
+                const objectUrl = URL.createObjectURL(files[0]);
+                setOriginalPreview(objectUrl);
+                
+                if (resizedPreview) {
+                  URL.revokeObjectURL(resizedPreview);
+                  setResizedPreview(null);
+                }
+                setResizedImage(null);
+                setResizedSizeText('');
+                setResizedSizeBytes(0);
+              } else {
+                setErrorMessage('画像ファイルをアップロードしてください');
+              }
+            }}
+          >
+            <FiUpload className={styles.uploadIcon} />
+            <p className={styles.dropZoneText}>
+              ここに画像をドラッグ&ドロップまたはクリックしてアップロード
+            </p>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              className={styles.fileInput}
+            />
+          </div>
+
+          {errorMessage && (
+            <div className={styles.errorMessage}>
+              <FiX className={styles.errorIcon} />
+              {errorMessage}
+            </div>
+          )}
+
+          <div className={styles.settingsPanel}>
+            <h3 className={styles.settingsTitle}>
+              <FiSettings className={styles.settingsIcon} />
+              リサイズ設定
+            </h3>
+            
+            <div className={styles.settingsGrid}>
+              <div className={styles.settingGroup}>
+                <label htmlFor="maxWidth" className={styles.settingLabel}>最大幅 (px)</label>
+                <input
+                  id="maxWidth"
+                  name="maxWidth"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min="100"
+                  max="4000"
+                  value={settings.maxWidth === '' as unknown as number ? '' : settings.maxWidth.toString()}
+                  onChange={handleSettingChange}
+                  onKeyDown={handleNumberInputKeyDown}
+                  placeholder="1200"
+                  className={styles.settingInput}
+                />
+              </div>
+              
+              <div className={styles.settingGroup}>
+                <label htmlFor="maxHeight" className={styles.settingLabel}>最大高さ (px)</label>
+                <input
+                  id="maxHeight"
+                  name="maxHeight"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min="100"
+                  max="4000"
+                  value={settings.maxHeight === '' as unknown as number ? '' : settings.maxHeight.toString()}
+                  onChange={handleSettingChange}
+                  onKeyDown={handleNumberInputKeyDown}
+                  placeholder="1200"
+                  className={styles.settingInput}
+                />
+              </div>
+              
+              <div className={styles.settingGroup}>
+                <label htmlFor="quality" className={styles.settingLabel}>品質 ({Math.round(settings.quality * 100)}%)</label>
+                <input
+                  id="quality"
+                  name="quality"
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.1"
+                  value={settings.quality}
+                  onChange={handleSettingChange}
+                  className={styles.settingInput}
+                />
+              </div>
+              
+              <div className={styles.settingGroup}>
+                <label htmlFor="format" className={styles.settingLabel}>形式</label>
+                <select
+                  id="format"
+                  name="format"
+                  value={settings.format}
+                  onChange={handleSettingChange}
+                  className={styles.settingInput}
+                >
+                  <option value="jpeg">JPEG</option>
+                  <option value="png">PNG</option>
+                  <option value="webp">WebP</option>
+                </select>
+              </div>
+            </div>
+            
+            <button
+              className={styles.resizeButton}
+              onClick={resizeImage}
+              disabled={!originalImage || isResizing}
+            >
+              {isResizing ? '処理中...' : '画像をリサイズ'}
+            </button>
+          </div>
+        </div>
+        
+        <div className={styles.previewSection}>
+          <div className={styles.previewContainer}>
+            <div className={styles.previewCard}>
+              <h3 className={styles.previewTitle}>元の画像</h3>
+              <div className={styles.imagePreview}>
+                {originalPreview ? (
+                  <>
+                    <img src={originalPreview} alt="元の画像" className={styles.previewImg} />
+                    <div className={styles.imageMeta}>サイズ: {originalSizeText}</div>
+                  </>
+                ) : (
+                  <div className={styles.noImage}>
+                    <FiImage className={styles.noImageIcon} />
+                    <p>プレビューなし</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className={styles.previewCard}>
+              <h3 className={styles.previewTitle}>リサイズした画像</h3>
+              <div className={styles.imagePreview}>
+                {resizedPreview ? (
+                  <>
+                    <img src={resizedPreview} alt="リサイズした画像" className={styles.previewImg} />
+                    <div className={styles.imageMeta}>
+                      サイズ: {resizedSizeText}
+                      {originalSizeBytes > 0 && resizedSizeBytes > 0 && (
+                        <span className={styles.sizeReduction}>
+                          ({calculateReduction()}% 削減)
+                        </span>
+                      )}
+                    </div>
+                    <button 
+                      className={styles.downloadButton}
+                      onClick={downloadResizedImage}
+                    >
+                      <FiDownload className={styles.downloadIcon} />
+                      ダウンロード
+                    </button>
+                  </>
+                ) : (
+                  <div className={styles.noImage}>
+                    <FiImage className={styles.noImageIcon} />
+                    <p>プレビューなし</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.instructionsSection}>
+        <h2 className={styles.instructionsTitle}>使い方</h2>
+        <ol className={styles.instructionsList}>
+          <li>画像をアップロードエリアにドラッグ&ドロップするか、クリックして選択します。</li>
+          <li>必要に応じてリサイズ設定（最大幅、最大高さ、品質、形式）を調整します。</li>
+          <li>「画像をリサイズ」ボタンをクリックして画像を処理します。</li>
+          <li>リサイズされた画像が表示されたら、「ダウンロード」ボタンをクリックして保存します。</li>
+          <li>保存した軽量化された画像をイベント登録時にアップロードしてください。</li>
+        </ol>
+      </div>
+    </div>
+  );
+};
+
+// メインのページコンポーネント
+const ImageResizePage = () => {
+  return (
+    <Suspense fallback={<div className={styles.loading}>読み込み中...</div>}>
+      <ImageResizeContent />
+    </Suspense>
+  );
+};
+
+export default ImageResizePage; 
