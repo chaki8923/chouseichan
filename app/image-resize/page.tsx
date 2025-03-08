@@ -31,7 +31,6 @@ const ImageResizeContent = () => {
   const [originalSizeBytes, setOriginalSizeBytes] = useState<number>(0);
   const [resizedSizeBytes, setResizedSizeBytes] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [progressValue, setProgressValue] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 入力値が無効になった場合の処理を修正
