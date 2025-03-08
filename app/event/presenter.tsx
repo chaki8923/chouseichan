@@ -890,7 +890,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         <ImageUploadSection eventData={eventData} onImageUploaded={handleImageUploaded} />
       ) : (
         // 条件を満たさない場合はクリックするとモーダルを表示するボタンを表示
-        <div className={styles.disabledImageUploader} onClick={handleImageUploadClick}>
+        <div className={styles.disabledImageUploader}>
           画像はイベント開催日以降に投稿できます
         </div>
       )}

@@ -129,12 +129,13 @@ export default function Form(props: SchedulesProp) {
     try {
       if (schedules.length === 0) return false;
       
-      // すべてのレスポンスからユーザー名を取得
+      // すべてのレスポンスからユーザー名を取得（自分自身は除外）
       const existingUserNames = new Set<string>();
       
       schedules.forEach(schedule => {
         schedule.responses.forEach(response => {
-          if (response.user && response.user.name) {
+          // 自分自身のユーザーIDと異なる場合のみ追加
+          if (response.user && response.user.name && response.user.id !== userId) {
             existingUserNames.add(response.user.name);
           }
         });
@@ -151,17 +152,14 @@ export default function Form(props: SchedulesProp) {
   };
 
   const onSubmit = async (params: UserResponseSchemaType) => {
-    // 編集モード（既存ユーザー）の場合は重複チェックをスキップ
-    if (!userId) {
-      // 新規登録の場合のみ重複チェックを行う
-      const isDuplicate = await checkDuplicateUserName(params.user_name);
-      
-      if (isDuplicate) {
-        // 重複がある場合はモーダルを表示
-        setDuplicateUserName(params.user_name);
-        setIsDuplicateUserModalOpen(true);
-        return; // フォーム送信を中止
-      }
+    // 編集モードでも重複チェックを行う（自分以外の名前との重複をチェック）
+    const isDuplicate = await checkDuplicateUserName(params.user_name);
+    
+    if (isDuplicate) {
+      // 重複がある場合はモーダルを表示
+      setDuplicateUserName(params.user_name);
+      setIsDuplicateUserModalOpen(true);
+      return; // フォーム送信を中止
     }
 
     // APIに送信するデータ
