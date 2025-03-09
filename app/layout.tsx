@@ -7,6 +7,8 @@ import Header from "./header";
 import Footer from "./footer";
 import Situation from "./component/footer/situation";
 import ScrollToTopButton from "./component/scroll/ScrollToTopButton";
+import MaintenancePage from "./component/maintenance/MaintenancePage";
+import { isMaintenanceMode } from "./config/features";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -77,6 +79,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // メンテナンスモードが有効な場合はメンテナンス画面を表示
+  if (isMaintenanceMode) {
+    return (
+      <html lang="ja">
+        <body className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased`}>
+          <MaintenancePage />
+        </body>
+      </html>
+    );
+  }
+
+  // 通常のレイアウト
   return (
     <>
       <html lang="ja">

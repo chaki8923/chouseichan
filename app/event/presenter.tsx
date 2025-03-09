@@ -831,7 +831,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     {editMessage.message.includes("画像圧縮ツール") ? (
                       <p>
                         画像サイズは1MB以下にしてください。画像を圧縮するには
-                        <Link href="/image-resize" className="underline font-medium">
+                        <Link href={`/image-resize?eventId=${eventData.id}`} className="underline font-medium">
                           画像圧縮ツール
                         </Link>
                         をご利用ください。
