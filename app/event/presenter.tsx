@@ -121,12 +121,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     try {
       setLoading(true);
       const data = await fetchEventWithSchedules(eventId!);
-      
+
       if (!data) {
         // イベントが見つからない場合の処理
         setError("指定されたイベントが見つかりませんでした");
         setEventNotFound(true);
-        
+
         // localStorage からも該当のイベント情報を削除
         if (typeof window !== 'undefined' && eventId) {
           try {
@@ -139,12 +139,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             // localStorage の操作中にエラーが発生しても処理を続行
           }
         }
-        
+
         // 5秒後にTOPページに遷移
         redirectToHome();
         return;
       }
-      
+
       setEventData(data);
       setError(null); // エラーをリセット
     } catch {
@@ -161,11 +161,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     try {
       setLoading(true); // ローディング状態を開始
       const data = await fetchEventWithSchedules(eventId);
-      
+
       if (data) {
         addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
         setEventData(data);
-        
+
         // 画像データはイベントデータに含まれているので直接設定
         if (data && data.images) {
           setEventImages(Array.isArray(data.images) ? [...data.images] : []);
@@ -205,7 +205,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       // ローカルストレージからデータを取得
       const uploadFlag = localStorage.getItem(`image_uploaded_${eventId}`);
       const uploadTime = localStorage.getItem(`image_upload_time_${eventId}`);
-      
+
       // フラグが存在する場合の処理
       if (uploadFlag === 'true' && uploadTime) {
         // 最近アップロードされた場合（10分以内）
@@ -215,7 +215,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           // ローカルストレージをクリア
           localStorage.removeItem(`image_uploaded_${eventId}`);
           localStorage.removeItem(`image_upload_time_${eventId}`);
-          
+
           // スケジュール取得完了後に画像データを取得し、Swiperを表示
           // 少し待ってからSwiperを表示
           setTimeout(() => {
@@ -234,7 +234,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         setIsTableScrollable(isScrollable);
         if (isScrollable) {
           tableRef.current.classList.add('scrollable');
-          
+
           // モバイルデバイスでのスクロールヒントを強化（データが多いことを示す）
           if (window.innerWidth <= 768) {
             // スクロールアフォーダンス（ユーザーに横スクロールができることを示すヒント）
@@ -251,19 +251,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     if (typeof window !== 'undefined') {
       // 初期読み込み時にチェック
       checkTableScrollable();
-      
+
       // DOM完全読み込み後に再チェック（より確実に）
       setTimeout(checkTableScrollable, 500);
       setTimeout(checkTableScrollable, 1000);  // 念のためもう一度
 
       // ウィンドウサイズが変更されたときにチェック
       window.addEventListener('resize', checkTableScrollable);
-      
+
       // コンテンツが変わる可能性があるので、eventDataが変わったときもチェック
       if (eventData && eventData.schedules) {
         checkTableScrollable();
       }
-      
+
       return () => {
         window.removeEventListener('resize', checkTableScrollable);
       };
@@ -277,29 +277,29 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       // URLパラメータからfrom_resizeを取得
       const urlParams = new URLSearchParams(window.location.search);
       const fromResize = urlParams.get('from_resize') === 'true';
-      
+
       if (fromResize) {
         try {
           // localStorage から一時保存データを取得
           const savedIconData = localStorage.getItem('temp_event_edit_data');
-          
+
           if (savedIconData) {
             const editData: EventEditTempData = JSON.parse(savedIconData);
-            
+
             // 保存された値を復元
             if (editData.title) {
               setEditedTitle(editData.title);
             }
-            
+
             if (editData.memo !== undefined) {
               setEditedMemo(editData.memo);
             }
-            
+
             // 画像情報は既に圧縮済みの新しい画像を選択するため復元しない
-            
+
             // データを利用したらクリア
             localStorage.removeItem('temp_event_edit_data');
-            
+
             // URLパラメータをクリア（履歴に残さず現在のURLを置き換え）
             const newUrl = `${window.location.pathname}?eventId=${eventId}`;
             window.history.replaceState({}, document.title, newUrl);
@@ -323,7 +323,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           <div className={styles.redirectCountdown}>
             <div className={styles.countdownBar}></div>
           </div>
-          <button 
+          <button
             className={styles.redirectButton}
             onClick={() => window.location.href = '/'}
           >
@@ -359,7 +359,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const highlightScheduleIds = schedulesWithAttendCount
     .filter((s: maxAttend) => s.attendCount === maxAttendCount && maxAttendCount != 0)
     .map((s: maxAttend) => s.id);
-  
+
   // eventData.imagesの構造を詳しく確認
   // if (eventData.images && eventData.images.length > 0) {
   //   console.log("First image structure:", JSON.stringify(eventData.images[0]));
@@ -386,7 +386,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
+
       // ファイルサイズのチェック (1MB = 1024 * 1024 bytes)
       if (file.size > 1 * 1024 * 1024) {
         // 現在の編集データを一時保存
@@ -395,25 +395,25 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           memo: editedMemo
         };
         localStorage.setItem('temp_event_edit_data', JSON.stringify(tempEditData));
-        
+
         // エラーメッセージを表示し、リンクを追加
-        setEditMessage({ 
-          type: "error", 
-          message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize?from_event=true)をご利用ください。" 
+        setEditMessage({
+          type: "error",
+          message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize?from_event=true)をご利用ください。"
         });
         e.target.value = ''; // 入力をクリア
         return;
       }
-      
+
       setSelectedIconFile(file);
-      
+
       // プレビュー用のURL生成
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewIcon(reader.result as string);
       };
       reader.readAsDataURL(file);
-      
+
       // エラーメッセージがあれば消去
       if (editMessage.type === "error") {
         setEditMessage({ type: "", message: "" });
@@ -441,22 +441,22 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             memo: editedMemo
           };
           localStorage.setItem('temp_event_edit_data', JSON.stringify(tempEditData));
-          
+
           // エラーメッセージを設定
-          setEditMessage({ 
-            type: "error", 
-            message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize?from_event=true)をご利用ください。" 
+          setEditMessage({
+            type: "error",
+            message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize?from_event=true)をご利用ください。"
           });
           setIsLoading(false);
           return;
         }
-        
+
         // 古い画像がある場合は削除
         if (eventData.image && eventData.image !== '/default.png') {
           try {
             // 古い画像のURLからCloudflareのパスを抽出
             const oldImageUrl = eventData.image;
-            
+
             // 古い画像を削除するAPIを呼び出す
             const deleteResponse = await fetch(`/api/delete-event-icon`, {
               method: "DELETE",
@@ -468,7 +468,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 imageUrl: oldImageUrl
               }),
             });
-            
+
             if (!deleteResponse.ok) {
               console.warn("古い画像の削除に失敗しましたが、処理を続行します");
             }
@@ -477,27 +477,27 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             // 削除に失敗しても続行
           }
         }
-        
+
         const formData = new FormData();
         formData.append("file", selectedIconFile);
         formData.append("eventId", eventData.id);
-        
+
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
           body: formData,
         });
-        
+
         if (!uploadResponse.ok) {
           const errorData = await uploadResponse.json();
           throw new Error(errorData.error || "画像のアップロードに失敗しました");
         }
-        
+
         const uploadResult = await uploadResponse.json();
         if (uploadResult.uploadedUrls && uploadResult.uploadedUrls.length > 0) {
           iconPath = uploadResult.uploadedUrls[0];
         }
       }
-      
+
       // イベント情報を更新
       const response = await fetch(`/api/events`, {
         method: "PATCH",
@@ -523,12 +523,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           const historyData = localStorage.getItem("eventHistory");
           if (historyData) {
             const history = JSON.parse(historyData);
-            const updatedHistory = Array.isArray(history) 
-              ? history.map(event => 
-                  event.eventId === eventData.id 
-                    ? { ...event, eventName: editedTitle } 
-                    : event
-                )
+            const updatedHistory = Array.isArray(history)
+              ? history.map(event =>
+                event.eventId === eventData.id
+                  ? { ...event, eventName: editedTitle }
+                  : event
+              )
               : history;
             localStorage.setItem("eventHistory", JSON.stringify(updatedHistory));
           }
@@ -537,12 +537,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           const eventsData = localStorage.getItem("events");
           if (eventsData) {
             const events = JSON.parse(eventsData);
-            const updatedEvents = Array.isArray(events) 
-              ? events.map(event => 
-                  event.eventId === eventData.id 
-                    ? { ...event, eventName: editedTitle } 
-                    : event
-                )
+            const updatedEvents = Array.isArray(events)
+              ? events.map(event =>
+                event.eventId === eventData.id
+                  ? { ...event, eventName: editedTitle }
+                  : event
+              )
               : events;
             localStorage.setItem("events", JSON.stringify(updatedEvents));
           }
@@ -551,16 +551,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           const ownerEventsData = localStorage.getItem("ownerEvents");
           if (ownerEventsData) {
             const ownerEvents = JSON.parse(ownerEventsData);
-            const updatedOwnerEvents = Array.isArray(ownerEvents) 
-              ? ownerEvents.map(event => 
-                  event.eventId === eventData.id 
-                    ? { ...event, eventName: editedTitle } 
-                    : event
-                )
+            const updatedOwnerEvents = Array.isArray(ownerEvents)
+              ? ownerEvents.map(event =>
+                event.eventId === eventData.id
+                  ? { ...event, eventName: editedTitle }
+                  : event
+              )
               : ownerEvents;
             localStorage.setItem("ownerEvents", JSON.stringify(updatedOwnerEvents));
           }
-        
+
         } catch (err) {
           // ローカルストレージの更新に失敗しても処理を続行
           console.error("ローカルストレージの更新に失敗しました:", err);
@@ -569,7 +569,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       // 編集完了モーダルを表示
       setIsEditing(false);
-      
+
       // モーダルを表示して少し待ってからリロード
       setTimeout(() => {
         // リロードする代わりに直接データを取得
@@ -599,18 +599,18 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // イベント開催日が確定していて、かつ現在の日付が開催日以降かどうかを確認
   const canUploadImages = () => {
     if (!eventData || !eventData.schedules) return false;
-    
+
     // 確定されたスケジュールを検索
     const confirmedSchedule = eventData.schedules.find(schedule => schedule.isConfirmed === true);
     if (!confirmedSchedule || !confirmedSchedule.date) return false;
-    
+
     // イベント開催日と現在の日付を比較
     const eventDate = new Date(confirmedSchedule.date);
     const today = new Date();
     // 日付のみを比較するため、時刻部分をリセット
     eventDate.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
-    
+
     // イベント開催日以降の場合にtrueを返す
     return eventDate <= today;
   };
@@ -646,7 +646,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     setUserId(userId);
     setUserName(userName);
     setIsCreateForm(false);
-    
+
     // 回答フォームまでスクロール
     const responseArea = document.getElementById('response_area');
     if (responseArea) {
@@ -660,7 +660,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     setTimeout(function () {
       setIsOpen(false);
     }, 3500);
-    
+
     setEventData((prev: Event | null) => {
       if (!prev) return prev; // prev が null の場合はそのまま返す
 
@@ -703,17 +703,17 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     // リロード後もアップロード完了を認識できるようにする
     localStorage.setItem(`image_uploaded_${eventId}`, 'true');
     localStorage.setItem(`image_upload_time_${eventId}`, Date.now().toString());
-    
+
     // キャッシュを回避するためのタイムスタンプを追加
     const timestamp = new Date().getTime();
-    
+
     // まず専用の画像APIから取得を試みる
     try {
       const imagesResponse = await fetch(`/api/event/images?eventId=${eventId}&_t=${timestamp}`);
       if (imagesResponse.ok) {
         const imageData = await imagesResponse.json();
         console.log("アップロード後のイメージAPI応答:", imageData);
-        
+
         // 応答形式に応じて適切に処理
         if (Array.isArray(imageData)) {
           console.log("画像データは配列形式です:", imageData.length);
@@ -734,7 +734,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           }
         }
       }
-      
+
       // 画像が取得できたらスワイパーを表示
       setTimeout(() => {
         setIsImageSwiperOpen(true);
@@ -750,7 +750,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     // 2秒後に閉じる
     setTimeout(() => {
     }, 2000);
-    
+
     // スケジュールとイベントデータを再取得（fetchSchedules関数に記述されているリセット処理は実行される）
     fetchSchedules();
   };
@@ -758,7 +758,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // 画像の削除処理関数を追加
   const handleDeleteImage = async (imageId: string) => {
     if (!eventData || !eventData.id || !imageId) return;
-    
+
     // ユーザーに確認
     if (!confirm('この画像を削除してもよろしいですか？')) {
       return;
@@ -780,14 +780,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       if (response.ok) {
         // 削除完了通知を表示
         setIsDeleteCompleteModal(true);
-        
+
         // 成功したら、画像リストから削除
         const newImages = [...eventImages];
         const index = newImages.findIndex(image => image.id === imageId);
         if (index !== -1) {
           newImages.splice(index, 1);
           setEventImages(newImages);
-          
+
           // 画像がなくなったらSwiperを閉じる
           if (newImages.length === 0) {
             // Swiperを閉じるタイミングを調整（通知アニメーションが終わる前に）
@@ -796,7 +796,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             }, 2000);
           }
         }
-        
+
         // 2.5秒後に通知を閉じる（アニメーションが完了した後）
         setTimeout(() => {
           setIsDeleteCompleteModal(false);
@@ -813,7 +813,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     <>
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
         <div>
-          
+
           {isEditing ? (
             <div className={styles.editContainer}>
               <h2 className={styles.editTitle}>イベント情報の編集</h2>
@@ -831,7 +831,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     placeholder="イベント名（100文字以内）"
                   />
                 </div>
-                
+
                 <div className={styles.formGroup}>
                   <label className={styles.editLabel}>
                     アイコン画像 <span className={styles.tagNoRequire}>任意</span>
@@ -839,7 +839,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   <div className={styles.iconEditContainer}>
                     {previewIcon ? (
                       <div className={styles.previewIconContainer}>
-                        <Image 
+                        <Image
                           src={previewIcon}
                           width={80}
                           height={80}
@@ -878,19 +878,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     </div>
                   </div>
                 </div>
-                
-                <div className={styles.formGroup}>
-                  <label className={styles.editLabel}>
-                    メモ <span className={styles.tagNoRequire}>任意</span>
-                  </label>
-                  <textarea
-                    value={editedMemo}
-                    onChange={(e) => setEditedMemo(e.target.value)}
-                    className={styles.editTextarea}
-                    maxLength={500}
-                    placeholder="メモ（500文字以内）"
-                  />
-                </div>
                 {editMessage.type && (
                   <div className={editMessage.type === "error" ? "text-red-500" : "text-green-500"}>
                     {editMessage.message.includes("画像圧縮ツール") ? (
@@ -906,6 +893,20 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     )}
                   </div>
                 )}
+
+                <div className={styles.formGroup}>
+                  <label className={styles.editLabel}>
+                    メモ <span className={styles.tagNoRequire}>任意</span>
+                  </label>
+                  <textarea
+                    value={editedMemo}
+                    onChange={(e) => setEditedMemo(e.target.value)}
+                    className={styles.editTextarea}
+                    maxLength={500}
+                    placeholder="メモ（500文字以内）"
+                  />
+                </div>
+
                 <div className={styles.editActions}>
                   <button
                     onClick={handleCancelEdit}
@@ -953,23 +954,23 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </section>
 
           <div className={styles.eventDetailsContainer}>
-            
+
             {/* イベント共有ボタン - イベント名の下に配置 */}
             <div className={styles.shareContainer}>
-              <button 
-                className={styles.eventShareButton} 
+              <button
+                className={styles.eventShareButton}
                 onClick={toggleUrlDisplay}
                 aria-label="イベントURLを共有"
               >
                 <FaRegCopy className={styles.copyIcon} />
                 仲間と予定を共有する
               </button>
-              
+
               {showUrlInput && (
                 <div className={styles.eventLinkDisplay}>
                   <span className={styles.urlText}>{`${baseUrl}/event?eventId=${eventData.id}`}</span>
-                  <button 
-                    className={styles.copyButton} 
+                  <button
+                    className={styles.copyButton}
                     onClick={() => handleCopyLink(eventData.id)}
                   >
                     コピー
@@ -977,7 +978,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 </div>
               )}
             </div>
-            
+
           </div>
 
           {/* テーブルの前にスワイプ案内を移動し、シンプルな表示に変更 */}
@@ -986,7 +987,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
               <span className={styles.swipeText}>スワイプできます</span>
             </div>
           )}
-          
+
           <div className={`relative overflow-x-auto ${styles.table} ${isTableScrollable ? styles.scrollable : ''}`} ref={tableRef}>
             <table className={styles.tableDesign}>
               <tbody>
@@ -1131,38 +1132,38 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       <div id="response_area" className="mt-12">
         <h2 className={styles.h2Title}>回答フォーム</h2>
         {isCreateForm ? (
-          <Form 
-            onSuccess={handleFormSuccess} 
-            onCreate={handleCreate} 
+          <Form
+            onSuccess={handleFormSuccess}
+            onCreate={handleCreate}
             schedules={eventData.schedules.map((schedule) => ({
               ...schedule,
               responses: schedule.responses.map((response) => ({
                 ...response,
                 user: {
                   ...response.user,
-                  comment: response.user.comment || "", 
+                  comment: response.user.comment || "",
                 },
               })),
-            }))} 
-            userId={userId} 
-            userName={userName} 
+            }))}
+            userId={userId}
+            userName={userName}
           />
         ) : (
-          <Form 
-            onSuccess={handleFormSuccess} 
-            onCreate={handleCreate} 
+          <Form
+            onSuccess={handleFormSuccess}
+            onCreate={handleCreate}
             schedules={eventData.schedules.map((schedule) => ({
               ...schedule,
               responses: schedule.responses.map((response) => ({
                 ...response,
                 user: {
                   ...response.user,
-                  comment: response.user.comment || "", 
+                  comment: response.user.comment || "",
                 },
               })),
-            }))} 
-            userId={userId} 
-            userName={userName} 
+            }))}
+            userId={userId}
+            userName={userName}
           />
         )}
       </div>
@@ -1170,16 +1171,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         <h2 className={styles.modalTitle}>{modalText}</h2>
         <p className={styles.modalText}>{formattedDate}</p>
       </Modal>
-      
+
       {isCopyModal && (
         <div className={styles.copySuccess}>
           <svg width="18" height="18" viewBox="0 0 24 24">
-            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
           </svg>
           コピーしました
         </div>
       )}
-      
+
       <Modal isOpen={isImageUploadModalOpen} onClose={() => setIsImageUploadModalOpen(false)} type="info">
         <div className={styles.modalContent}>
           <h2 className={styles.modalTitle}>画像投稿について</h2>
@@ -1190,7 +1191,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </ul>
           <p>イベント開催後に再度お試しください。</p>
           <div className={styles.modalActions}>
-            <button 
+            <button
               onClick={() => setIsImageUploadModalOpen(false)}
               className={styles.modalButton}
             >
@@ -1199,22 +1200,22 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </div>
         </div>
       </Modal>
-      
+
       {/* 削除完了用の特別なオーバーレイ通知（albumContainerの上に表示） */}
       {isDeleteCompleteModal && (
         <div className={styles.deleteCompleteOverlay}>
           <div className={styles.deleteCompleteContent}>
             <div className={styles.deleteCompleteIcon}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <h3 className={styles.deleteCompleteTitle}>画像を削除しました</h3>
           </div>
         </div>
       )}
-      
+
       {canUploadImages() ? (
         // 条件を満たす場合は通常のアップロードセクションを表示
         <ImageUploadSection eventData={eventData} onImageUploaded={handleImageUploaded} />
@@ -1224,7 +1225,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           画像はイベント開催日以降に投稿できます
         </div>
       )}
-      
+
       {/* 画像がある場合のみボタンを表示 */}
       {eventData && eventData.images && eventData.images.length > 0 && (
         <button
@@ -1235,9 +1236,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 const timestamp = new Date().getTime();
                 const imagesResponse = await fetch(`/api/event/images?eventId=${eventData.id}&_t=${timestamp}`);
                 const imagesData = await imagesResponse.json();
-                
+
                 console.log("取得した画像データ:", imagesData);
-                
+
                 // API応答がそのままの配列の場合と、images配列にネストされている場合の両方に対応
                 if (Array.isArray(imagesData)) {
                   // console.log("画像データは配列です、件数:", imagesData.length);
@@ -1247,13 +1248,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   setEventImages(imagesData.images);
                 } else {
                   // console.log("不明な形式の画像データです:", imagesData);
-                  
+
                   // イベントデータAPIから画像を再取得してみる
                   try {
                     const eventResponse = await fetch(`/api/events?eventId=${eventData.id}&_t=${timestamp}`);
                     const eventDataFromApi = await eventResponse.json();
                     console.log("イベントデータAPIから取得:", eventDataFromApi);
-                    
+
                     if (eventDataFromApi && eventDataFromApi.images && Array.isArray(eventDataFromApi.images)) {
                       console.log("イベントデータから画像取得成功:", eventDataFromApi.images.length);
                       setEventImages(eventDataFromApi.images);
@@ -1265,7 +1266,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     setEventImages([]);
                   }
                 }
-                
+
                 setIsImageSwiperOpen(true);
               } catch (error) {
                 console.error("画像データの取得中にエラー発生:", error);
@@ -1274,19 +1275,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           }}
           className={styles.viewImagesBtn}
         >
-          <FiCamera className={styles.cameraIcon} /> 
+          <FiCamera className={styles.cameraIcon} />
           <span>✨ 思い出アルバムを開く ✨</span>
         </button>
       )}
 
       {isImageSwiperOpen && (
         (console.log("ImageSwiperに渡すデータ:", eventImages),
-        <ImageSwiper 
-          images={eventImages} 
-          title={`${eventData.name}の画像`}
-          onClose={() => setIsImageSwiperOpen(false)}
-          onDelete={isOrganizer ? handleDeleteImage : undefined} // オーナーのみ削除可能
-        />)
+          <ImageSwiper
+            images={eventImages}
+            title={`${eventData.name}の画像`}
+            onClose={() => setIsImageSwiperOpen(false)}
+            onDelete={isOrganizer ? handleDeleteImage : undefined} // オーナーのみ削除可能
+          />)
       )}
     </>
   );

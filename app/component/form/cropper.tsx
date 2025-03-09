@@ -313,7 +313,7 @@ export default function App(props: onDataChange) {
   )
 
   // リサイズページへ移動する前にフォームデータを保存する関数
-  const saveFormDataAndNavigate = (e) => {
+  const saveFormDataAndNavigate = (e: React.MouseEvent<HTMLAnchorElement> | React.SyntheticEvent) => {
     console.log('saveFormDataAndNavigate関数が呼び出されました');
     
     try {
@@ -355,14 +355,14 @@ export default function App(props: onDataChange) {
         
         for (let i = 0; i < datesLength; i++) {
           schedules.push({
-            date: dateInputs[i]?.value || '',
-            time: timeInputs[i]?.value || ''
+            date: dateInputs[i] ? (dateInputs[i] as HTMLInputElement).value || '' : '',
+            time: timeInputs[i] ? (timeInputs[i] as HTMLInputElement).value || '' : ''
           });
         }
         
         const formData = {
-          event_name: eventNameInput?.value || '',
-          memo: memoTextarea?.value || '',
+          event_name: eventNameInput ? (eventNameInput as HTMLInputElement).value || '' : '',
+          memo: memoTextarea ? (memoTextarea as HTMLTextAreaElement).value || '' : '',
           schedules: schedules
         };
         
@@ -382,14 +382,14 @@ export default function App(props: onDataChange) {
         
         for (let i = 0; i < datesLength; i++) {
           schedules.push({
-            date: dateInputs[i]?.value || '',
-            time: timeInputs[i]?.value || ''
+            date: dateInputs[i] ? (dateInputs[i] as HTMLInputElement).value || '' : '',
+            time: timeInputs[i] ? (timeInputs[i] as HTMLInputElement).value || '' : ''
           });
         }
         
         const formData = {
-          event_name: eventNameInput?.value || '',
-          memo: memoTextarea?.value || '',
+          event_name: eventNameInput ? (eventNameInput as HTMLInputElement).value || '' : '',
+          memo: memoTextarea ? (memoTextarea as HTMLTextAreaElement).value || '' : '',
           schedules: schedules
         };
         

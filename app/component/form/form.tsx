@@ -185,6 +185,72 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const eventNameValue = watch('event_name');
   const memoValue = watch('memo');
 
+  // クライアントサイドの処理を行うための処理
+  useEffect(() => {
+    setIsClient(true);
+    
+    // グローバル関数として保存関数を公開
+    if (typeof window !== 'undefined') {
+      (window as any).saveEventFormData = function() {
+        try {
+          // 明示的に現在のスケジュールを取得
+          const schedulesData = schedules.map(schedule => ({
+            date: schedule.date,
+            time: schedule.time
+          }));
+          
+          // フォームデータを手動で構築
+          const formData = {
+            event_name: eventNameValue || '',
+            memo: memoValue || '',
+            schedules: schedulesData
+          };
+          
+          // localStorageに保存
+          localStorage.setItem('temp_form_data', JSON.stringify(formData));
+          console.log('グローバル関数: フォームデータを保存しました:', formData);
+          return true;
+        } catch (error) {
+          console.error('グローバル関数: フォームデータの保存に失敗しました:', error);
+          return false;
+        }
+      };
+    }
+    
+    // コンポーネントのアンマウント時にグローバル関数を削除
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).saveEventFormData;
+      }
+    };
+  }, [schedules, eventNameValue, memoValue]);
+
+  // localStorageにフォームデータを保存する関数
+  const saveFormDataToLocalStorage = () => {
+    try {
+      // 現在のスケジュールを取得
+      const schedulesData = schedules.map(schedule => ({
+        date: schedule.date,
+        time: schedule.time
+      }));
+      
+      // フォームデータを構築
+      const formData = {
+        event_name: eventNameValue || '',
+        memo: memoValue || '',
+        schedules: schedulesData
+      };
+      
+      // localStorageに保存
+      localStorage.setItem('temp_form_data', JSON.stringify(formData));
+      console.log('フォームデータをlocalStorageに保存しました:', formData);
+      return true;
+    } catch (error) {
+      console.error('フォームデータの保存に失敗しました:', error);
+      return false;
+    }
+  };
+
   // イメージリサイズページから戻ってきたかどうかを検出
   useEffect(() => {
     // クライアントサイドでのみ実行
@@ -375,15 +441,20 @@ export default function Form({ categoryName }: { categoryName: string }) {
       // フォームの現在の値をlocalStorageに保存
       saveFormDataToLocalStorage();
       
+      setFile(data); // ファイルは一旦セットしておく
+      
       // 大きいサイズのファイルを検出したときのエラーメッセージ
-      handleValidationError(
-        <span>
-          画像サイズは1MB以下にしてください。
-          <Link href="/image-resize?from_form=true" className="text-blue-500 underline">
-            画像圧縮ツールで圧縮する
-          </Link>
-        </span>
-      );
+      // アイコン画像の下に表示されるよう修正
+      setTimeout(() => {
+        handleValidationError(
+          <span>
+            画像サイズは1MB以下にしてください。
+            <Link href="/image-resize?from_form=true" className="text-blue-500 underline">
+              画像圧縮ツールで圧縮する
+            </Link>
+          </span>
+        );
+      }, 10);
       return;
     }
     
@@ -480,46 +551,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
     return () => clearTimeout(timeoutId);
   }, [eventNameValue, schedules, memoValue, validationError, checkFormValidity, trigger]);
-
-  // クライアントサイドのみで実行されるようにする
-  useEffect(() => {
-    setIsClient(true);
-    
-    // グローバル関数として保存関数を公開
-    if (typeof window !== 'undefined') {
-      (window as any).saveEventFormData = function() {
-        try {
-          // 明示的に現在のスケジュールを取得
-          const schedulesData = schedules.map(schedule => ({
-            date: schedule.date,
-            time: schedule.time
-          }));
-          
-          // フォームデータを手動で構築
-          const formData = {
-            event_name: eventNameValue || '',
-            memo: memoValue || '',
-            schedules: schedulesData
-          };
-          
-          // localStorageに保存
-          localStorage.setItem('temp_form_data', JSON.stringify(formData));
-          console.log('グローバル関数: フォームデータを保存しました:', formData);
-          return true;
-        } catch (error) {
-          console.error('グローバル関数: フォームデータの保存に失敗しました:', error);
-          return false;
-        }
-      };
-    }
-    
-    // クリーンアップ関数
-    return () => {
-      if (typeof window !== 'undefined') {
-        delete (window as any).saveEventFormData;
-      }
-    };
-  }, [eventNameValue, memoValue, schedules]);
 
   const handleHistoryExists = useCallback((exists: boolean) => {
     // 確実に状態を更新するために一度古い値をリセット
