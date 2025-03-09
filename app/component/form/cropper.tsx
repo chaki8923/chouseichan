@@ -125,9 +125,20 @@ export default function App(props: onDataChange) {
           <div className={styles.errorMessage}>
             {errorMsg}
             <div className={styles.resizeToolWrapper}>
-              <Link href="/image-resize" className={styles.resizeToolLink}>
+              <Link 
+                href="/image-resize?from_form=true" 
+                className={styles.resizeToolLink}
+                onClick={(e) => {
+                  e.preventDefault(); // デフォルトのリンク遷移を防止
+                  saveFormDataAndNavigate(e); // データを保存
+                  // 少し遅延させてデータの保存を確実にしてから遷移
+                  setTimeout(() => {
+                    window.location.href = "/image-resize?from_form=true";
+                  }, 100);
+                }}
+              >
                 <FiCrop className={styles.resizeToolIcon} />
-                画像リサイズツールを使う
+                画像リサイズツールを使用する
               </Link>
               <p className={styles.resizeToolHint}>
                 リサイズツールで画像を小さくしてから再度アップロードしてください！
@@ -301,6 +312,100 @@ export default function App(props: onDataChange) {
     [completedCrop, 1, 0],
   )
 
+  // リサイズページへ移動する前にフォームデータを保存する関数
+  const saveFormDataAndNavigate = (e) => {
+    console.log('saveFormDataAndNavigate関数が呼び出されました');
+    
+    try {
+      // 優先順位1: 親コンポーネントが公開した関数を使用
+      if (typeof window !== 'undefined' && (window as any).saveEventFormData) {
+        console.log('親コンポーネントの関数を使用してフォームデータを保存します');
+        const saved = (window as any).saveEventFormData();
+        if (saved) {
+          console.log('親関数でデータ保存に成功しました');
+          setTimeout(() => {
+            window.location.href = '/image-resize?from_form=true';
+          }, 100);
+          return;
+        }
+      }
+      
+      // 優先順位2: DOMからデータを取得するフォールバック
+      console.log('DOMからフォームデータを取得します');
+      
+      // 複数のセレクタを試してフォーム要素を取得
+      let formElement = document.querySelector('form.modernForm');
+      if (!formElement) {
+        formElement = document.querySelector('form');
+      }
+      
+      console.log('取得したフォーム要素:', formElement);
+      
+      if (formElement) {
+        // フォームからデータを取得
+        const eventNameInput = formElement.querySelector('input[name="event_name"]');
+        const memoTextarea = formElement.querySelector('textarea[name="memo"]');
+        
+        // スケジュール情報を取得
+        const dateInputs = formElement.querySelectorAll('input[type="date"]');
+        const timeInputs = formElement.querySelectorAll('select[name^="time"]');
+        
+        const schedules = [];
+        const datesLength = dateInputs.length;
+        
+        for (let i = 0; i < datesLength; i++) {
+          schedules.push({
+            date: dateInputs[i]?.value || '',
+            time: timeInputs[i]?.value || ''
+          });
+        }
+        
+        const formData = {
+          event_name: eventNameInput?.value || '',
+          memo: memoTextarea?.value || '',
+          schedules: schedules
+        };
+        
+        console.log('フォームデータを構築しました:', formData);
+        localStorage.setItem('temp_form_data', JSON.stringify(formData));
+      } else {
+        console.warn('フォーム要素が見つかりません');
+        
+        // フォーム要素が見つからない場合は個別の要素を探す
+        const eventNameInput = document.querySelector('input[name="event_name"]');
+        const memoTextarea = document.querySelector('textarea[name="memo"]');
+        const dateInputs = document.querySelectorAll('input[type="date"]');
+        const timeInputs = document.querySelectorAll('select[name^="time"]');
+        
+        const schedules = [];
+        const datesLength = Math.min(dateInputs.length, timeInputs.length);
+        
+        for (let i = 0; i < datesLength; i++) {
+          schedules.push({
+            date: dateInputs[i]?.value || '',
+            time: timeInputs[i]?.value || ''
+          });
+        }
+        
+        const formData = {
+          event_name: eventNameInput?.value || '',
+          memo: memoTextarea?.value || '',
+          schedules: schedules
+        };
+        
+        console.log('個別要素からフォームデータを構築しました:', formData);
+        localStorage.setItem('temp_form_data', JSON.stringify(formData));
+      }
+    } catch (error) {
+      console.error('フォームデータの保存中にエラーが発生しました:', error);
+    }
+    
+    // 遷移を遅延させて、データ保存を確実に行う
+    setTimeout(() => {
+      window.location.href = '/image-resize?from_form=true';
+    }, 100);
+  };
+
   return (
     <div className={styles.cropperWrapper}>
       <div className={styles.cropperControls}>
@@ -412,9 +517,20 @@ export default function App(props: onDataChange) {
             {fileError}
             {fileError.includes('1MB') && (
               <div className={styles.resizeToolWrapper}>
-                <Link href="/image-resize" className={styles.resizeToolLink}>
+                <Link 
+                  href="/image-resize?from_form=true" 
+                  className={styles.resizeToolLink}
+                  onClick={(e) => {
+                    e.preventDefault(); // デフォルトのリンク遷移を防止
+                    saveFormDataAndNavigate(e); // データを保存
+                    // 少し遅延させてデータの保存を確実にしてから遷移
+                    setTimeout(() => {
+                      window.location.href = "/image-resize?from_form=true";
+                    }, 100);
+                  }}
+                >
                   <FiCrop className={styles.resizeToolIcon} />
-                  画像リサイズツールを使う
+                  画像リサイズツールを使用する
                 </Link>
                 <p className={styles.resizeToolHint}>
                   リサイズツールで画像を小さくしてから再度アップロードしてください！

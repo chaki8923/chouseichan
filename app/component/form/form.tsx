@@ -243,13 +243,137 @@ export default function Form({ categoryName }: { categoryName: string }) {
     }
   }, [setValue]);
 
+  // 日程を追加するボタンクリック時の処理
+  const AddSchedule = () => {
+    const newSchedule = { id: Date.now(), date: '', time: '19:00' };
+    setSchedules((prevSchedules) => [
+      ...prevSchedules,
+      newSchedule
+    ]);
+    
+    // 追加した日程のfieldArrayへの追加
+    setValue(`schedules.${schedules.length}`, { date: '', time: '19:00' });
+    
+    // 日程が追加されたら、バリデーションを再評価する
+    setTimeout(() => {
+      trigger('schedules');
+      setIsSubmitDisabled(!checkFormValidity());
+    }, 0);
+  };
+
+  // 日程を削除する処理
+  const handleRemove = (id: number) => {
+    // 削除後に少なくとも1つのスケジュールが残るようにする
+    if (schedules.length > 1) {
+      // スケジュールを更新
+      const updatedSchedules = schedules.filter((s) => s.id !== id);
+      setSchedules(updatedSchedules);
+      
+      // react-hook-formのフィールドを更新
+      // まず現在のschedules配列をリセット
+      setValue('schedules', []);
+      
+      // 更新後のスケジュールでschedulesフィールドを再構築
+      updatedSchedules.forEach((schedule, index) => {
+        setValue(`schedules.${index}.date`, schedule.date);
+        setValue(`schedules.${index}.time`, schedule.time);
+      });
+      
+      // フォームのバリデーションを再評価
+      trigger('schedules');
+    } else {
+      // 最後の1つは削除せず、値をリセットする
+      const resetSchedule = { id: Date.now(), date: '', time: '19:00' };
+      setSchedules([resetSchedule]);
+      
+      // react-hook-formのフィールドもリセット
+      setValue('schedules', [{ date: '', time: '19:00' }]);
+      trigger('schedules');
+    }
+  };
+
+  // ドラッグ終了時の処理
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setSchedules((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+
+        const newSchedules = arrayMove(items, oldIndex, newIndex);
+
+        // react-hook-formのフィールドも更新
+        newSchedules.forEach((schedule, index) => {
+          setValue(`schedules.${index}.date`, schedule.date);
+          setValue(`schedules.${index}.time`, schedule.time);
+        });
+
+        return newSchedules;
+      });
+    }
+  };
+
+  // 時間変更ハンドラー
+  const handleTimeChange = (index: number, value: string) => {
+    const updatedSchedules = [...schedules];
+    updatedSchedules[index].time = value;
+    setSchedules(updatedSchedules);
+
+    // react-hook-form に値をセットし、バリデーションをトリガー
+    setValue(`schedules.${index}.time`, value);
+    trigger(`schedules.${index}.time`);
+  };
+
+  // 時間のオプションを生成する関数
+  const generateTimeOptions = () => {
+    const times = [];
+    const startHour = 0;
+    const endHour = 23;
+    const interval = 30; // 分単位
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+      const intervals = [0, interval];
+      for (const minute of intervals) {
+        const formattedHour = hour.toString().padStart(2, '0');
+        const formattedMinute = minute.toString().padStart(2, '0');
+        const formattedTime = `${formattedHour}:${formattedMinute}`;
+        times.push(formattedTime);
+      }
+    }
+    return times;
+  };
+
+  // フォームの入力が有効かチェックする関数
+  const checkFormValidity = useCallback(() => {
+    // イベント名が空でないことを確認
+    if (!eventNameValue || eventNameValue.trim() === '') {
+      return false;
+    }
+
+    // 少なくとも1つの日程が指定されていることを確認
+    const hasValidSchedule = schedules.some(schedule => 
+      schedule.date && schedule.date.trim() !== ''
+    );
+
+    if (!hasValidSchedule) {
+      return false;
+    }
+
+    // バリデーションエラーがないことを確認
+    if (validationError) {
+      return false;
+    }
+
+    return true;
+  }, [eventNameValue, schedules, validationError]);
+
   // 子から受け取ったデータを更新する関数
   const handleChildData = (data: File) => {
     // ファイルサイズのチェック (1MB = 1024 * 1024 bytes)
     if (data.size > 1 * 1024 * 1024) {
       // フォームの現在の値をlocalStorageに保存
-      const currentFormValues = getValues();
-      localStorage.setItem('temp_form_data', JSON.stringify(currentFormValues));
+      saveFormDataToLocalStorage();
       
       // 大きいサイズのファイルを検出したときのエラーメッセージ
       handleValidationError(
@@ -344,33 +468,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
     trigger(`schedules.${index}.date`);  // ✅ 強制的にバリデーションを再評価
   };
 
-  // フォームのバリデーション状態をチェックする関数
-  const checkFormValidity = useCallback(() => {
-    // イベント名が入力されているか
-    const titleValid = eventNameValue.trim().length > 0;
-
-    // すべてのスケジュールが有効か（日付と時間が入力されているか）
-    const allSchedulesValid = schedules.every(s => s.date && s.time);
-
-    // メモが最大文字数以内か
-    const memoValid = memoValue.length <= 200;
-
-    // バリデーションエラーがないか（cropperからのエラーのみ）
-    const noValidationError = !validationError;
-
-    // デバッグログ
-    // console.log({
-    //   titleValid,
-    //   allSchedulesValid,
-    //   memoValid,
-    //   noValidationError,
-    //   formValid: titleValid && allSchedulesValid && memoValid && noValidationError
-    // });
-
-    // すべての必須条件を満たしていればtrueを返す（ファイルは任意）
-    return titleValid && allSchedulesValid && memoValid && noValidationError;
-  }, [eventNameValue, schedules, memoValue, validationError]);
-
   // フォームの入力値が変更されたときにバリデーションを実行
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -387,7 +484,42 @@ export default function Form({ categoryName }: { categoryName: string }) {
   // クライアントサイドのみで実行されるようにする
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    
+    // グローバル関数として保存関数を公開
+    if (typeof window !== 'undefined') {
+      (window as any).saveEventFormData = function() {
+        try {
+          // 明示的に現在のスケジュールを取得
+          const schedulesData = schedules.map(schedule => ({
+            date: schedule.date,
+            time: schedule.time
+          }));
+          
+          // フォームデータを手動で構築
+          const formData = {
+            event_name: eventNameValue || '',
+            memo: memoValue || '',
+            schedules: schedulesData
+          };
+          
+          // localStorageに保存
+          localStorage.setItem('temp_form_data', JSON.stringify(formData));
+          console.log('グローバル関数: フォームデータを保存しました:', formData);
+          return true;
+        } catch (error) {
+          console.error('グローバル関数: フォームデータの保存に失敗しました:', error);
+          return false;
+        }
+      };
+    }
+    
+    // クリーンアップ関数
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).saveEventFormData;
+      }
+    };
+  }, [eventNameValue, memoValue, schedules]);
 
   const handleHistoryExists = useCallback((exists: boolean) => {
     // 確実に状態を更新するために一度古い値をリセット
