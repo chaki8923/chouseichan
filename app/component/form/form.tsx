@@ -141,6 +141,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [hasHistory, setHasHistory] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // DnD用のセンサーを設定
   const sensors = useSensors(
@@ -302,6 +303,9 @@ export default function Form({ categoryName }: { categoryName: string }) {
     formData.append("schedules", JSON.stringify(params.schedules));
     formData.append("memo", params.memo);
 
+    // オーバーレイを表示し、送信中状態にする
+    setIsSubmitting(true);
+
     // 画面の最上部にスクロール
     window.scrollTo({
       top: 0,
@@ -340,15 +344,18 @@ export default function Form({ categoryName }: { categoryName: string }) {
         }, 3000);
       } else {
         setLoading(false);
+        setIsSubmitting(false); // エラー時はオーバーレイを解除
         setIsOpen(true);
         alert(response.statusText);
       }
     } catch (error) {
       setLoading(false);
+      setIsSubmitting(false); // エラー時はオーバーレイを解除
       setIsOpen(true);
       alert(error);
     } finally {
       setLoading(false);
+      // 注意: 成功時はオーバーレイを残すため、ここではオーバーレイを解除しない
     }
   };
 
@@ -428,6 +435,18 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   return (
     <div className={styles.formContainer}>
+      {/* 送信中のオーバーレイ - isSubmitting が true の場合に表示 */}
+      {isSubmitting && (
+        <div className={styles.submitOverlay}>
+          <div className={styles.overlayContent}>
+            <div className={styles.spinnerContainer}>
+              <div className={styles.spinner}></div>
+            </div>
+            <p className={styles.overlayText}>イベントを登録中です...</p>
+          </div>
+        </div>
+      )}
+      
       <form onSubmit={handleSubmit(onSubmit)} className={styles.modernForm}>
         <div className={styles.formCard}>
           <div className={styles.formStep}>

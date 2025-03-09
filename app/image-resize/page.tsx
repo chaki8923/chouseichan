@@ -32,6 +32,7 @@ const ImageResizeContent = () => {
   const [resizedSizeBytes, setResizedSizeBytes] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   // 入力値が無効になった場合の処理を修正
   useEffect(() => {
@@ -55,6 +56,22 @@ const ImageResizeContent = () => {
       }));
     }
   }, [settings.maxWidth, settings.maxHeight, settings.quality]);
+
+  // 画面サイズの監視
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    // 初期チェック
+    checkScreenSize();
+    
+    // リサイズイベントの監視
+    window.addEventListener('resize', checkScreenSize);
+    
+    // クリーンアップ
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // 画像をアップロードする処理
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,12 +256,14 @@ const ImageResizeContent = () => {
       const objectUrl = URL.createObjectURL(blob);
       setResizedPreview(objectUrl);
 
+
     } catch (error) {
-      setErrorMessage(`リサイズ中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
+      console.error('リサイズエラー:', error);
+      setErrorMessage('画像のリサイズ中にエラーが発生しました');
     } finally {
       setIsResizing(false);
     }
-  }, [originalImage, originalPreview, settings, resizedPreview]);
+  }, [originalImage, originalPreview, settings]);
 
   // リサイズした画像をダウンロードする処理
   const downloadResizedImage = useCallback(() => {
@@ -360,7 +379,7 @@ const ImageResizeContent = () => {
       </div>
 
       <div className={styles.mainContent}>
-        <div className={styles.uploadSection}>
+        <div className={`${styles.uploadSection} ${isMobile ? styles.fullWidth : ''}`}>
           <div 
             className={styles.dropZone}
             onClick={() => fileInputRef.current?.click()}
@@ -410,6 +429,17 @@ const ImageResizeContent = () => {
             <div className={styles.errorMessage}>
               <FiX className={styles.errorIcon} />
               {errorMessage}
+            </div>
+          )}
+
+          {/* モバイル表示かつ画像がアップロードされている場合に元の画像プレビューを表示 */}
+          {isMobile && originalPreview && (
+            <div className={`${styles.previewCard} ${styles.mobileOriginalPreview}`}>
+              <h3 className={styles.previewTitle}>元の画像</h3>
+              <div className={styles.imagePreview}>
+                <img src={originalPreview} alt="元の画像" className={styles.previewImg} />
+                <div className={styles.imageMeta}>サイズ: {originalSizeText}</div>
+              </div>
             </div>
           )}
 
@@ -501,22 +531,25 @@ const ImageResizeContent = () => {
         
         <div className={styles.previewSection}>
           <div className={styles.previewContainer}>
-            <div className={styles.previewCard}>
-              <h3 className={styles.previewTitle}>元の画像</h3>
-              <div className={styles.imagePreview}>
-                {originalPreview ? (
-                  <>
-                    <img src={originalPreview} alt="元の画像" className={styles.previewImg} />
-                    <div className={styles.imageMeta}>サイズ: {originalSizeText}</div>
-                  </>
-                ) : (
-                  <div className={styles.noImage}>
-                    <FiImage className={styles.noImageIcon} />
-                    <p>プレビューなし</p>
-                  </div>
-                )}
+            {/* PC表示の場合のみ元の画像プレビューを表示 */}
+            {!isMobile && (
+              <div className={styles.previewCard}>
+                <h3 className={styles.previewTitle}>元の画像</h3>
+                <div className={styles.imagePreview}>
+                  {originalPreview ? (
+                    <>
+                      <img src={originalPreview} alt="元の画像" className={styles.previewImg} />
+                      <div className={styles.imageMeta}>サイズ: {originalSizeText}</div>
+                    </>
+                  ) : (
+                    <div className={styles.noImage}>
+                      <FiImage className={styles.noImageIcon} />
+                      <p>プレビューなし</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
             
             <div className={styles.previewCard}>
               <h3 className={styles.previewTitle}>リサイズした画像</h3>

@@ -138,6 +138,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     } catch {
       // エラーが発生した場合でもUIにはメッセージを表示
       setError("データの取得に失敗しました");
+      setEventNotFound(true);
     } finally {
       // 処理完了時は必ずローディング状態を解除
       setLoading(false);

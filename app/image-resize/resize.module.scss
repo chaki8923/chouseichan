@@ -409,6 +409,11 @@
   .previewContainer {
     flex-direction: column;
   }
+  
+  /* アップロードセクションとプレビューセクションの間隔を調整 */
+  .uploadSection + .previewSection {
+    margin-top: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -451,4 +456,21 @@
   color: #777;
   font-weight: normal;
   margin-left: 0.5rem;
+}
+
+/* モバイル表示時のアップロードセクション幅調整 */
+.fullWidth {
+  @media (max-width: 768px) {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+/* モバイル表示時の元の画像プレビュー */
+.mobileOriginalPreview {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
 }

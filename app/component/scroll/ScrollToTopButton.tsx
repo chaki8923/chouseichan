@@ -11,7 +11,7 @@ const ScrollToTopButton = () => {
   useEffect(() => {
     const toggleVisibility = () => {
       // 200px以上スクロールしたらボタンを表示
-      if (window.scrollY > 200) {
+      if (window.scrollY > 1200) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
