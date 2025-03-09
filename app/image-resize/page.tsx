@@ -14,6 +14,8 @@ const DEFAULT_QUALITY = 0.8;
 const ImageResizeContent = () => {
   const searchParams = useSearchParams();
   const eventId = searchParams.get('eventId');
+  const fromForm = searchParams.get('from_form') === 'true';
+  const fromEvent = searchParams.get('from_event') === 'true';
   
   const [originalImage, setOriginalImage] = useState<File | null>(null);
   const [originalPreview, setOriginalPreview] = useState<string | null>(null);
@@ -361,21 +363,44 @@ const ImageResizeContent = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>画像リサイズツール</h1>
+      <div className={styles.headerSection}>
+        <h1 className={styles.header}>画像圧縮ツール</h1>
         <p className={styles.description}>
-          スマホで撮影した大きな画像を軽量化してアップロードしやすくします
+          イベント用の画像を簡単に圧縮できます。1MB以下に最適化して投稿しましょう。
         </p>
-        {eventId ? (
-          <Link href={`/event?eventId=${eventId}`} className={styles.backLink}>
-            イベントページに戻る
-          </Link>
-        ) : (
-          <Link href="/" className={styles.backLink}>
-            <FiHome style={{ marginRight: '6px' }} />
-            トップに戻る
-          </Link>
-        )}
+        
+        {/* 元のページに戻るボタン */}
+        <div className={styles.navigationButtons}>
+          {fromForm && (
+            <Link 
+              href="/?from_resize=true" 
+              className={styles.backButton}
+            >
+              <FiHome className={styles.backIcon} />
+              新規イベント作成に戻る
+            </Link>
+          )}
+          
+          {fromEvent && eventId && (
+            <Link 
+              href={`/event?eventId=${eventId}&from_resize=true`} 
+              className={styles.backButton}
+            >
+              <FiImage className={styles.backIcon} />
+              イベント編集に戻る
+            </Link>
+          )}
+          
+          {!fromForm && !fromEvent && (
+            <Link 
+              href="/" 
+              className={styles.backButton}
+            >
+              <FiHome className={styles.backIcon} />
+              トップページに戻る
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className={styles.mainContent}>

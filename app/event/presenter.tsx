@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { FiCamera, FiAlertTriangle } from 'react-icons/fi';
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type maxAttend = {
   id: number;
@@ -38,6 +39,12 @@ type LocalStorageEvent = {
   date?: string;
   [key: string]: string | number | boolean | null | undefined; // その他の可能性のあるプロパティ
 };
+
+// 編集データの一時保存用インターフェース
+interface EventEditTempData {
+  title?: string;
+  memo?: string;
+}
 
 export default function EventDetails({ eventId, session }: { eventId: string, session: Session | null }) {
   const [eventData, setEventData] = useState<Event | null>(null);
@@ -68,6 +75,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [previewIcon, setPreviewIcon] = useState<string>("");
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
   const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
@@ -262,6 +270,47 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   }, []);
 
+  // イメージリサイズページから戻ってきたかチェック
+  useEffect(() => {
+    // クライアントサイドでのみ実行
+    if (typeof window !== 'undefined' && isEditing) {
+      // URLパラメータからfrom_resizeを取得
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromResize = urlParams.get('from_resize') === 'true';
+      
+      if (fromResize) {
+        try {
+          // localStorage から一時保存データを取得
+          const savedIconData = localStorage.getItem('temp_event_edit_data');
+          
+          if (savedIconData) {
+            const editData: EventEditTempData = JSON.parse(savedIconData);
+            
+            // 保存された値を復元
+            if (editData.title) {
+              setEditedTitle(editData.title);
+            }
+            
+            if (editData.memo !== undefined) {
+              setEditedMemo(editData.memo);
+            }
+            
+            // 画像情報は既に圧縮済みの新しい画像を選択するため復元しない
+            
+            // データを利用したらクリア
+            localStorage.removeItem('temp_event_edit_data');
+            
+            // URLパラメータをクリア（履歴に残さず現在のURLを置き換え）
+            const newUrl = `${window.location.pathname}?eventId=${eventId}`;
+            window.history.replaceState({}, document.title, newUrl);
+          }
+        } catch (error) {
+          console.error('編集データの復元に失敗しました:', error);
+        }
+      }
+    }
+  }, [isEditing, eventId]);
+
   if (!eventId) return <p>イベントidがありません</p>
 
   if (eventNotFound) {
@@ -340,9 +389,17 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       
       // ファイルサイズのチェック (1MB = 1024 * 1024 bytes)
       if (file.size > 1 * 1024 * 1024) {
+        // 現在の編集データを一時保存
+        const tempEditData: EventEditTempData = {
+          title: editedTitle,
+          memo: editedMemo
+        };
+        localStorage.setItem('temp_event_edit_data', JSON.stringify(tempEditData));
+        
+        // エラーメッセージを表示し、リンクを追加
         setEditMessage({ 
           type: "error", 
-          message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize)をご利用ください。" 
+          message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize?from_event=true)をご利用ください。" 
         });
         e.target.value = ''; // 入力をクリア
         return;
@@ -378,9 +435,17 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       if (selectedIconFile) {
         // ファイルサイズの再確認
         if (selectedIconFile.size > 1 * 1024 * 1024) {
+          // 現在の編集データを一時保存
+          const tempEditData: EventEditTempData = {
+            title: editedTitle,
+            memo: editedMemo
+          };
+          localStorage.setItem('temp_event_edit_data', JSON.stringify(tempEditData));
+          
+          // エラーメッセージを設定
           setEditMessage({ 
             type: "error", 
-            message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize)をご利用ください。" 
+            message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize?from_event=true)をご利用ください。" 
           });
           setIsLoading(false);
           return;
@@ -831,7 +896,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     {editMessage.message.includes("画像圧縮ツール") ? (
                       <p>
                         画像サイズは1MB以下にしてください。画像を圧縮するには
-                        <Link href={`/image-resize?eventId=${eventData.id}`} className="underline font-medium">
+                        <Link href={`/image-resize?from_event=true&eventId=${eventData.id}`} className="underline font-medium">
                           画像圧縮ツール
                         </Link>
                         をご利用ください。

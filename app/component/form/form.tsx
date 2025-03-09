@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import styles from './index.module.scss';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -128,6 +128,18 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
   );
 };
 
+// フォームデータのインターフェース名を変更し名前衝突を解消
+interface ScheduleFormData {
+  date: string;
+  time: string;
+}
+
+interface EventFormData {
+  event_name: string;
+  memo: string;
+  schedules: ScheduleFormData[];
+}
+
 export default function Form({ categoryName }: { categoryName: string }) {
   const [schedules, setSchedules] = useState([
     { id: Date.now(), date: '', time: '19:00' }, // 初期のスケジュールデータ
@@ -159,6 +171,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
     trigger,
     reset,
     watch,
+    getValues,
   } = useForm<ScheduleSchemaType>({
     resolver: zodResolver(ScheduleSchema),
     defaultValues: {
@@ -172,119 +185,84 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const eventNameValue = watch('event_name');
   const memoValue = watch('memo');
 
-  // 日程を追加するボタンクリック時の処理
-  const AddSchedule = () => {
-    const newSchedule = { id: Date.now(), date: '', time: '19:00' };
-    setSchedules((prevSchedules) => [
-      ...prevSchedules,
-      newSchedule
-    ]);
-    
-    // 追加した日程のfieldArrayへの追加
-    setValue(`schedules.${schedules.length}`, { date: '', time: '19:00' });
-    
-    // 日程が追加されたら、バリデーションを再評価する
-    setTimeout(() => {
-      trigger('schedules');
-      setIsSubmitDisabled(!checkFormValidity());
-    }, 0);
-  };
-
-  // 日程を削除する処理
-  const handleRemove = (id: number) => {
-    // 削除後に少なくとも1つのスケジュールが残るようにする
-    if (schedules.length > 1) {
-      // スケジュールを更新
-      const updatedSchedules = schedules.filter((s) => s.id !== id);
-      setSchedules(updatedSchedules);
+  // イメージリサイズページから戻ってきたかどうかを検出
+  useEffect(() => {
+    // クライアントサイドでのみ実行
+    if (typeof window !== 'undefined') {
+      // URLパラメータからfrom_resizeを取得
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromResize = urlParams.get('from_resize') === 'true';
       
-      // react-hook-formのフィールドを更新
-      // まず現在のschedules配列をリセット
-      setValue('schedules', []);
-      
-      // 更新後のスケジュールでschedulesフィールドを再構築
-      updatedSchedules.forEach((schedule, index) => {
-        setValue(`schedules.${index}.date`, schedule.date);
-        setValue(`schedules.${index}.time`, schedule.time);
-      });
-      
-      // フォームのバリデーションを再評価
-      trigger('schedules');
-
-    } else {
-      // 最後の1つは削除せず、値をリセットする
-      const resetSchedule = { id: Date.now(), date: '', time: '19:00' };
-      setSchedules([resetSchedule]);
-      
-      // react-hook-formのフィールドもリセット
-      setValue('schedules', [{ date: '', time: '19:00' }]);
-      trigger('schedules');
-    }
-  };
-
-  // ドラッグ終了時の処理
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setSchedules((items) => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
-
-        const newSchedules = arrayMove(items, oldIndex, newIndex);
-
-        // react-hook-formのフィールドも更新
-        newSchedules.forEach((schedule, index) => {
-          setValue(`schedules.${index}.date`, schedule.date);
-          setValue(`schedules.${index}.time`, schedule.time);
-        });
-
-        return newSchedules;
-      });
-    }
-  };
-
-  // 時間変更ハンドラー
-  const handleTimeChange = (index: number, value: string) => {
-    const updatedSchedules = [...schedules];
-    updatedSchedules[index].time = value;
-    setSchedules(updatedSchedules);
-
-    // react-hook-form に値をセットし、バリデーションをトリガー
-    setValue(`schedules.${index}.time`, value);
-    trigger(`schedules.${index}.time`);
-  };
-
-  // 時間のオプションを生成する関数
-  const generateTimeOptions = () => {
-    const times = [];
-    const startHour = 0;
-    const endHour = 23;
-    const interval = 30; // 分単位
-
-    for (let hour = startHour; hour <= endHour; hour++) {
-      const intervals = [0, interval];
-      for (const minute of intervals) {
-        const formattedHour = hour.toString().padStart(2, '0');
-        const formattedMinute = minute.toString().padStart(2, '0');
-        const formattedTime = `${formattedHour}:${formattedMinute}`;
-        times.push(formattedTime);
+      if (fromResize) {
+        // localStorageからフォームデータを復元
+        try {
+          const savedFormData = localStorage.getItem('temp_form_data');
+          
+          if (savedFormData) {
+            const formData: EventFormData = JSON.parse(savedFormData);
+            
+            // フォームの各フィールドを復元
+            if (formData.event_name) {
+              setValue('event_name', formData.event_name);
+            }
+            
+            if (formData.memo) {
+              setValue('memo', formData.memo);
+            }
+            
+            if (formData.schedules && Array.isArray(formData.schedules)) {
+              // スケジュールの数を合わせる
+              const newSchedules = formData.schedules.map((schedule, index) => ({
+                id: Date.now() + index,
+                date: schedule.date || '',
+                time: schedule.time || '19:00'
+              }));
+              
+              setSchedules(newSchedules);
+              
+              // react-hook-formにも値を設定
+              formData.schedules.forEach((schedule, index) => {
+                setValue(`schedules.${index}`, {
+                  date: schedule.date || '',
+                  time: schedule.time || '19:00'
+                });
+              });
+            }
+            
+            // フォームデータを利用後は削除
+            localStorage.removeItem('temp_form_data');
+            
+            // URLパラメータをクリア（履歴に残さず現在のURLを置き換え）
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+          }
+        } catch (error) {
+          console.error('フォームデータの復元に失敗しました:', error);
+        }
       }
     }
-    return times;
-  };
-
-  interface FormData {
-    event_name: string;
-    memo: string;
-    schedules: {
-      date: string;
-      time: string;
-    }[];
-  }
+  }, [setValue]);
 
   // 子から受け取ったデータを更新する関数
   const handleChildData = (data: File) => {
+    // ファイルサイズのチェック (1MB = 1024 * 1024 bytes)
+    if (data.size > 1 * 1024 * 1024) {
+      // フォームの現在の値をlocalStorageに保存
+      const currentFormValues = getValues();
+      localStorage.setItem('temp_form_data', JSON.stringify(currentFormValues));
+      
+      // 大きいサイズのファイルを検出したときのエラーメッセージ
+      handleValidationError(
+        <span>
+          画像サイズは1MB以下にしてください。
+          <Link href="/image-resize?from_form=true" className="text-blue-500 underline">
+            画像圧縮ツールで圧縮する
+          </Link>
+        </span>
+      );
+      return;
+    }
+    
     setFile(data);
   };
 
@@ -296,7 +274,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
     }, 0);
   };
 
-  const onSubmit = async (params: FormData) => {
+  const onSubmit = async (params: EventFormData) => {
     const formData = new FormData();
     formData.append("event_name", params.event_name);
     formData.append("schedules", JSON.stringify(params.schedules));
@@ -431,18 +409,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   return (
     <div className={styles.formContainer}>
-      {/* 送信中のオーバーレイ - isSubmitting が true の場合に表示 */}
-      {isSubmitting && (
-        <div className={styles.submitOverlay}>
-          <div className={styles.overlayContent}>
-            <div className={styles.spinnerContainer}>
-              <div className={styles.spinner}></div>
-            </div>
-            <p className={styles.overlayText}>イベントを登録中です...</p>
-          </div>
-        </div>
-      )}
-      
       <form onSubmit={handleSubmit(onSubmit)} className={styles.modernForm}>
         <div className={styles.formCard}>
           <div className={styles.formStep}>
