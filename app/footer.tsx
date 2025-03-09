@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className={styles.footerSection}>
-          <h3 className={styles.footerHeading}>フォロー</h3>
+          <h3 className={styles.footerHeading}>SNS</h3>
           <div className={styles.socialLinks}>
             <a href="https://x.com/choseichan2025" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
               <FaSquareXTwitter size={24} />
