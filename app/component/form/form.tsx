@@ -473,7 +473,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
             </label>
             <textarea
               className={styles.modernTextarea}
-              placeholder="メモを入力してください"
+              placeholder="参加者へ伝えたい事があれば入力してください"
               {...register('memo')}
               maxLength={300}
             />
