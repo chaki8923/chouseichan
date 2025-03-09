@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@/libs/prisma";
 
-// 1MBのサイズ制限（バイト単位）
-const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+// 2MBのサイズ制限（バイト単位）
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,10 +17,12 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const eventId = formData.get("eventId") as string;
     const imageFiles = formData.getAll("file") as File[];
+    // フォルダ名を取得（指定がなければデフォルト値を使用）
+    const folder = formData.get("folder") as string || "images";
 
     if (!eventId) {
       return NextResponse.json(
-        { error: "eventId と userId は必須です" },
+        { error: "eventIdは必須です" },
         { status: 400 }
       );
     }
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
     for (const imageFile of imageFiles) {
       if (imageFile.size > MAX_FILE_SIZE) {
         return NextResponse.json(
-          { error: "画像サイズは1MB以下にしてください。画像を圧縮するには画像圧縮ツールをご利用ください。" },
+          { error: "画像サイズは2MB以下にしてください。画像を圧縮するには画像圧縮ツールをご利用ください。" },
           { status: 400 }
         );
       }
@@ -50,7 +52,8 @@ export async function POST(request: NextRequest) {
       const extension = imageFile.name.split(".").pop() || "jpg";
       const arrayBuffer = await imageFile.arrayBuffer();
       const imageBuffer = Buffer.from(arrayBuffer);
-      const key = `images/${eventId}/${Date.now()}.${extension}`; // 保存先を'/images'に変更
+      // 動的にフォルダ名を指定
+      const key = `${folder}/${eventId}/${Date.now()}.${extension}`;
 
       await s3.send(
         new PutObjectCommand({

@@ -85,6 +85,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
         }
 
         setIsUploading(true);
+        setErrorMessage(null); // アップロード開始時にエラーメッセージをクリア
 
         try {
             await uploadImagesToCloudflare(selectedImages, eventData.id);
@@ -109,15 +110,26 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
             // アルバム表示前のオーバーレイを表示
             setShowAlbumOverlay(true);
             
-            // アルバム表示前の待機時間（3秒後にリロード）
+            // 3秒後にアルバム表示オーバーレイを非表示にし、アルバムを表示
             setTimeout(() => {
-                window.location.reload();
+                setShowAlbumOverlay(false);
+                setIsUploading(false);
+                window.location.href = `/event?eventId=${eventData.id}&tab=album`;
             }, 3000);
         } catch (error) {
-            console.error("Error uploading images:", error);
-            setModalText('画像のアップロードに失敗しました');
-            setIsOpen(true);
+            console.error('画像アップロード中にエラーが発生しました:', error);
             setIsUploading(false);
+            
+            // エラーメッセージを設定
+            if (error instanceof Error) {
+                setErrorMessage(error.message || 'アップロード中にエラーが発生しました。もう一度お試しください。');
+            } else {
+                setErrorMessage('アップロード中に予期せぬエラーが発生しました。もう一度お試しください。');
+            }
+            
+            // モーダルメッセージも表示
+            setModalText('画像のアップロードに失敗しました。もう一度お試しください。');
+            setIsOpen(true);
         }
     };
 
@@ -356,22 +368,34 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
 };
 
 const uploadImagesToCloudflare = async (files: File[], eventId: string) => {
-    const formData = new FormData();
-    files.forEach(file => formData.append('file', file));
+    try {
+        const formData = new FormData();
+        
+        // ファイルを追加
+        files.forEach(file => formData.append('file', file));
 
-    // eventId と userId を追加
-    formData.append('eventId', eventId);
+        // eventId を追加
+        formData.append('eventId', eventId);
+        formData.append('folder', 'event_images'); // 保存先フォルダを指定
 
-    const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-    });
+        // APIへリクエスト送信
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+        });
 
-    if (!response.ok) throw new Error('Upload failed');
-    const result = await response.json();
-
-    
-    return result;
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Upload failed:', errorData);
+            throw new Error(errorData.error || 'アップロードに失敗しました');
+        }
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error in uploadImagesToCloudflare:', error);
+        throw error; // エラーを呼び出し元に伝播
+    }
 };
 
 export default ImageUploadSection;
