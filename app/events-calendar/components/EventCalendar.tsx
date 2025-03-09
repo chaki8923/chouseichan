@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiSearch, FiX, FiClock, FiUsers } from 'react-icons/fi';
 import Link from 'next/link';
 import styles from '../index.module.scss';
@@ -45,6 +45,14 @@ const EventCalendar: React.FC = () => {
   const [dateClicked, setDateClicked] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [visitedEventIds, setVisitedEventIds] = useState<string[]>([]);
+  
+  // スクロール状態の管理を追加
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [showSwipeAnimation, setShowSwipeAnimation] = useState(false);
+  
+  // グリッドコンテナへの参照
+  const gridContainerRef = useRef<HTMLDivElement>(null);
   
   // 曜日の表示名
   const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
@@ -271,10 +279,68 @@ const EventCalendar: React.FC = () => {
     setDateClicked(null);
   };
   
+  // スクロール可能かどうかを検出する関数
+  const checkScrollability = useCallback(() => {
+    const container = gridContainerRef.current;
+    if (!container) return;
+    
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    
+    // 左右にスクロール可能かどうかを判定
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10); // 少し余裕を持たせる
+  }, []);
+  
+  // スクロールイベントのリスナー
+  useEffect(() => {
+    const container = gridContainerRef.current;
+    if (!container) return;
+    
+    // 初期チェック
+    checkScrollability();
+    
+    // スクロールイベントでチェック
+    const handleScroll = () => {
+      checkScrollability();
+    };
+    
+    container.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', checkScrollability);
+    
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      window.addEventListener('resize', checkScrollability);
+    };
+  }, [checkScrollability]);
+  
+  // 初回表示時にスワイプアニメーションを表示
+  useEffect(() => {
+    if (!loading && events.length > 0) {
+      // モバイルデバイスでのみアニメーションを表示
+      if (window.innerWidth <= 768) {
+        const container = gridContainerRef.current;
+        if (container) {
+          // カレンダーを少しだけ右にスクロールして、スクロール可能であることを示す
+          setTimeout(() => {
+            container.scrollLeft = 10;
+            checkScrollability();
+          }, 500);
+        }
+        
+        setShowSwipeAnimation(true);
+        
+        // 3秒後にアニメーションを非表示
+        const timeout = setTimeout(() => {
+          setShowSwipeAnimation(false);
+        }, 3000);
+        
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [loading, events, checkScrollability]);
+  
   // カレンダーグリッドを取得
   const calendarGrid = generateCalendarGrid();
-
-  
   
   // 現在の年月を表示用にフォーマット
   const formattedMonth = currentDate.toLocaleDateString('ja-JP', {
@@ -338,76 +404,106 @@ const EventCalendar: React.FC = () => {
         </div>
       ) : (
         /* カレンダーグリッド - イベントがある場合のみ表示し、スクロール可能なコンテナで囲む */
-        <div className={styles.calendarGridContainer}>
-          <div className={styles.calendarGrid}>
-            {/* 曜日ヘッダー */}
-            {weekdays.map((day, index) => (
-              <div key={index} className={styles.weekdayHeader}>
-                {day}
-              </div>
-            ))}
-            
-            {/* カレンダー日グリッド */}
-            {calendarGrid.map((day, index) => (
-              <div
-                key={index}
-                className={`${styles.calendarDay} ${day.isToday ? styles.today : ''} ${!day.isCurrentMonth ? styles.otherMonth : ''}`}
-                onClick={() => handleDateClick(day.date)}
-              >
-                <div className={styles.dayNumber}>{day.day}</div>
-                <div className={styles.dayEvents}>
-                  {(() => {
-                    const eventsForDate = getEventsForDate(day.date);
-                    const maxEventsToShow = getMaxEventsToShow();
-                    
-                    return (
-                      <>
-                        {eventsForDate.slice(0, maxEventsToShow).map(event => {
-                          // イベントに確定したスケジュールがあるかをチェック
-                          const hasConfirmedSchedule = event.schedules.some(schedule => 
-                            schedule.isConfirmed && 
-                            new Date(schedule.date).toDateString() === day.date.toDateString()
-                          );
-                          
-                          return (
-                            <div 
-                              key={event.id} 
-                              className={`${styles.eventItem} ${hasConfirmedSchedule ? styles.confirmedEvent : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEventClick(event, day.date);
-                              }}
-                              title={hasConfirmedSchedule ? '開催確定イベント' : ''}
-                            >
-                              <div 
-                                className={styles.eventColor} 
-                                style={{ backgroundColor: getEventColor(event.id) }}
-                              ></div>
-                              <span className={styles.eventName}>{event.name}</span>
-                              {hasConfirmedSchedule && (
-                                <span className={styles.confirmedBadge} title="開催確定">✓</span>
-                              )}
-                            </div>
-                          );
-                        })}
-                        
-                        {/* イベント数が表示制限を超える場合、残りの件数を表示 */}
-                        {eventsForDate.length > maxEventsToShow && (
-                          <div className={styles.moreEventsIndicator} onClick={(e) => {
-                            e.stopPropagation();
-                            handleDateClick(day.date);
-                          }}>
-                            +{eventsForDate.length - maxEventsToShow}件
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            ))}
+        <>
+          {/* スマホ表示時のみスクロールヒントを表示 */}
+          <div className={styles.scrollHint}>
+            ← 左右にスワイプしてカレンダーをスクロール →
           </div>
-        </div>
+          
+          <div 
+            ref={gridContainerRef}
+            className={`${styles.calendarGridContainer} ${canScrollLeft ? styles['scrollable-left'] : ''} ${canScrollRight ? styles['scrollable-right'] : ''}`}
+          >
+            {/* スワイプアニメーションの表示 */}
+            {showSwipeAnimation && (
+              <div className={styles.swipeAnimation}>
+                <FiChevronRight />
+              </div>
+            )}
+            
+            {/* 左右のスクロールインジケーター */}
+            {canScrollLeft && (
+              <div className={`${styles.scrollIndicator} ${styles.left}`}>
+                <FiChevronLeft />
+              </div>
+            )}
+            
+            {canScrollRight && (
+              <div className={`${styles.scrollIndicator} ${styles.right}`}>
+                <FiChevronRight />
+              </div>
+            )}
+            
+            <div className={styles.calendarGrid}>
+              {/* 曜日ヘッダー */}
+              {weekdays.map((day, index) => (
+                <div key={index} className={styles.weekdayHeader}>
+                  {day}
+                </div>
+              ))}
+              
+              {/* カレンダー日グリッド */}
+              {calendarGrid.map((day, index) => (
+                <div
+                  key={index}
+                  className={`${styles.calendarDay} ${day.isToday ? styles.today : ''} ${!day.isCurrentMonth ? styles.otherMonth : ''}`}
+                  onClick={() => handleDateClick(day.date)}
+                >
+                  <div className={styles.dayNumber}>{day.day}</div>
+                  <div className={styles.dayEvents}>
+                    {(() => {
+                      const eventsForDate = getEventsForDate(day.date);
+                      const maxEventsToShow = getMaxEventsToShow();
+                      
+                      return (
+                        <>
+                          {eventsForDate.slice(0, maxEventsToShow).map(event => {
+                            // イベントに確定したスケジュールがあるかをチェック
+                            const hasConfirmedSchedule = event.schedules.some(schedule => 
+                              schedule.isConfirmed && 
+                              new Date(schedule.date).toDateString() === day.date.toDateString()
+                            );
+                            
+                            return (
+                              <div 
+                                key={event.id} 
+                                className={`${styles.eventItem} ${hasConfirmedSchedule ? styles.confirmedEvent : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEventClick(event, day.date);
+                                }}
+                                title={hasConfirmedSchedule ? '開催確定イベント' : ''}
+                              >
+                                <div 
+                                  className={styles.eventColor} 
+                                  style={{ backgroundColor: getEventColor(event.id) }}
+                                ></div>
+                                <span className={styles.eventName}>{event.name}</span>
+                                {hasConfirmedSchedule && (
+                                  <span className={styles.confirmedBadge} title="開催確定">✓</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          
+                          {/* イベント数が表示制限を超える場合、残りの件数を表示 */}
+                          {eventsForDate.length > maxEventsToShow && (
+                            <div className={styles.moreEventsIndicator} onClick={(e) => {
+                              e.stopPropagation();
+                              handleDateClick(day.date);
+                            }}>
+                              +{eventsForDate.length - maxEventsToShow}件
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
         
       {/* イベント詳細モーダル */}

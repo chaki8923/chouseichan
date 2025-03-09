@@ -564,12 +564,59 @@
     padding: 0.4rem 0.6rem 0.4rem 2rem;
   }
   
+  /* スクロールヒントを表示 */
+  .scrollHint {
+    display: block;
+  }
+  
+  /* スクロールインジケーターを表示 */
+  .scrollIndicator {
+    display: flex;
+  }
+  
+  /* スワイプアニメーションを表示 */
+  .swipeAnimation {
+    display: flex;
+  }
+  
   /* カレンダーグリッドをスクロール可能なコンテナで囲む */
   .calendarGridContainer {
     width: 100%;
     overflow-x: auto;
     position: relative;
     padding-bottom: 8px; /* スクロールバー用の余白 */
+    -webkit-overflow-scrolling: touch; /* iOS用の慣性スクロール */
+    
+    /* 横スクロールが可能なことを示すスタイル */
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 20px;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    &::before {
+      left: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
+    }
+    
+    &::after {
+      right: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 100%);
+    }
+    
+    &.scrollable-right::after {
+      opacity: 1;
+    }
+    
+    &.scrollable-left::before {
+      opacity: 1;
+    }
     
     /* スクロールバーのスタイリング */
     &::-webkit-scrollbar {
@@ -597,9 +644,10 @@
   
   .calendarGrid {
     grid-template-columns: repeat(7, minmax(70px, 1fr));
-    min-width: 490px; /* 7日 × 最小幅 + gap */
+    min-width: calc(100% + 20px);
     gap: 2px;
     width: max-content;
+    padding: 0 10px;
   }
   
   .weekdayHeader {
@@ -864,4 +912,103 @@
 
 .navButtonIcon {
   color: #333;
+}
+
+/* カレンダーのスクロールインジケーター */
+.scrollIndicator {
+  display: none; /* デフォルトでは非表示 */
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(222, 49, 99, 0.8);
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulseIndicator 1.5s infinite;
+  
+  &.left {
+    left: 5px;
+  }
+  
+  &.right {
+    right: 5px;
+  }
+}
+
+@keyframes pulseIndicator {
+  0% {
+    transform: translateY(-50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-50%) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) scale(1);
+    opacity: 0.8;
+  }
+}
+
+/* スクロールヒントテキスト */
+.scrollHint {
+  display: none; /* デフォルトでは非表示 */
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* スワイプアニメーション */
+.swipeAnimation {
+  display: none; /* デフォルトでは非表示 */
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(222, 49, 99, 0.8);
+  border-radius: 50%;
+  z-index: 20;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  animation: swipeAnim 3s ease-in-out;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@keyframes swipeAnim {
+  0% {
+    opacity: 0;
+    transform: translate(-80%, -50%);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(0%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(30%, -50%);
+  }
 }
