@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiHome, FiCalendar, FiInfo, FiFile, FiLock, FiImage, FiMail } from "react-icons/fi";
 import styles from './index.module.scss'
 import { usePathname } from 'next/navigation';
 
@@ -14,6 +14,19 @@ const Header: React.FC = () => {
     useEffect(() => {
         setMobileMenuOpen(false);
     }, [pathname]);
+
+    // 本体スクロールを制御
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [mobileMenuOpen]);
 
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
@@ -36,23 +49,53 @@ const Header: React.FC = () => {
                 </Link>
 
                 <nav className={`${styles.navMenu} ${mobileMenuOpen ? styles.menuOpen : ''}`}>
-                    <Link href="/" className={styles.navLink} onClick={handleLinkClick}>ホーム</Link>
-                    <Link href="/events-calendar" className={styles.navLink} onClick={handleLinkClick}>イベントカレンダー</Link>
-                    <Link href="/description" className={styles.navLink} onClick={handleLinkClick}>使い方</Link>
-                    <Link href="/rule" className={styles.navLink} onClick={handleLinkClick}>利用規約</Link>
-                    <Link href="/privacy" className={styles.navLink} onClick={handleLinkClick}>プライバシー</Link>
-                    <Link href="/image-resize" className={styles.navLink} onClick={handleLinkClick}>画像リサイズ</Link>
+                    <Link href="/" className={styles.navLink} onClick={handleLinkClick}>
+                        <FiHome className={styles.navIcon} />
+                        <span>ホーム</span>
+                    </Link>
+                    <Link href="/events-calendar" className={styles.navLink} onClick={handleLinkClick}>
+                        <FiCalendar className={styles.navIcon} />
+                        <span>イベントカレンダー</span>
+                    </Link>
+                    <Link href="/description" className={styles.navLink} onClick={handleLinkClick}>
+                        <FiInfo className={styles.navIcon} />
+                        <span>使い方</span>
+                    </Link>
+                    <Link href="/rule" className={styles.navLink} onClick={handleLinkClick}>
+                        <FiFile className={styles.navIcon} />
+                        <span>利用規約</span>
+                    </Link>
+                    <Link href="/privacy" className={styles.navLink} onClick={handleLinkClick}>
+                        <FiLock className={styles.navIcon} />
+                        <span>プライバシー</span>
+                    </Link>
+                    <Link href="/image-resize" className={styles.navLink} onClick={handleLinkClick}>
+                        <FiImage className={styles.navIcon} />
+                        <span>画像リサイズ</span>
+                    </Link>
                     <Link href="https://docs.google.com/forms/d/e/1FAIpQLSffPUwB7SL08Xsmca9q8ikV5JySbMMVwpFV-btWcZ8nuQbTPQ/viewform?usp=dialog" 
                           className={styles.navLink} 
                           target="_blank"
                           onClick={handleLinkClick}>
-                        お問い合わせ
+                        <FiMail className={styles.navIcon} />
+                        <span>お問い合わせ</span>
                     </Link>
                 </nav>
 
-                <button className={styles.mobileMenuButton} onClick={toggleMobileMenu} aria-label="メニュー">
-                    {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+                <button 
+                    className={`${styles.mobileMenuButton} ${mobileMenuOpen ? styles.menuOpen : ''}`} 
+                    onClick={toggleMobileMenu} 
+                    aria-label="メニュー"
+                >
+                    <span className={styles.hamburgerLine}></span>
+                    <span className={styles.hamburgerLine}></span>
+                    <span className={styles.hamburgerLine}></span>
                 </button>
+                
+                {/* オーバーレイ背景 */}
+                {mobileMenuOpen && (
+                    <div className={styles.menuOverlay} onClick={handleLinkClick}></div>
+                )}
             </div>
             
             <div className={styles.headerDescription}>

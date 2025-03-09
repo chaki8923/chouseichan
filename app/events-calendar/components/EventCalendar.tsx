@@ -42,6 +42,7 @@ const EventCalendar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [dateClicked, setDateClicked] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [visitedEventIds, setVisitedEventIds] = useState<string[]>([]);
   
@@ -236,8 +237,17 @@ const EventCalendar: React.FC = () => {
   };
   
   // イベントをクリックしたときの処理
-  const handleEventClick = (event: Event) => {
+  const handleEventClick = (event: Event, date?: Date) => {
     setSelectedEvent(event);
+    
+    // 日付が明示的に指定されている場合はその日付を使用
+    // そうでない場合は、イベントの最初のスケジュールの日付を使用
+    if (date) {
+      setDateClicked(date);
+    } else if (event.schedules && event.schedules.length > 0) {
+      setDateClicked(new Date(event.schedules[0].date));
+    }
+    
     setModalOpen(true);
   };
   
@@ -249,6 +259,7 @@ const EventCalendar: React.FC = () => {
     // イベントがある場合、最初のイベントを表示
     if (eventsForDate.length > 0) {
       setSelectedEvent(eventsForDate[0]);
+      setDateClicked(date);
       setModalOpen(true);
     }
   };
@@ -257,10 +268,13 @@ const EventCalendar: React.FC = () => {
   const closeModal = () => {
     setModalOpen(false);
     setSelectedEvent(null);
+    setDateClicked(null);
   };
   
   // カレンダーグリッドを取得
   const calendarGrid = generateCalendarGrid();
+
+  
   
   // 現在の年月を表示用にフォーマット
   const formattedMonth = currentDate.toLocaleDateString('ja-JP', {
@@ -322,9 +336,6 @@ const EventCalendar: React.FC = () => {
           <p className={styles.emptyStateText}>表示できるイベントがありません</p>
           <p>このカレンダーには訪問済みのイベントのみ表示されます。</p>
           <p>新しいイベントを見るには、まずイベントページを訪問してください。</p>
-          <Link href="/" className={styles.createEventButton}>
-            イベントを探す
-          </Link>
         </div>
       ) : (
         /* カレンダーグリッド - イベントがある場合のみ表示 */
@@ -350,19 +361,31 @@ const EventCalendar: React.FC = () => {
                   
                   return (
                     <>
-                      {eventsForDate.slice(0, maxEventsToShow).map(event => (
-                        <div 
-                          key={event.id} 
-                          className={styles.eventItem}
-                          onClick={() => handleEventClick(event)}
-                        >
+                      {eventsForDate.slice(0, maxEventsToShow).map(event => {
+                        // イベントに確定したスケジュールがあるかをチェック
+                        const hasConfirmedSchedule = event.schedules.some(schedule => 
+                          schedule.isConfirmed && 
+                          new Date(schedule.date).toDateString() === day.date.toDateString()
+                        );
+                        
+                        return (
                           <div 
-                            className={styles.eventColor} 
-                            style={{ backgroundColor: getEventColor(event.id) }}
-                          ></div>
-                          <span className={styles.eventName}>{event.name}</span>
-                        </div>
-                      ))}
+                            key={event.id} 
+                            className={`${styles.eventItem} ${hasConfirmedSchedule ? styles.confirmedEvent : ''}`}
+                            onClick={() => handleEventClick(event, day.date)}
+                            title={hasConfirmedSchedule ? '開催確定イベント' : ''}
+                          >
+                            <div 
+                              className={styles.eventColor} 
+                              style={{ backgroundColor: getEventColor(event.id) }}
+                            ></div>
+                            <span className={styles.eventName}>{event.name}</span>
+                            {hasConfirmedSchedule && (
+                              <span className={styles.confirmedBadge} title="開催確定">✓</span>
+                            )}
+                          </div>
+                        );
+                      })}
                       
                       {/* イベント数が表示制限を超える場合、残りの件数を表示 */}
                       {eventsForDate.length > maxEventsToShow && (
@@ -418,28 +441,45 @@ const EventCalendar: React.FC = () => {
             </div>
             
             {/* 同じ日付の他のイベント */}
-            {selectedEvent.schedules && selectedEvent.schedules.length > 0 && (
+            {dateClicked && (
               <div className={styles.relatedEvents}>
                 <h4 className={styles.relatedEventsTitle}>同じ日のイベント</h4>
                 <div className={styles.relatedEventsList}>
-                  {getEventsForDate(new Date(selectedEvent.schedules[0].date))
-                    .filter(event => event.id !== selectedEvent.id) // 現在表示中のイベントを除外
-                    .map(event => (
-                      <div 
-                        key={event.id} 
-                        className={styles.relatedEventItem}
-                        onClick={() => {
-                          setSelectedEvent(event);
-                        }}
-                      >
+                  {getEventsForDate(dateClicked)
+                    .filter(event => event.id !== (selectedEvent?.id || '')) // 現在表示中のイベントを除外
+                    .map(event => {
+                      // イベントに確定したスケジュールがあるかをチェック
+                      const hasConfirmedSchedule = event.schedules.some(schedule => 
+                        schedule.isConfirmed && 
+                        new Date(schedule.date).toDateString() === dateClicked.toDateString()
+                      );
+                      
+                      return (
                         <div 
-                          className={styles.eventColor} 
-                          style={{ backgroundColor: getEventColor(event.id) }}
-                        ></div>
-                        <span>{event.name}</span>
-                      </div>
-                    ))
+                          key={event.id} 
+                          className={`${styles.relatedEventItem} ${hasConfirmedSchedule ? styles.confirmedEvent : ''}`}
+                          onClick={() => {
+                            setSelectedEvent(event);
+                            // 日付はそのまま維持
+                          }}
+                        >
+                          <div 
+                            className={styles.eventColor} 
+                            style={{ backgroundColor: getEventColor(event.id) }}
+                          ></div>
+                          <span>{event.name}</span>
+                          {hasConfirmedSchedule && (
+                            <span className={styles.miniConfirmedBadge} title="開催確定">✓</span>
+                          )}
+                        </div>
+                      );
+                    })
                   }
+                  {getEventsForDate(dateClicked).length <= 1 && (
+                    <div className={styles.noRelatedEvents}>
+                      他のイベントはありません
+                    </div>
+                  )}
                 </div>
               </div>
             )}

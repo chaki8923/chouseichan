@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/event',
+          '/events-calendar',
           '/image-resize',
           '/situation',
           '/description',
