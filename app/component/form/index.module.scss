@@ -339,45 +339,108 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.95);
-  background-image: 
-    linear-gradient(rgba(40, 40, 40, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(40, 40, 40, 0.15) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: rgba(10, 10, 10, 0.9);
   z-index: 1000;
   display: flex;
   flex-direction: column;
+  padding: 30px 20px;
   overflow: hidden;
-  padding: 20px 0;
-  backdrop-filter: blur(5px);
   
-  // フィルムの側面テープ
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    width: 15px;
-    height: 100%;
-    background-color: #0a0a0a;
-    z-index: 10;
-    background-image: 
-      repeating-linear-gradient(0deg, 
-        transparent, 
-        transparent 80px, 
-        rgba(255, 255, 255, 0.15) 80px,
-        rgba(255, 255, 255, 0.15) 82px
-      );
+  /* Swiperのナビゲーションボタンをカスタマイズ */
+  :global(.swiper-button-next),
+  :global(.swiper-button-prev) {
+    width: 55px;
+    height: 55px;
+    background: linear-gradient(135deg, rgba(222, 49, 99, 0.4), rgba(222, 49, 99, 0.2));
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    opacity: 0.8;
+    
+    &::after {
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    &:hover {
+      background: linear-gradient(135deg, rgba(222, 49, 99, 0.7), rgba(222, 49, 99, 0.4));
+      transform: scale(1.1) translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(222, 49, 99, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      opacity: 1;
+    }
+    
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
   }
   
-  &::before {
-    left: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  :global(.swiper-button-next) {
+    right: 25px;
+    &::after {
+      margin-left: 3px;
+      animation: pulseRight 1.5s infinite ease-in-out;
+    }
   }
   
-  &::after {
-    right: 0;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
+  :global(.swiper-button-prev) {
+    left: 25px;
+    &::after {
+      margin-right: 3px;
+      animation: pulseLeft 1.5s infinite ease-in-out;
+    }
+  }
+  
+  /* ページネーションのカスタマイズ */
+  :global(.swiper-pagination-bullet) {
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 1;
+    transition: all 0.3s ease;
+  }
+  
+  :global(.swiper-pagination-bullet-active) {
+    background: linear-gradient(135deg, #DE3163, #FF6B6B);
+    transform: scale(1.3);
+    box-shadow: 0 0 10px rgba(222, 49, 99, 0.8);
+  }
+  
+  /* モバイル画面でのボタンサイズ調整 */
+  @media (max-width: 768px) {
+    :global(.swiper-button-next),
+    :global(.swiper-button-prev) {
+      width: 45px;
+      height: 45px;
+      
+      &::after {
+        font-size: 18px;
+      }
+    }
+  }
+}
+
+/* 矢印ボタンのアニメーション */
+@keyframes pulseRight {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes pulseLeft {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-2px);
   }
 }
 
