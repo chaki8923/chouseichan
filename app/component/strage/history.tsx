@@ -13,6 +13,8 @@ interface HistoryProps {
 export default function History({ onHistoryExists }: HistoryProps) {
     const [events, setEvents] = useState<{ eventId: string; eventName: string; schedules: { date: string; time: string }[] }[]>([]);
     const [isClient, setIsClient] = useState(false);
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [eventToDelete, setEventToDelete] = useState<string | null>(null);
     
     // クライアントサイドのみで実行されるようにする
     useEffect(() => {
@@ -60,11 +62,25 @@ export default function History({ onHistoryExists }: HistoryProps) {
         }
     }, [isClient, loadEventHistory]);
 
+    // 削除確認モーダルを表示する
+    const showDeleteConfirmation = (eventId: string) => {
+        setEventToDelete(eventId);
+        setConfirmModalOpen(true);
+    };
+
+    // モーダルを閉じる
+    const closeModal = () => {
+        setConfirmModalOpen(false);
+        setEventToDelete(null);
+    };
+
     // イベント削除ハンドラー
-    const handleRemoveEvent = (eventId: string) => {
+    const handleRemoveEvent = () => {
+        if (!eventToDelete) return;
+        
         try {
             // イベントを削除
-            removeEvent(eventId);
+            removeEvent(eventToDelete);
             
             // 削除後に再度イベント一覧を取得
             const updatedEvents = getEventList();
@@ -81,6 +97,9 @@ export default function History({ onHistoryExists }: HistoryProps) {
             }
         } catch (error) {
             console.error("History component - Error in handleRemoveEvent:", error);
+        } finally {
+            // モーダルを閉じる
+            closeModal();
         }
     };
 
@@ -118,7 +137,7 @@ export default function History({ onHistoryExists }: HistoryProps) {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                handleRemoveEvent(event.eventId);
+                                                showDeleteConfirmation(event.eventId);
                                             }} 
                                             title="削除"
                                             aria-label="イベントを履歴から削除"
@@ -150,6 +169,32 @@ export default function History({ onHistoryExists }: HistoryProps) {
                     </div>
                 </div>
             ) : null}
+
+            {/* 削除確認モーダル */}
+            {confirmModalOpen && (
+                <div className={styles.modalOverlay} onClick={closeModal}>
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <h3 className={styles.modalTitle}>イベント履歴の削除</h3>
+                        <p className={styles.modalText}>
+                            このイベントを閲覧履歴から削除してもよろしいですか？
+                        </p>
+                        <div className={styles.modalButtons}>
+                            <button 
+                                className={`${styles.modalButton} ${styles.cancelButton}`}
+                                onClick={closeModal}
+                            >
+                                キャンセル
+                            </button>
+                            <button 
+                                className={`${styles.modalButton} ${styles.deleteButton}`}
+                                onClick={handleRemoveEvent}
+                            >
+                                削除する
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

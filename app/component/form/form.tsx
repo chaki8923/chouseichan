@@ -133,7 +133,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
     { id: Date.now(), date: '', time: '19:00' }, // 初期のスケジュールデータ
   ]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // 成功モーダル用の状態
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string | null | React.ReactNode>(null); // JSXも受け取れるように修正
@@ -334,12 +333,9 @@ export default function Form({ categoryName }: { categoryName: string }) {
         setLoading(false);
         setOwnerEvent(eventId, result.name, result.schedules);
         
-        // 成功モーダルを表示するための状態を設定
-        setIsSuccessModalOpen(true);
         
         // 3秒後にモーダルを閉じて遷移
         setTimeout(() => {
-          setIsSuccessModalOpen(false);
           router.push(`/event?eventId=${eventId}`);
         }, 3000);
       } else {
@@ -589,20 +585,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
         </div>
       </Modal>
       
-      {/* 成功モーダル */}
-      <Modal 
-        isOpen={isSuccessModalOpen} 
-        onClose={() => setIsSuccessModalOpen(false)} 
-        type="info"
-        showCloseButton={false}
-      >
-        <div className={styles.modalContent}>
-          <FiCheckCircle size={50} color="#4BB543" style={{ marginBottom: '1rem' }} />
-          <h2 className={styles.modalTitle}>イベント登録が完了しました</h2>
-          <p>イベントの登録が完了しました。</p>
-          <p>イベント詳細ページに移動します...</p>
-        </div>
-      </Modal>
+     
     </div>
   );
 }

@@ -204,3 +204,110 @@
     padding: 0.4rem 0.6rem;
   }
 }
+
+/* 削除確認モーダルのスタイル */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 1rem;
+  position: relative;
+  padding-bottom: 0.8rem;
+  text-align: center;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(to right, #de3163, #e195ab);
+    border-radius: 2px;
+  }
+}
+
+.modalText {
+  text-align: center;
+  color: #555;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.modalButton {
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  
+  &:focus {
+    outline: none;
+  }
+}
+
+.cancelButton {
+  background-color: #f0f0f0;
+  color: #555;
+  
+  &:hover {
+    background-color: #e0e0e0;
+  }
+}
+
+.deleteButton {
+  background-color: #de3163;
+  color: white;
+  
+  &:hover {
+    background-color: #c72a56;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

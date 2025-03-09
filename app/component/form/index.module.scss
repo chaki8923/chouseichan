@@ -2301,6 +2301,9 @@
   align-items: center;
   gap: 1.25rem;
   animation: pulseScale 2s infinite ease-in-out;
+  @media (max-width: 768px) {
+    display: block;
+  }
 }
 
 .uploadModalTitle {

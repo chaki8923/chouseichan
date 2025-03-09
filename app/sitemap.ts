@@ -40,6 +40,11 @@ const primaryRoutes = [
 // 二次的なページのリスト（中優先度）
 const secondaryRoutes = [
   {
+    path: '/events-calendar',
+    changeFrequency: 'daily' as const,
+    priority: 0.9,
+  },
+  {
     path: '/description',
     changeFrequency: 'weekly' as const,
     priority: 0.8,
