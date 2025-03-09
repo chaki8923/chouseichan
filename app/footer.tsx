@@ -38,13 +38,7 @@ const Footer: React.FC = () => {
             <a href="https://x.com/choseichan2025" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
               <FaSquareXTwitter size={24} />
             </a>
-            <a href="#" className={styles.socialLink}>
-              <FaInstagram size={24} />
-            </a>
-            <a href="#" className={styles.socialLink}>
-              <FaLine size={24} />
-            </a>
-            <a href="#" className={styles.socialLink}>
+            <a href="https://github.com/chaki8923/chouseichan" className={styles.socialLink}>
               <FaGithub size={24} />
             </a>
           </div>
