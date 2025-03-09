@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 // イベントのタイトルとメモを更新するエンドポイント
 export async function PATCH(request: NextRequest) {
     try {
-        const { eventId, name, memo } = await request.json();
+        const { eventId, name, memo, iconPath } = await request.json();
 
         // バリデーション
         if (!eventId) {
@@ -84,6 +84,7 @@ export async function PATCH(request: NextRequest) {
             data: {
                 ...(name !== undefined && { name }),
                 ...(memo !== undefined && { memo }),
+                ...(iconPath !== undefined && { image: iconPath }),
             },
         });
 

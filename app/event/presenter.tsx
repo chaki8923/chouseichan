@@ -25,6 +25,7 @@ import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { FiCamera, FiAlertTriangle } from 'react-icons/fi';
+import Link from "next/link";
 
 type maxAttend = {
   id: number;
@@ -60,8 +61,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isTableScrollable, setIsTableScrollable] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState("");
-  const [editedMemo, setEditedMemo] = useState("");
+  const [editedTitle, setEditedTitle] = useState<string>("");
+  const [editedMemo, setEditedMemo] = useState<string>("");
+  const [editedIcon, setEditedIcon] = useState<string>("");
+  const [selectedIconFile, setSelectedIconFile] = useState<File | null>(null);
+  const [previewIcon, setPreviewIcon] = useState<string>("");
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
   const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
 
@@ -316,6 +320,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const handleStartEdit = () => {
     setEditedTitle(eventData.name);
     setEditedMemo(eventData.memo || "");
+    setEditedIcon(eventData.image || "");
+    setPreviewIcon(eventData.image || "");
     setIsEditing(true);
   };
 
@@ -323,6 +329,39 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditMessage({ type: "", message: "" });
+    setSelectedIconFile(null);
+    setPreviewIcon("");
+  };
+
+  // アイコン画像が選択された時の処理
+  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // ファイルサイズのチェック (1MB = 1024 * 1024 bytes)
+      if (file.size > 1 * 1024 * 1024) {
+        setEditMessage({ 
+          type: "error", 
+          message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize)をご利用ください。" 
+        });
+        e.target.value = ''; // 入力をクリア
+        return;
+      }
+      
+      setSelectedIconFile(file);
+      
+      // プレビュー用のURL生成
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewIcon(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // エラーメッセージがあれば消去
+      if (editMessage.type === "error") {
+        setEditMessage({ type: "", message: "" });
+      }
+    }
   };
 
   // イベント編集を保存する関数
@@ -334,6 +373,67 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
     setIsLoading(true);
     try {
+      // 画像ファイルが選択されている場合はアップロード
+      let iconPath = editedIcon;
+      if (selectedIconFile) {
+        // ファイルサイズの再確認
+        if (selectedIconFile.size > 1 * 1024 * 1024) {
+          setEditMessage({ 
+            type: "error", 
+            message: "画像サイズは1MB以下にしてください。画像を圧縮するには[画像圧縮ツール](/image-resize)をご利用ください。" 
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        // 古い画像がある場合は削除
+        if (eventData.image && eventData.image !== '/default.png') {
+          try {
+            // 古い画像のURLからCloudflareのパスを抽出
+            const oldImageUrl = eventData.image;
+            
+            // 古い画像を削除するAPIを呼び出す
+            const deleteResponse = await fetch(`/api/delete-event-icon`, {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                eventId: eventData.id,
+                imageUrl: oldImageUrl
+              }),
+            });
+            
+            if (!deleteResponse.ok) {
+              console.warn("古い画像の削除に失敗しましたが、処理を続行します");
+            }
+          } catch (deleteError) {
+            console.error("古い画像の削除中にエラーが発生しました:", deleteError);
+            // 削除に失敗しても続行
+          }
+        }
+        
+        const formData = new FormData();
+        formData.append("file", selectedIconFile);
+        formData.append("eventId", eventData.id);
+        
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.error || "画像のアップロードに失敗しました");
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        if (uploadResult.uploadedUrls && uploadResult.uploadedUrls.length > 0) {
+          iconPath = uploadResult.uploadedUrls[0];
+        }
+      }
+      
+      // イベント情報を更新
       const response = await fetch(`/api/events`, {
         method: "PATCH",
         headers: {
@@ -343,6 +443,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           eventId: eventData.id,
           name: editedTitle,
           memo: editedMemo,
+          iconPath: selectedIconFile ? iconPath : undefined,
         }),
       });
 
@@ -665,6 +766,54 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     placeholder="イベント名（100文字以内）"
                   />
                 </div>
+                
+                <div className={styles.formGroup}>
+                  <label className={styles.editLabel}>
+                    アイコン画像 <span className={styles.tagNoRequire}>任意</span>
+                  </label>
+                  <div className={styles.iconEditContainer}>
+                    {previewIcon ? (
+                      <div className={styles.previewIconContainer}>
+                        <Image 
+                          src={previewIcon}
+                          width={80}
+                          height={80}
+                          alt="イベントアイコンプレビュー"
+                          className={styles.previewIcon}
+                        />
+                      </div>
+                    ) : (
+                      <div className={styles.noIconPreview}>
+                        <FiCamera size={24} />
+                      </div>
+                    )}
+                    <div className={styles.iconUploadButtons}>
+                      <label className={styles.iconUploadLabel}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleIconChange}
+                          className={styles.iconInput}
+                        />
+                        画像を選択
+                      </label>
+                      {previewIcon && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewIcon("");
+                            setSelectedIconFile(null);
+                            setEditedIcon("");
+                          }}
+                          className={styles.removeIconButton}
+                        >
+                          削除
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
                 <div className={styles.formGroup}>
                   <label className={styles.editLabel}>
                     メモ <span className={styles.tagNoRequire}>任意</span>
@@ -678,9 +827,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   />
                 </div>
                 {editMessage.type && (
-                  <p className={editMessage.type === "error" ? "text-red-500" : "text-green-500"}>
-                    {editMessage.message}
-                  </p>
+                  <div className={editMessage.type === "error" ? "text-red-500" : "text-green-500"}>
+                    {editMessage.message.includes("画像圧縮ツール") ? (
+                      <p>
+                        画像サイズは1MB以下にしてください。画像を圧縮するには
+                        <Link href="/image-resize" className="underline font-medium">
+                          画像圧縮ツール
+                        </Link>
+                        をご利用ください。
+                      </p>
+                    ) : (
+                      <p>{editMessage.message}</p>
+                    )}
+                  </div>
                 )}
                 <div className={styles.editActions}>
                   <button

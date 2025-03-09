@@ -1751,3 +1751,79 @@
     transform: scale(1);
   }
 }
+
+// アイコン編集関連のスタイル
+.iconEditContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.previewIconContainer {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #e0e0e0;
+}
+
+.previewIcon {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.noIconPreview {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+  color: #888;
+}
+
+.iconUploadButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.iconUploadLabel {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #3a7bc8;
+  }
+}
+
+.iconInput {
+  display: none;
+}
+
+.removeIconButton {
+  padding: 0.5rem 1rem;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #d32f2f;
+  }
+}
