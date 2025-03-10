@@ -153,6 +153,11 @@
   width: 50px;
   height: 50px;
   margin-right: 1rem;
+  transition: transform 0.5s ease-out, filter 0.5s ease-out;
+  will-change: transform, filter; /* パフォーマンス最適化 */
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+  backface-visibility: hidden; /* Safari用のレンダリング最適化 */
+  transform-style: preserve-3d;
 }
 
 .logoText {
@@ -505,5 +510,53 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+.floatingLogo {
+  transform-origin: center center;
+  
+  &:hover {
+    animation: bounce 1s ease infinite;
+    filter: drop-shadow(0 4px 6px rgba(222, 49, 99, 0.2)) brightness(110%);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05);
+  }
+}
+
+@keyframes wobble {
+  0%, 100% { 
+    transform: translateX(0) rotate(0); 
+  }
+  25% { 
+    transform: translateX(-5px) rotate(-5deg); 
+  }
+  75% { 
+    transform: translateX(5px) rotate(5deg); 
+  }
+}
+
+/* モバイル対応のアニメーション調整 */
+@media (max-width: 768px) {
+  .floatingLogo {
+    &:hover {
+      animation: wobble 1s ease infinite;
+    }
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-6px) scale(1.03);
+    }
   }
 }
