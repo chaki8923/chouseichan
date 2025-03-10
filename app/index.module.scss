@@ -150,8 +150,8 @@
 }
 
 .logoImage {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   margin-right: 1rem;
   transition: transform 0.5s ease-out, filter 0.5s ease-out;
   will-change: transform, filter; /* パフォーマンス最適化 */
@@ -405,14 +405,14 @@
 }
 
 // モバイルスタイル
-@media (max-width: 768px) {
+@media (max-width: 968px) {
   .headerContainer {
     padding: 0.75rem;
   }
   
   .logoImage {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     margin-right: 0.75rem;
   }
   
@@ -484,8 +484,8 @@
 
 @media (max-width: 480px) {
   .logoImage {
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
   }
   
   .logoTitle {

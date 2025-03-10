@@ -49,10 +49,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// イベントのタイトルとメモを更新するエンドポイント
+// イベントのタイトル、メモ、アイコン、日程を更新するエンドポイント
 export async function PATCH(request: NextRequest) {
     try {
-        const { eventId, name, memo, iconPath } = await request.json();
+        const { eventId, name, memo, iconPath, schedules } = await request.json();
 
         // バリデーション
         if (!eventId) {
@@ -67,6 +67,13 @@ export async function PATCH(request: NextRequest) {
         // イベントが存在するか確認
         const existingEvent = await prisma.event.findUnique({
             where: { id: eventId },
+            include: {
+                schedules: {
+                    include: {
+                        responses: true
+                    }
+                }
+            }
         });
 
         if (!existingEvent) {
@@ -78,17 +85,91 @@ export async function PATCH(request: NextRequest) {
             });
         }
 
-        // イベントを更新
-        const updatedEvent = await prisma.event.update({
-            where: { id: eventId },
-            data: {
-                ...(name !== undefined && { name }),
-                ...(memo !== undefined && { memo }),
-                ...(iconPath !== undefined && { image: iconPath }),
-            },
+        // トランザクションで一連の更新を行う
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. イベント基本情報の更新
+            const updatedEvent = await tx.event.update({
+                where: { id: eventId },
+                data: {
+                    ...(name !== undefined && { name }),
+                    ...(memo !== undefined && { memo }),
+                    ...(iconPath !== undefined && { image: iconPath }),
+                },
+            });
+
+            // 2. スケジュールの更新があれば処理
+            if (schedules) {
+                // 2.1 既存スケジュールの更新
+                if (schedules.update && schedules.update.length > 0) {
+                    for (const schedule of schedules.update) {
+                        // 更新対象のスケジュールを取得
+                        const existingSchedule = existingEvent.schedules.find(
+                            (s) => s.id === schedule.id
+                        );
+
+                        // スケジュールが存在し、レスポンスがなければ更新
+                        if (existingSchedule && existingSchedule.responses.length === 0) {
+                            await tx.schedule.update({
+                                where: { id: schedule.id },
+                                data: {
+                                    date: new Date(schedule.date),
+                                    time: schedule.time,
+                                },
+                            });
+                        }
+                    }
+                }
+
+                // 2.2 スケジュールの削除
+                if (schedules.delete && schedules.delete.length > 0) {
+                    for (const scheduleId of schedules.delete) {
+                        // 削除対象のスケジュールを取得
+                        const scheduleToDelete = existingEvent.schedules.find(
+                            (s) => s.id === scheduleId
+                        );
+
+                        // スケジュールが存在し、レスポンスがなければ削除
+                        if (scheduleToDelete && scheduleToDelete.responses.length === 0) {
+                            await tx.schedule.delete({
+                                where: { id: scheduleId },
+                            });
+                        }
+                    }
+                }
+
+                // 2.3 新規スケジュールの追加
+                if (schedules.create && schedules.create.length > 0) {
+                    for (const newSchedule of schedules.create) {
+                        await tx.schedule.create({
+                            data: {
+                                eventId,
+                                date: new Date(newSchedule.date),
+                                time: newSchedule.time,
+                                isConfirmed: false,
+                            },
+                        });
+                    }
+                }
+            }
+
+            // 最終的に更新されたイベント情報を取得して返却
+            return await tx.event.findUnique({
+                where: { id: eventId },
+                include: {
+                    schedules: {
+                        include: {
+                            responses: {
+                                include: {
+                                    user: true
+                                }
+                            }
+                        }
+                    }
+                },
+            });
         });
 
-        return new Response(JSON.stringify(updatedEvent), {
+        return new Response(JSON.stringify(result), {
             status: 200,
             headers: {
                 'Content-Type': 'application/json',

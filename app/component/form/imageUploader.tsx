@@ -111,10 +111,11 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
             setShowAlbumOverlay(true);
             
             // 3秒後にアルバム表示オーバーレイを非表示にし、アルバムを表示
+            // 必要ならコメントアウトを外す
             setTimeout(() => {
                 setShowAlbumOverlay(false);
                 setIsUploading(false);
-                window.location.href = `/event?eventId=${eventData.id}&tab=album`;
+                // window.location.href = `/event?eventId=${eventData.id}&tab=album`;
             }, 3000);
         } catch (error) {
             console.error('画像アップロード中にエラーが発生しました:', error);
