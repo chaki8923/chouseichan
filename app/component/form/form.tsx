@@ -31,6 +31,11 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { UseFormRegister } from 'react-hook-form';
+import Image from "next/image";
+import { useFormContext } from "react-hook-form";
+import { FiEdit, FiList, FiImage, FiPlusCircle, FiCheck, FiClock, FiCalendar, FiCornerDownRight } from "react-icons/fi";
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
 
 // ドラッグ可能な日程項目のコンポーネント
 interface SortableScheduleItemProps {
@@ -153,6 +158,9 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [hasHistory, setHasHistory] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(3);
+  const [eventId, setEventId] = useState<string | null>(null);
 
   // DnD用のセンサーを設定
   const sensors = useSensors(
@@ -477,6 +485,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
     // オーバーレイを表示し、送信中状態にする
     setIsSubmitting(true);
+    setSubmissionSuccess(false);
 
     // 画面の最上部にスクロール
     window.scrollTo({
@@ -502,15 +511,27 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
       if (response.ok) {
         const result = await response.json(); // レスポンスをJSONとしてパース
-        const eventId = result.id; // レスポンスに含まれるIDを取得
+        const newEventId = result.id; // レスポンスに含まれるIDを取得
+        setEventId(newEventId);
         setLoading(false);
-        setOwnerEvent(eventId, result.name, result.schedules);
+        setOwnerEvent(newEventId, result.name, result.schedules);
         
+        // 送信完了状態に移行
+        setSubmissionSuccess(true);
         
-        // 3秒後にモーダルを閉じて遷移
-        setTimeout(() => {
-          router.push(`/event?eventId=${eventId}`);
-        }, 3000);
+        // カウントダウンを開始
+        let count = 3;
+        setRedirectCountdown(count);
+        
+        const countdownInterval = setInterval(() => {
+          count -= 1;
+          setRedirectCountdown(count);
+          
+          if (count <= 0) {
+            clearInterval(countdownInterval);
+            router.push(`/event?eventId=${newEventId}`);
+          }
+        }, 1000);
       } else {
         setLoading(false);
         setIsSubmitting(false); // エラー時はオーバーレイを解除
@@ -522,9 +543,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
       setIsSubmitting(false); // エラー時はオーバーレイを解除
       setIsOpen(true);
       alert(error);
-    } finally {
-      setLoading(false);
-      // 注意: 成功時はオーバーレイを残すため、ここではオーバーレイを解除しない
     }
   };
 
@@ -572,6 +590,42 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   return (
     <div className={styles.formContainer}>
+      {/* 送信中のオーバーレイとモーダル */}
+      {isSubmitting && (
+        <div className={styles.submittingOverlay}>
+          <div className={styles.submittingModal}>
+            {!submissionSuccess ? (
+              <>
+                <div className={styles.spinnerContainer}>
+                  <div className={styles.spinner}></div>
+                </div>
+                <h3 className={styles.loadingTitle}>イベント登録中...</h3>
+                <p className={styles.loadingText}>しばらくお待ちください</p>
+              </>
+            ) : (
+              <>
+                <div className={styles.successIcon}>
+                  <FiCheck size={40} />
+                </div>
+                <h3 className={styles.successTitle}>登録完了！</h3>
+                <p className={styles.successText}>
+                  {categoryName}のイベントが正常に登録されました
+                </p>
+                <p className={styles.countdownText}>
+                  {redirectCountdown}秒後にイベント詳細ページへ移動します...
+                </p>
+                <div className={styles.countdownBar}>
+                  <div 
+                    className={styles.countdownProgress} 
+                    style={{ animationDuration: '3s' }}
+                  ></div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className={styles.modernForm}>
         <div className={styles.formCard}>
           <div className={styles.formStep}>
