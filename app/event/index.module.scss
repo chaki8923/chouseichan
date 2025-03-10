@@ -1848,6 +1848,13 @@
   }
 }
 
+@media screen and (max-width: 768px) {
+  .deleteButton {
+    right: 2px;
+    bottom: -20px;
+  }
+}
+
 // モーダルの削除ボタン
 .modalActions {
   display: flex;
