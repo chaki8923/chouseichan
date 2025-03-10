@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
             },
           },
           orderBy: {
-            id: 'asc', // idで昇順ソート（displayOrderは後でフロントエンドで並び替える）
+            displayOrder: 'asc',
           },
         },
         images: true,
@@ -174,7 +174,7 @@ export async function PATCH(request: NextRequest) {
                                 date: new Date(newSchedule.date),
                                 time: newSchedule.time,
                                 isConfirmed: false,
-                                // 順序は追加しない（デフォルト値の0が使用される）
+                                displayOrder: newSchedule.displayOrder || 0
                             },
                         });
                     }
@@ -192,6 +192,9 @@ export async function PATCH(request: NextRequest) {
                                     user: true
                                 }
                             }
+                        },
+                        orderBy: {
+                            displayOrder: 'asc'
                         }
                     }
                 },

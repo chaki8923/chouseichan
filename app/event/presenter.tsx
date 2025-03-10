@@ -24,7 +24,7 @@ import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove } from 'react-icons/fi';
+import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove, FiAlertCircle, FiImage } from 'react-icons/fi';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -75,11 +75,30 @@ interface SortableScheduleItemProps {
 }
 
 interface NewScheduleItemProps {
-  schedule: { date: string; time: string };
+  schedule: { date: string; time: string; id: string; displayOrder: number };
   index: number;
   onRemove: (index: number) => void;
   onChange: (index: number, field: 'date' | 'time', value: string) => void;
 }
+
+// 時間のオプションを生成する関数
+const generateTimeOptions = () => {
+  const times = [];
+  const startHour = 0;
+  const endHour = 23;
+  const interval = 30; // 分単位
+
+  for (let hour = startHour; hour <= endHour; hour++) {
+    const intervals = [0, interval];
+    for (const minute of intervals) {
+      const formattedHour = hour.toString().padStart(2, '0');
+      const formattedMinute = minute.toString().padStart(2, '0');
+      const formattedTime = `${formattedHour}:${formattedMinute}`;
+      times.push(formattedTime);
+    }
+  }
+  return times;
+};
 
 // 並べ替え可能なスケジュールアイテムコンポーネント
 const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({ 
@@ -107,6 +126,9 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
     zIndex: isDragging ? 1000 : 1,
   };
 
+  // 時間選択肢を生成
+  const timeOptions = generateTimeOptions();
+
   return (
     <div 
       ref={setNodeRef} 
@@ -124,13 +146,16 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
           className={styles.editInput}
           disabled={hasResponses || isMarkedForDeletion}
         />
-        <input
-          type="time"
+        <select
           value={schedule.time}
           onChange={(e) => onTimeChange(index, 'time', e.target.value)}
           className={styles.editInput}
           disabled={hasResponses || isMarkedForDeletion}
-        />
+        >
+          {timeOptions.map((time) => (
+            <option key={time} value={time}>{time}</option>
+          ))}
+        </select>
       </div>
       
       {hasResponses ? (
@@ -161,16 +186,41 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
   );
 };
 
-// 新しい日程アイテムコンポーネント
-const NewScheduleItem: React.FC<NewScheduleItemProps> = ({ 
+// 新しい日程アイテムコンポーネント（ドラッグ可能）
+const SortableNewScheduleItem: React.FC<NewScheduleItemProps> = ({ 
   schedule, 
   index, 
   onRemove, 
   onChange 
 }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: schedule.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  };
+
+  // 時間選択肢を生成
+  const timeOptions = generateTimeOptions();
+
   return (
-    <div className={styles.scheduleItem}>
-      <div className={styles.dragHandlePlaceholder}></div>
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className={`${styles.scheduleItem} ${styles.newScheduleItem}`}
+    >
+      <div className={styles.dragHandle} {...attributes} {...listeners}>
+        <FiMove />
+      </div>
       <div className={styles.scheduleInputs}>
         <input
           type="date"
@@ -178,12 +228,15 @@ const NewScheduleItem: React.FC<NewScheduleItemProps> = ({
           onChange={(e) => onChange(index, 'date', e.target.value)}
           className={styles.editInput}
         />
-        <input
-          type="time"
+        <select
           value={schedule.time}
           onChange={(e) => onChange(index, 'time', e.target.value)}
           className={styles.editInput}
-        />
+        >
+          {timeOptions.map((time) => (
+            <option key={time} value={time}>{time}</option>
+          ))}
+        </select>
       </div>
       <button
         type="button"
@@ -226,7 +279,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [selectedIconFile, setSelectedIconFile] = useState<File | null>(null);
   const [previewIcon, setPreviewIcon] = useState<string>("");
   const [editedSchedules, setEditedSchedules] = useState<{ id: number; date: string; time: string; hasResponses: boolean; displayOrder: number }[]>([]);
-  const [newSchedules, setNewSchedules] = useState<{ date: string; time: string }[]>([]);
+  const [newSchedules, setNewSchedules] = useState<{ id: string; date: string; time: string; displayOrder: number }[]>([]);
   const [scheduleToDelete, setScheduleToDelete] = useState<number[]>([]);
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
   const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
@@ -235,6 +288,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isDeleteCompleteModalOpen, setIsDeleteCompleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // 状態変数定義に追加
+  const [isEditCompleteModalOpen, setIsEditCompleteModalOpen] = useState(false);
 
   // DnDkit用のセンサーをコンポーネントのトップレベルで定義
   const sensors = useSensors(
@@ -744,7 +799,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           iconPath,
           schedules: {
             // 更新する既存の日程
-            update: editedSchedules.filter(s => !scheduleToDelete.includes(s.id)).map(s => ({
+            update: editedSchedules.filter(s => !scheduleToDelete.includes(s.id) && s.id !== -1).map(s => ({
               id: s.id,
               date: s.date,
               time: s.time,
@@ -753,18 +808,26 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             // 削除する日程
             delete: scheduleToDelete,
             // 新規追加する日程
-            create: newSchedules.map((s, index) => {
-              // 既存のスケジュールの最大displayOrderを取得
-              const maxDisplayOrder = editedSchedules.length > 0 
-                ? Math.max(...editedSchedules.map(es => es.displayOrder)) 
-                : -1;
-              
-              return {
+            create: [
+              ...newSchedules.map((s, index) => {
+                // 既存のスケジュールの最大displayOrderを取得
+                const maxDisplayOrder = editedSchedules.length > 0 
+                  ? Math.max(...editedSchedules.map(es => es.displayOrder)) 
+                  : -1;
+                
+                return {
+                  date: s.date,
+                  time: s.time,
+                  displayOrder: maxDisplayOrder + 1 + index // 既存の最大値より大きい値を設定
+                };
+              }),
+              // id: -1のスケジュール（新規から既存に移動したもの）も新規作成対象に追加
+              ...editedSchedules.filter(s => s.id === -1).map(s => ({
                 date: s.date,
                 time: s.time,
-                displayOrder: maxDisplayOrder + 1 + index // 既存の最大値より大きい値を設定
-              };
-            })
+                displayOrder: s.displayOrder
+              }))
+            ]
           }
         }),
       });
@@ -776,6 +839,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       // 更新されたイベントデータを取得して状態を更新
       const updatedEventData = await eventUpdateResponse.json();
       
+      // スケジュールをdisplayOrderでソートする
+      if (updatedEventData && updatedEventData.schedules) {
+        updatedEventData.schedules.sort((a: Schedule, b: Schedule) => {
+          // displayOrderが設定されていない場合はidでソート
+          const orderA = a.displayOrder !== undefined ? a.displayOrder : a.id;
+          const orderB = b.displayOrder !== undefined ? b.displayOrder : b.id;
+          return orderA - orderB;
+        });
+      }
+      
       // 成功メッセージを設定
       setEditMessage({ type: "success", message: "イベント情報を更新しました" });
 
@@ -783,10 +856,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       setEventData(updatedEventData);
 
       // 更新が成功したらフォームをリセットして編集モードを終了
+      // setEditMessage({ type: "success", message: "イベント情報を更新しました" });
+
+      // APIからの応答後に処理
+      setEventData(updatedEventData);
+      // 編集完了モーダルを表示
+      setIsEditCompleteModalOpen(true);
+
+      // 3秒後にモーダルを閉じて編集モードを終了
       setTimeout(() => {
+        setIsEditCompleteModalOpen(false);
         setIsEditing(false);
         setEditMessage({ type: "", message: "" });
-      }, 1500);
+      }, 1500); // 1.5秒に短縮
     } catch (error) {
       console.error("イベント更新エラー:", error);
       setEditMessage({ type: "error", message: "イベント情報の更新に失敗しました" });
@@ -795,23 +877,117 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   };
 
-  // handleDragEndの追加：ドラッグ&ドロップ時の並べ替え処理
+  // 日程を追加する関数
+  const handleAddSchedule = () => {
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    const tempId = `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // 既存のnewSchedulesの最大displayOrderを取得
+    const maxDisplayOrder = newSchedules.length > 0
+      ? Math.max(...newSchedules.map(s => s.displayOrder))
+      : (editedSchedules.length > 0 
+        ? Math.max(...editedSchedules.map(s => s.displayOrder)) 
+        : -1);
+    
+    setNewSchedules([
+      ...newSchedules,
+      {
+        id: tempId,
+        date: formattedDate,
+        time: "12:00",
+        displayOrder: maxDisplayOrder + 1
+      }
+    ]);
+  };
+
+  // ドラッグアンドドロップの処理関数を更新
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (over && active.id !== over.id) {
-      setEditedSchedules((schedules) => {
-        const oldIndex = schedules.findIndex(s => s.id.toString() === active.id);
-        const newIndex = schedules.findIndex(s => s.id.toString() === over.id);
+    if (!over || active.id === over.id) return;
+    
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
+    
+    // 新規スケジュールの並び替え
+    if (activeId.startsWith('new-') && overId.startsWith('new-')) {
+      setNewSchedules((schedules) => {
+        const oldIndex = schedules.findIndex(s => s.id === activeId);
+        const newIndex = schedules.findIndex(s => s.id === overId);
         
         const newSchedules = arrayMove(schedules, oldIndex, newIndex);
         
-        // 新しい配列の順序に基づいてdisplayOrderを割り当て
         return newSchedules.map((schedule, index) => ({
           ...schedule,
           displayOrder: index
         }));
       });
+    }
+    // 既存スケジュールの並び替え
+    else if (!activeId.startsWith('new-') && !overId.startsWith('new-')) {
+      setEditedSchedules((schedules) => {
+        const oldIndex = schedules.findIndex(s => s.id.toString() === activeId);
+        const newIndex = schedules.findIndex(s => s.id.toString() === overId);
+        
+        const newSchedules = arrayMove(schedules, oldIndex, newIndex);
+        
+        return newSchedules.map((schedule, index) => ({
+          ...schedule,
+          displayOrder: index
+        }));
+      });
+    }
+    // 新規と既存の間での並び替え（複雑なケース）
+    else {
+      // activeが新規、overが既存の場合
+      if (activeId.startsWith('new-') && !overId.startsWith('new-')) {
+        const movedItem = newSchedules.find(s => s.id === activeId);
+        if (!movedItem) return;
+        
+        // 新規リストから削除
+        setNewSchedules(prev => prev.filter(s => s.id !== activeId));
+        
+        // 既存リストに追加
+        setEditedSchedules(prev => {
+          const overIndex = prev.findIndex(s => s.id.toString() === overId);
+          const newItems = [...prev];
+          newItems.splice(overIndex, 0, {
+            id: -1, // 一時的なID（保存時には新規として扱われる）
+            date: movedItem.date,
+            time: movedItem.time,
+            hasResponses: false,
+            displayOrder: movedItem.displayOrder
+          });
+          
+          // displayOrderを再計算
+          return newItems.map((item, idx) => ({ ...item, displayOrder: idx }));
+        });
+      }
+      // activeが既存、overが新規の場合
+      else if (!activeId.startsWith('new-') && overId.startsWith('new-')) {
+        const movedItem = editedSchedules.find(s => s.id.toString() === activeId);
+        if (!movedItem) return;
+        
+        // 既存リストから削除（削除予定に追加）
+        setScheduleToDelete(prev => [...prev, movedItem.id]);
+        setEditedSchedules(prev => prev.filter(s => s.id.toString() !== activeId));
+        
+        // 新規リストに追加
+        setNewSchedules(prev => {
+          const overIndex = prev.findIndex(s => s.id === overId);
+          const newItems = [...prev];
+          newItems.splice(overIndex, 0, {
+            id: `moved-${movedItem.id}`,
+            date: movedItem.date,
+            time: movedItem.time,
+            displayOrder: movedItem.displayOrder
+          });
+          
+          // displayOrderを再計算
+          return newItems.map((item, idx) => ({ ...item, displayOrder: idx }));
+        });
+      }
     }
   };
 
@@ -1098,15 +1274,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     setEditedSchedules(updatedSchedules);
   };
 
-  // 新しい日程を追加する関数
-  const handleAddSchedule = () => {
-    // 現在の日付を取得してYYYY-MM-DD形式に変換
-    const today = new Date();
-    const formattedToday = today.toISOString().split('T')[0];
-    
-    setNewSchedules([...newSchedules, { date: formattedToday, time: '19:00' }]);
-  };
-
   // 新しい日程の入力値を更新する関数
   const handleNewScheduleChange = (index: number, field: 'date' | 'time', value: string) => {
     const updatedNewSchedules = [...newSchedules];
@@ -1126,11 +1293,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   // 既存の日程を削除する関数
   const handleMarkScheduleForDeletion = (id: number) => {
-    if (scheduleToDelete.includes(id)) {
-      setScheduleToDelete(scheduleToDelete.filter(scheduleId => scheduleId !== id));
-    } else {
-      setScheduleToDelete([...scheduleToDelete, id]);
-    }
+    setScheduleToDelete(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(scheduleId => scheduleId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
   };
 
   return (
@@ -1237,15 +1406,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     候補日程 <span className={styles.tagRequire}>必須</span>
                   </label>
                   
-                  {/* 既存のスケジュール */}
-                  {editedSchedules.length > 0 && (
-                    <div className={styles.schedulesContainer}>
-                      <h4 className={styles.scheduleSubheading}>既存の候補日程 <small>（ドラッグ&ドロップで順番を変更できます）</small></h4>
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                      >
+                  {/* すべてのスケジュールをドラッグ可能に統合 */}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    {/* 既存のスケジュール */}
+                    {editedSchedules.length > 0 && (
+                      <div className={styles.schedulesContainer}>
+                        <h4 className={styles.scheduleSubheading}>既存の候補日程 <small>（ドラッグ&ドロップで順番を変更できます）</small></h4>
                         <SortableContext
                           items={editedSchedules.map(schedule => schedule.id.toString())}
                           strategy={verticalListSortingStrategy}
@@ -1263,25 +1433,30 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                             />
                           ))}
                         </SortableContext>
-                      </DndContext>
-                    </div>
-                  )}
+                      </div>
+                    )}
 
-                  {/* 新規追加のスケジュール */}
-                  {newSchedules.length > 0 && (
-                    <div className={styles.schedulesContainer}>
-                      <h4 className={styles.scheduleSubheading}>新規追加の候補日程</h4>
-                      {newSchedules.map((schedule, index) => (
-                        <NewScheduleItem
-                          key={index}
-                          schedule={schedule}
-                          index={index}
-                          onRemove={handleRemoveNewSchedule}
-                          onChange={handleNewScheduleChange}
-                        />
-                      ))}
-                    </div>
-                  )}
+                    {/* 新規追加のスケジュール */}
+                    {newSchedules.length > 0 && (
+                      <div className={styles.schedulesContainer}>
+                        <h4 className={styles.scheduleSubheading}>新規追加の候補日程 <small>（ドラッグ&ドロップで順番を変更できます）</small></h4>
+                        <SortableContext
+                          items={newSchedules.map(schedule => schedule.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {newSchedules.map((schedule, index) => (
+                            <SortableNewScheduleItem
+                              key={schedule.id}
+                              schedule={schedule}
+                              index={index}
+                              onRemove={handleRemoveNewSchedule}
+                              onChange={handleNewScheduleChange}
+                            />
+                          ))}
+                        </SortableContext>
+                      </div>
+                    )}
+                  </DndContext>
 
                   {/* 日程追加ボタン */}
                   <button
@@ -1752,6 +1927,26 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           <p className={styles.modalText}>
             イベント「{eventData?.name}」の削除が完了しました。<br />
             まもなくトップページへ移動します...
+          </p>
+          <div className={styles.modalCountdown}>
+            <div className={styles.modalCountdownBar}></div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 編集完了モーダル */}
+      <Modal
+        isOpen={isEditCompleteModalOpen}
+        onClose={() => setIsEditCompleteModalOpen(false)}
+        type="info"
+        showCloseButton={false}
+      >
+        <div className={styles.modalContent}>
+          <FiCheck size={50} color="#4BB543" style={{ marginBottom: '1rem' }} />
+          <h2 className={styles.modalTitle}>編集が完了しました</h2>
+          <p className={styles.modalText}>
+            イベント「{eventData?.name}」の編集が完了しました。<br />
+            まもなくイベントページへ戻ります...
           </p>
           <div className={styles.modalCountdown}>
             <div className={styles.modalCountdownBar}></div>
