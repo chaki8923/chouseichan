@@ -30,7 +30,7 @@ const notoSansJP = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: "調整ちゃん | 日程登録",
-  description: "たったの2ステップでイベント登録。本アプリは、Googleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。",
+  description: "「調整ちゃん」はたったの2ステップでイベント登録。調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。",
   keywords: ["イベント", "スケジュール", "調整", "日程調整", "カレンダー", "予定", "出欠", "グループ", "チーム", "オンライン"],
   robots: "index, follow",
   metadataBase: new URL('https://www.chouseichan.com'),
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@chousei", // 公式アカウントがあれば追加
     title: "調整ちゃん | 日程登録",
-    description: "たったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。",
+    description: "調整ちゃんはたったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。",
     images: ["/logo.png"],
     creator: "@chousei",
   },

@@ -19,12 +19,12 @@ import { Event } from "@/types/event";
 import Form from "./form";
 import Modal from "../component/modal/modal";
 import SpinLoader from "../component/loader/spin";
-import { isEventOwner, addEvent } from "@/app/utils/strages";
+import { isEventOwner, addEvent, removeEvent } from "@/app/utils/strages";
 import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { FiCamera, FiAlertTriangle } from 'react-icons/fi';
+import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck } from 'react-icons/fi';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -76,6 +76,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
   const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
   const router = useRouter();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteCompleteModalOpen, setIsDeleteCompleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const user = session?.user ?? { id: "", name: "ゲストユーザー", };
   const accessToken = user.accessToken ?? "";
@@ -809,6 +813,66 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   };
 
+  // イベント削除ハンドラー
+  const handleDeleteEvent = async () => {
+    // 作成者でない場合は削除できない
+    if (!isOrganizer) {
+      setDeleteError("イベントの削除権限がありません");
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    
+    try {
+      // 1. イベント画像をAPIで削除
+      if (eventImages.length > 0) {
+        await fetch(`/api/event/images?eventId=${eventId}`, {
+          method: 'DELETE'
+        });
+      }
+      
+      // 2. イベント自体を削除
+      const response = await fetch(`/api/events?eventId=${eventId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "イベントの削除に失敗しました");
+      }
+      
+      // 3. localStorage内のイベントデータを削除
+      removeEvent(eventId);
+      
+      // 削除成功モーダルを表示
+      setIsDeleteModalOpen(false);
+      setIsDeleteCompleteModalOpen(true);
+      
+      // 3秒後にトップページへリダイレクト
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 3000);
+      
+      setRedirectTimer(timer);
+      
+    } catch (error) {
+      console.error("イベント削除エラー:", error);
+      setDeleteError(error instanceof Error ? error.message : "イベントの削除中にエラーが発生しました");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // 削除確認モーダルを表示
+  const showDeleteConfirmation = () => {
+    if (!isOrganizer) {
+      setDeleteError("イベントの削除権限がありません");
+      return;
+    }
+    setIsDeleteModalOpen(true);
+  };
+
   return (
     <>
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
@@ -928,15 +992,27 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           ) : (
             <div className={styles.eventTitleContainer}>
               <h1 className={styles.eventName}>{eventData.name}</h1>
-              {isOrganizer && (
-                <button
-                  onClick={handleStartEdit}
-                  className={styles.editButton}
-                  title="イベント情報を編集"
-                >
-                  <FaEdit />
-                </button>
-              )}
+              <div className="flex">
+                {isOrganizer && (
+                  <>
+                    <button
+                      className={styles.editButton}
+                      onClick={handleStartEdit}
+                      title="イベントを編集"
+                    >
+                      <FaEdit />
+                    </button>
+                    
+                    <button
+                      className={styles.deleteButton}
+                      onClick={showDeleteConfirmation}
+                      title="イベントを削除"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
 
@@ -999,24 +1075,30 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   <th><FaRegCircle className={styles.reactIconTable} /></th>
                   <th><IoTriangleOutline className={styles.reactIconTable} /></th>
                   <th><RxCross2 className={styles.reactIconTable} /></th>
-                  {/** `userId` をキーとして利用 */}
-                  {Array.from(
-                    new Map<string, { id: string; name: string; response: string }>(
-                      eventData.schedules
-                        .flatMap((schedule: Schedule) =>
-                          schedule.responses.map((response) => ({
-                            id: response.user.id,
-                            name: response.user.name,
-                            response: response.response, // 必須プロパティ response を含める
-                          }))
-                        )
-                        .map((user: User) => [user.id, user]) // Map のキーとして user.id を指定
-                    ).values()
-                  ).map((user) => (
-                    <th key={user.id} onClick={() => changeUpdate(user.id, user.name)} className={styles.userName} role="button" title={`${user.name}さんの回答を編集する`}>
-                      {user.name}
-                    </th>
-                  ))}
+                  {/* ユーザー名のリストを表示 */}
+                  {eventData.schedules
+                    .flatMap(schedule => 
+                      schedule.responses.map(response => ({
+                        id: response.user.id,
+                        name: response.user.name
+                      }))
+                    )
+                    // 重複を排除
+                    .filter((user, index, self) => 
+                      index === self.findIndex(u => u.id === user.id)
+                    )
+                    .map(user => (
+                      <th 
+                        key={user.id} 
+                        onClick={() => changeUpdate(user.id, user.name)} 
+                        className={styles.userName} 
+                        role="button" 
+                        title={`${user.name}さんの回答を編集する`}
+                      >
+                        {user.name}
+                      </th>
+                    ))
+                  }
                 </tr>
                 {eventData.schedules.map((schedule: Schedule) => {
                   // 日付と時刻のフォーマット
@@ -1078,20 +1160,20 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                       <td className="min-w-[75px]">{attendCount}人</td>
                       <td className="min-w-[75px]">{undecidedCount}人</td>
                       <td className="min-w-[75px]">{declineCount}人</td>
-                      {Array.from(
-                        new Set<string>(
-                          eventData.schedules.flatMap((schedule: Schedule) =>
-                            schedule.responses.map((response) => response.user?.name)
-                          )
-                        )
-                      ).map((userName) => (
-                        <td key={`${schedule.id}-${userName}`}>
-                          {userResponses[userName] === "ATTEND" && <FaRegCircle className={styles.reactIcon} />}
-                          {userResponses[userName] === "UNDECIDED" && <IoTriangleOutline className={styles.reactIcon} />}
-                          {userResponses[userName] === "ABSENT" && <RxCross2 className={styles.reactIcon} />}
-                        </td>
-
-                      ))}
+                      {/* 各ユーザーの回答を表示 */}
+                      {eventData.schedules
+                        .flatMap(s => s.responses)
+                        .map(response => response.user.name)
+                        // 重複を排除
+                        .filter((name, index, self) => self.indexOf(name) === index)
+                        .map(userName => (
+                          <td key={`${schedule.id}-${userName}`}>
+                            {userResponses[userName] === "ATTEND" && <FaRegCircle className={styles.reactIcon} />}
+                            {userResponses[userName] === "UNDECIDED" && <IoTriangleOutline className={styles.reactIcon} />}
+                            {userResponses[userName] === "ABSENT" && <RxCross2 className={styles.reactIcon} />}
+                          </td>
+                        ))
+                      }
                     </tr>
                   )
                 })}
@@ -1100,24 +1182,25 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     <td colSpan={5} className={styles.colspan1}>コメント</td> :
                     <td colSpan={4} className={styles.colspan1}>コメント</td>
                   }
-
-                  {Array.from(
-                    new Map<string, { id: string; name: string; comment?: string }>(
-                      eventData.schedules
-                        .flatMap((schedule: Schedule) =>
-                          schedule.responses.map((response) => ({
-                            id: response.user.id,
-                            name: response.user.name,
-                            comment: response.user.comment || "",
-                          }))
-                        )
-                        .map((user) => [user.id, user])
-                    ).values()
-                  ).map((user) => (
-                    <td key={`comment-${user.id}`} colSpan={1} className={styles.userComment}>
-                      {user.comment}
-                    </td>
-                  ))}
+                  {/* ユーザーのコメントを表示 */}
+                  {eventData.schedules
+                    .flatMap(schedule => 
+                      schedule.responses.map(response => ({
+                        id: response.user.id,
+                        name: response.user.name,
+                        comment: response.user.comment || ""
+                      }))
+                    )
+                    // 重複を排除
+                    .filter((user, index, self) => 
+                      index === self.findIndex(u => u.id === user.id)
+                    )
+                    .map(user => (
+                      <td key={`comment-${user.id}`} className={styles.userComment}>
+                        {user.comment}
+                      </td>
+                    ))
+                  }
                 </tr>
               </tbody>
             </table>
@@ -1289,6 +1372,62 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             onDelete={isOrganizer ? handleDeleteImage : undefined} // オーナーのみ削除可能
           />)
       )}
+
+      {/* 削除確認モーダル */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        type="warning"
+        showCloseButton={!isDeleting}
+      >
+        <div className={styles.modalContent}>
+          <FiAlertTriangle size={50} color="#FF6B6B" style={{ marginBottom: '1rem' }} />
+          <h2 className={styles.modalTitle}>イベントを削除しますか？</h2>
+          <p className={styles.modalText}>
+            このイベント「{eventData?.name}」を完全に削除します。<br />
+            この操作は<strong>元に戻せません</strong>。関連するスケジュール、参加情報、画像もすべて削除されます。
+          </p>
+          {deleteError && (
+            <p className={styles.errorMessage}>{deleteError}</p>
+          )}
+          <div className={styles.modalActions}>
+            <button
+              className={`${styles.cancelButton} ${isDeleting ? styles.disabled : ''}`}
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              キャンセル
+            </button>
+            <button
+              className={`${styles.deleteButton} ${isDeleting ? styles.loading : ''}`}
+              onClick={handleDeleteEvent}
+              disabled={isDeleting}
+            >
+              {isDeleting ? '削除中...' : 'イベントを削除する'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+      
+      {/* 削除完了モーダル */}
+      <Modal
+        isOpen={isDeleteCompleteModalOpen}
+        onClose={() => setIsDeleteCompleteModalOpen(false)}
+        type="info"
+        showCloseButton={false}
+      >
+        <div className={styles.modalContent}>
+          <FiCheck size={50} color="#4BB543" style={{ marginBottom: '1rem' }} />
+          <h2 className={styles.modalTitle}>削除が完了しました</h2>
+          <p className={styles.modalText}>
+            イベント「{eventData?.name}」の削除が完了しました。<br />
+            まもなくトップページへ移動します...
+          </p>
+          <div className={styles.modalCountdown}>
+            <div className={styles.modalCountdownBar}></div>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

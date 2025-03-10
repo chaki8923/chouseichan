@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         },
       });
     
-      const key = `emages/${Date.now()}.${extension}`;
+      const key = `images/${Date.now()}.${extension}`;
     
       await s3.send(
         new PutObjectCommand({
