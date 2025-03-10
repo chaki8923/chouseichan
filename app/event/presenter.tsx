@@ -315,6 +315,32 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   }, [isEditing, eventId]);
 
+  // 削除完了モーダルが表示されたときのリダイレクト処理
+  useEffect(() => {
+    if (isDeleteCompleteModalOpen) {
+      // モーダルCountdownBarのアニメーションが終了する3秒後にトップページへリダイレクト
+      const redirectTimer = setTimeout(() => {
+        window.location.href = '/';
+      }, 3000);
+      
+      // コンポーネントのアンマウント時やモーダルが閉じられたときにタイマーをクリア
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [isDeleteCompleteModalOpen]);
+
+  // イベントが見つからない場合のリダイレクト処理
+  useEffect(() => {
+    if (eventNotFound) {
+      // countdownBarのアニメーションが終了する5秒後に自動的にトップページへリダイレクト
+      const redirectTimer = setTimeout(() => {
+        window.location.href = '/';
+      }, 5000);
+      
+      // コンポーネントのアンマウント時にタイマーをクリア
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [eventNotFound]);
+
   if (!eventId) return <p>イベントidがありません</p>
 
   if (eventNotFound) {

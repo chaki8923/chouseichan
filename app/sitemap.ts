@@ -53,12 +53,7 @@ const secondaryRoutes = [
     path: '/infomation',
     changeFrequency: 'weekly' as const,
     priority: 0.8,
-  },
-  {
-    path: '/blog',
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  },
+  }
 ];
 
 // 補足的なページのリスト（低優先度）
@@ -72,11 +67,6 @@ const tertiaryRoutes = [
     path: '/rule',
     changeFrequency: 'monthly' as const,
     priority: 0.5,
-  },
-  {
-    path: '/contact',
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
   },
 ];
 
