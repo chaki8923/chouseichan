@@ -225,7 +225,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [editedIcon, setEditedIcon] = useState<string>("");
   const [selectedIconFile, setSelectedIconFile] = useState<File | null>(null);
   const [previewIcon, setPreviewIcon] = useState<string>("");
-  const [editedSchedules, setEditedSchedules] = useState<{ id: number; date: string; time: string; hasResponses: boolean }[]>([]);
+  const [editedSchedules, setEditedSchedules] = useState<{ id: number; date: string; time: string; hasResponses: boolean; displayOrder: number }[]>([]);
   const [newSchedules, setNewSchedules] = useState<{ date: string; time: string }[]>([]);
   const [scheduleToDelete, setScheduleToDelete] = useState<number[]>([]);
   const [editMessage, setEditMessage] = useState<{ type: string; message: string }>({ type: "", message: "" });
@@ -262,6 +262,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       if (!response.ok) {
         throw new Error(data.error || "エラーが発生しました");
+      }
+
+      // スケジュールをdisplayOrderでソートする
+      if (data && data.schedules) {
+        data.schedules.sort((a: Schedule, b: Schedule) => {
+          // displayOrderが設定されていない場合はidでソート
+          const orderA = a.displayOrder !== undefined ? a.displayOrder : a.id;
+          const orderB = b.displayOrder !== undefined ? b.displayOrder : b.id;
+          return orderA - orderB;
+        });
       }
 
       return data;
@@ -570,7 +580,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     setPreviewIcon(eventData.image || "");
     
     // 日程情報を初期化
-    const schedules = eventData.schedules.map(schedule => {
+    const schedules = eventData.schedules.map((schedule, index) => {
       // 各日程にレスポンスがあるかどうかを確認
       const hasResponses = schedule.responses && schedule.responses.length > 0;
       
@@ -582,7 +592,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         id: schedule.id,
         date: formattedDate,
         time: schedule.time,
-        hasResponses
+        hasResponses,
+        displayOrder: schedule.displayOrder !== undefined ? schedule.displayOrder : index // 既存の表示順序またはインデックスを使用
       };
     });
     
@@ -736,15 +747,24 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             update: editedSchedules.filter(s => !scheduleToDelete.includes(s.id)).map(s => ({
               id: s.id,
               date: s.date,
-              time: s.time
+              time: s.time,
+              displayOrder: s.displayOrder // 表示順序を追加
             })),
             // 削除する日程
             delete: scheduleToDelete,
             // 新規追加する日程
-            create: newSchedules.map(s => ({
-              date: s.date,
-              time: s.time
-            }))
+            create: newSchedules.map((s, index) => {
+              // 既存のスケジュールの最大displayOrderを取得
+              const maxDisplayOrder = editedSchedules.length > 0 
+                ? Math.max(...editedSchedules.map(es => es.displayOrder)) 
+                : -1;
+              
+              return {
+                date: s.date,
+                time: s.time,
+                displayOrder: maxDisplayOrder + 1 + index // 既存の最大値より大きい値を設定
+              };
+            })
           }
         }),
       });
@@ -784,7 +804,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         const oldIndex = schedules.findIndex(s => s.id.toString() === active.id);
         const newIndex = schedules.findIndex(s => s.id.toString() === over.id);
         
-        return arrayMove(schedules, oldIndex, newIndex);
+        const newSchedules = arrayMove(schedules, oldIndex, newIndex);
+        
+        // 新しい配列の順序に基づいてdisplayOrderを割り当て
+        return newSchedules.map((schedule, index) => ({
+          ...schedule,
+          displayOrder: index
+        }));
       });
     }
   };

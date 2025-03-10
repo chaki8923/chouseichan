@@ -3,49 +3,63 @@ import { prisma } from "@/libs/prisma";
 
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const eventId = searchParams.get("eventId");
-
-  if (!eventId) {
-    return NextResponse.json(
-      { error: "eventIdは必須です" },
-      { status: 400 }
-    );
-  }
-
   try {
+    const { searchParams } = new URL(request.url);
+    const eventId = searchParams.get('eventId');
+
+    if (!eventId) {
+      return new Response(JSON.stringify({ error: 'イベントIDが必要です' }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+
     const event = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: {
+        id: eventId,
+      },
       include: {
-        user: true, // イベントの作成者情報
-        images: true,
         schedules: {
-          orderBy: { id: "asc" },
           include: {
             responses: {
-              orderBy: { user: { createdAt: "asc" } }, // userのupdatedAt順で
               include: {
-                user: true, // 各回答者情報を取得
+                user: true,
               },
             },
           },
+          orderBy: {
+            id: 'asc', // idで昇順ソート（displayOrderは後でフロントエンドで並び替える）
+          },
         },
+        images: true,
       },
     });
+
     if (!event) {
-      return NextResponse.json(
-        { error: "指定されたイベントが見つかりませんでした" },
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ error: '指定されたイベントが見つかりませんでした' }), {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     }
 
-    return NextResponse.json(event, { status: 200 });
+    return new Response(JSON.stringify(event), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   } catch (error) {
-    console.error("Error fetching event and schedules:", error);
-    return NextResponse.json(
-      { error: "イベント取得中にエラーが発生しました" },
-      { status: 500 }
-    );
+    console.error('イベント取得エラー:', error);
+    return new Response(JSON.stringify({ error: 'イベントの取得に失敗しました' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   }
 }
 
@@ -107,15 +121,29 @@ export async function PATCH(request: NextRequest) {
                             (s) => s.id === schedule.id
                         );
 
-                        // スケジュールが存在し、レスポンスがなければ更新
-                        if (existingSchedule && existingSchedule.responses.length === 0) {
-                            await tx.schedule.update({
-                                where: { id: schedule.id },
-                                data: {
-                                    date: new Date(schedule.date),
-                                    time: schedule.time,
-                                },
-                            });
+                        // スケジュールが存在する場合のみ処理
+                        if (existingSchedule) {
+                            // データを用意
+                            const updateData: any = {};
+                            
+                            // レスポンスがない場合のみ日付と時間を更新
+                            if (existingSchedule.responses.length === 0) {
+                                updateData.date = new Date(schedule.date);
+                                updateData.time = schedule.time;
+                            }
+                            
+                            // 表示順序が指定されていれば更新
+                            if (schedule.displayOrder !== undefined) {
+                                updateData.displayOrder = schedule.displayOrder;
+                            }
+                            
+                            // 更新するデータがあれば実行
+                            if (Object.keys(updateData).length > 0) {
+                                await tx.schedule.update({
+                                    where: { id: schedule.id },
+                                    data: updateData
+                                });
+                            }
                         }
                     }
                 }
@@ -146,6 +174,7 @@ export async function PATCH(request: NextRequest) {
                                 date: new Date(newSchedule.date),
                                 time: newSchedule.time,
                                 isConfirmed: false,
+                                // 順序は追加しない（デフォルト値の0が使用される）
                             },
                         });
                     }

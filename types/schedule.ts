@@ -6,5 +6,5 @@ export type Schedule = {
   date: string;
   time: string;
   isConfirmed: boolean;
-
+  displayOrder?: number; // 表示順序を管理するフィールド（オプショナル）
 };

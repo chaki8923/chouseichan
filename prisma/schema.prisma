@@ -96,6 +96,7 @@ model Schedule {
   date      DateTime
   time      String    @db.VarChar(10)
   isConfirmed Boolean @default(false) // NULL 許可しない
+  displayOrder Int    @default(0) // 表示順序を管理するカラム
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   event     Event     @relation(fields: [eventId], references: [id])
