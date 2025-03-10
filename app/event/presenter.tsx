@@ -122,7 +122,6 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 1000 : 1,
   };
 
@@ -133,7 +132,7 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`${styles.scheduleItem} ${isMarkedForDeletion ? styles.scheduleDeleted : ''} ${hasResponses ? styles.scheduleDisabled : ''}`}
+      className={`${styles.scheduleItem} ${isMarkedForDeletion ? styles.scheduleDeleted : ''} ${hasResponses ? styles.scheduleDisabled : ''} ${isDragging ? styles.dragging : ''}`}
     >
       <div className={styles.dragHandle} {...attributes} {...listeners}>
         <FiMove />
@@ -205,7 +204,6 @@ const SortableNewScheduleItem: React.FC<NewScheduleItemProps> = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 1000 : 1,
   };
 
@@ -216,7 +214,7 @@ const SortableNewScheduleItem: React.FC<NewScheduleItemProps> = ({
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`${styles.scheduleItem} ${styles.newScheduleItem}`}
+      className={`${styles.scheduleItem} ${styles.newScheduleItem} ${isDragging ? styles.dragging : ''}`}
     >
       <div className={styles.dragHandle} {...attributes} {...listeners}>
         <FiMove />
@@ -321,10 +319,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       // スケジュールをdisplayOrderでソートする
       if (data && data.schedules) {
-        data.schedules.sort((a: Schedule, b: Schedule) => {
-          // displayOrderが設定されていない場合はidでソート
-          const orderA = a.displayOrder !== undefined ? a.displayOrder : a.id;
-          const orderB = b.displayOrder !== undefined ? b.displayOrder : b.id;
+        data.schedules.sort((a: { displayOrder?: number }, b: { displayOrder?: number }) => {
+          const orderA = a.displayOrder ?? 0;
+          const orderB = b.displayOrder ?? 0;
           return orderA - orderB;
         });
       }
@@ -356,7 +353,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const getEventData = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchEventWithSchedules(eventId!);
+        const data = await fetchEventWithSchedules(eventId!);
 
       if (!data) {
         // イベントが見つからない場合の処理
@@ -370,32 +367,37 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             const recentEvents = JSON.parse(localStorage.getItem('recent_events') || '[]');
             const filteredEvents = recentEvents.filter((event: LocalStorageEvent) => event.id !== eventId);
             localStorage.setItem('recent_events', JSON.stringify(filteredEvents));
-            // console.log(`localStorage から eventId: ${eventId} の情報を削除しました`);
-          } catch {
-            // localStorage の操作中にエラーが発生しても処理を続行
+          } catch (error) {
+            console.error('LocalStorageからの削除に失敗:', error);
           }
         }
 
-        // 5秒後にTOPページに遷移
+        // 5秒後に自動的にトップページへリダイレクト
         redirectToHome();
         return;
       }
 
+      // スケジュールをdisplayOrderでソート
+      if (data.schedules) {
+        data.schedules.sort((a: { displayOrder?: number }, b: { displayOrder?: number }) => {
+          const orderA = a.displayOrder ?? 0;
+          const orderB = b.displayOrder ?? 0;
+          return orderA - orderB;
+        });
+      }
+
       setEventData(data);
-      setError(null); // エラーをリセット
-    } catch {
-      // エラーが発生した場合でもUIにはメッセージを表示
-      setError("データの取得に失敗しました");
-      setEventNotFound(true);
+    } catch (error) {
+      console.error("Error fetching event data:", error);
+      setError("データの取得中にエラーが発生しました");
+      redirectToHome();
     } finally {
-      // 処理完了時は必ずローディング状態を解除
       setLoading(false);
     }
   }, [eventId, redirectToHome]);
 
   const fetchSchedules = useCallback(async () => {
     try {
-      setLoading(true); // ローディング状態を開始
       const data = await fetchEventWithSchedules(eventId);
 
       if (data) {
@@ -415,10 +417,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     } catch {
       // エラーが発生した場合でもUIにはメッセージを表示
       setError("データの取得に失敗しました");
-    } finally {
+      } finally {
       // 処理完了時は必ずローディング状態を解除
-      setLoading(false);
-    }
+        setLoading(false);
+      }
   }, [eventId]);
 
   useEffect(() => {
@@ -438,6 +440,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   useEffect(() => {
     // ブラウザ環境でのみ実行
     if (typeof window !== 'undefined') {
+      // URLパラメータを確認
+      const urlParams = new URLSearchParams(window.location.search);
+      const noAutoSwiper = urlParams.get('noAutoSwiper');
+      
+      // noAutoSwiperフラグがある場合は、Swiperを自動表示しない
+      if (noAutoSwiper === 'true') {
+        return; // 何もせずに終了
+      }
+      
       // ローカルストレージからデータを取得
       const uploadFlag = localStorage.getItem(`image_uploaded_${eventId}`);
       const uploadTime = localStorage.getItem(`image_upload_time_${eventId}`);
@@ -814,8 +825,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 const maxDisplayOrder = editedSchedules.length > 0 
                   ? Math.max(...editedSchedules.map(es => es.displayOrder)) 
                   : -1;
-                
-                return {
+
+      return {
                   date: s.date,
                   time: s.time,
                   displayOrder: maxDisplayOrder + 1 + index // 既存の最大値より大きい値を設定
@@ -849,6 +860,32 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         });
       }
       
+      // ローカルストレージの情報を更新する
+      // 閲覧履歴とイベントオーナー情報の更新
+      if (updatedEventData && updatedEventData.schedules) {
+        try {
+          // 動的インポートを使用
+          const stragesModule = await import('../utils/strages');
+          const { addEventToHistory, setOwnerEvent } = stragesModule;
+          
+          // 日程情報をフォーマット
+          const formattedSchedules = updatedEventData.schedules.map((s: Schedule) => ({
+            date: new Date(s.date).toISOString().split('T')[0],
+            time: s.time
+          }));
+          
+          // 閲覧履歴に追加
+          addEventToHistory(eventId, updatedEventData.name || "", formattedSchedules);
+          
+          // オーナー情報も更新
+          setOwnerEvent(eventId, updatedEventData.name || "", formattedSchedules);
+          
+          console.log("ローカルストレージのイベント情報を更新しました");
+        } catch (error) {
+          console.error("ローカルストレージの更新に失敗しました:", error);
+        }
+      }
+      
       // 成功メッセージを設定
       setEditMessage({ type: "success", message: "イベント情報を更新しました" });
 
@@ -863,11 +900,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       // 編集完了モーダルを表示
       setIsEditCompleteModalOpen(true);
 
-      // 3秒後にモーダルを閉じて編集モードを終了
+      // 1.5秒後にモーダルを閉じて編集モードを終了し、ページをリロード
       setTimeout(() => {
         setIsEditCompleteModalOpen(false);
         setIsEditing(false);
         setEditMessage({ type: "", message: "" });
+        
+        // ページをリロードして回答フォームの状態をリセット
+        window.location.reload();
       }, 1500); // 1.5秒に短縮
     } catch (error) {
       console.error("イベント更新エラー:", error);
@@ -1143,8 +1183,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const handleFormSuccess = () => {
     // 完了モーダルを表示
     // 2秒後に閉じる
-    setTimeout(() => {
-    }, 2000);
+    // setTimeout(() => {
+    // }, 2000);
 
     // スケジュールとイベントデータを再取得（fetchSchedules関数に記述されているリセット処理は実行される）
     fetchSchedules();
@@ -1496,7 +1536,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             </div>
           ) : (
             <div className={styles.eventTitleContainer}>
-              <h1 className={styles.eventName}>{eventData.name}</h1>
+          <h1 className={styles.eventName}>{eventData.name}</h1>
               <div className="flex">
                 {isOrganizer && (
                   <>
@@ -1584,7 +1624,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   {eventData.schedules
                     .flatMap(schedule => 
                       schedule.responses.map(response => ({
-                        id: response.user.id,
+                            id: response.user.id,
                         name: response.user.name
                       }))
                     )
@@ -1600,8 +1640,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                         role="button" 
                         title={`${user.name}さんの回答を編集する`}
                       >
-                        {user.name}
-                      </th>
+                      {user.name}
+                    </th>
                     ))
                   }
                 </tr>
@@ -1672,11 +1712,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                         // 重複を排除
                         .filter((name, index, self) => self.indexOf(name) === index)
                         .map(userName => (
-                          <td key={`${schedule.id}-${userName}`}>
-                            {userResponses[userName] === "ATTEND" && <FaRegCircle className={styles.reactIcon} />}
-                            {userResponses[userName] === "UNDECIDED" && <IoTriangleOutline className={styles.reactIcon} />}
-                            {userResponses[userName] === "ABSENT" && <RxCross2 className={styles.reactIcon} />}
-                          </td>
+                        <td key={`${schedule.id}-${userName}`}>
+                          {userResponses[userName] === "ATTEND" && <FaRegCircle className={styles.reactIcon} />}
+                          {userResponses[userName] === "UNDECIDED" && <IoTriangleOutline className={styles.reactIcon} />}
+                          {userResponses[userName] === "ABSENT" && <RxCross2 className={styles.reactIcon} />}
+                        </td>
                         ))
                       }
                     </tr>
@@ -1691,8 +1731,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   {eventData.schedules
                     .flatMap(schedule => 
                       schedule.responses.map(response => ({
-                        id: response.user.id,
-                        name: response.user.name,
+                            id: response.user.id,
+                            name: response.user.name,
                         comment: response.user.comment || ""
                       }))
                     )
@@ -1702,8 +1742,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     )
                     .map(user => (
                       <td key={`comment-${user.id}`} className={styles.userComment}>
-                        {user.comment}
-                      </td>
+                      {user.comment}
+                    </td>
                     ))
                   }
                 </tr>
@@ -1724,14 +1764,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             onSuccess={handleFormSuccess}
             onCreate={handleCreate}
             schedules={eventData.schedules.map((schedule) => ({
-              ...schedule,
-              responses: schedule.responses.map((response) => ({
-                ...response,
-                user: {
-                  ...response.user,
+            ...schedule,
+            responses: schedule.responses.map((response) => ({
+              ...response,
+              user: {
+                ...response.user,
                   comment: response.user.comment || "",
-                },
-              })),
+              },
+            })),
             }))}
             userId={userId}
             userName={userName}
@@ -1741,14 +1781,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             onSuccess={handleFormSuccess}
             onCreate={handleCreate}
             schedules={eventData.schedules.map((schedule) => ({
-              ...schedule,
-              responses: schedule.responses.map((response) => ({
-                ...response,
-                user: {
-                  ...response.user,
+            ...schedule,
+            responses: schedule.responses.map((response) => ({
+              ...response,
+              user: {
+                ...response.user,
                   comment: response.user.comment || "",
-                },
-              })),
+              },
+            })),
             }))}
             userId={userId}
             userName={userName}
@@ -1865,15 +1905,20 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         >
           <FiCamera className={styles.cameraIcon} />
           <span>✨ 思い出アルバムを開く ✨</span>
-        </button>
+      </button>
       )}
 
       {isImageSwiperOpen && (
         (console.log("ImageSwiperに渡すデータ:", eventImages),
-          <ImageSwiper
+        <ImageSwiper 
             images={eventImages}
             title={`${eventData.name}の画像`}
-            onClose={() => setIsImageSwiperOpen(false)}
+          onClose={() => {
+            // Swiperを閉じるときにローカルストレージのフラグをクリア
+            localStorage.removeItem(`image_uploaded_${eventId}`);
+            localStorage.removeItem(`image_upload_time_${eventId}`);
+            setIsImageSwiperOpen(false);
+          }}
             onDelete={isOrganizer ? handleDeleteImage : undefined} // オーナーのみ削除可能
           />)
       )}

@@ -37,7 +37,7 @@ export default function Form(props: SchedulesProp) {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isEditSuccessModalOpen, setIsEditSuccessModalOpen] = useState(false);
   const [isNameValid, setIsNameValid] = useState(!!userName); // ユーザー名が渡されている場合は初期値trueに
-  
+
   const methods = useForm<UserResponseSchemaType>({
     mode: 'onChange', // バリデーションのタイミングを変更
     resolver: zodResolver(UserResponseSchema),
@@ -128,10 +128,10 @@ export default function Form(props: SchedulesProp) {
   const checkDuplicateUserName = async (userName: string): Promise<boolean> => {
     try {
       if (schedules.length === 0) return false;
-      
+
       // すべてのレスポンスからユーザー名を取得（自分自身は除外）
       const existingUserNames = new Set<string>();
-      
+
       schedules.forEach(schedule => {
         schedule.responses.forEach(response => {
           // 自分自身のユーザーIDと異なる場合のみ追加
@@ -140,7 +140,7 @@ export default function Form(props: SchedulesProp) {
           }
         });
       });
-      
+
       // 重複チェック（大文字小文字を区別せず比較）
       return Array.from(existingUserNames).some(
         name => name.toLowerCase() === userName.toLowerCase()
@@ -154,7 +154,7 @@ export default function Form(props: SchedulesProp) {
   const onSubmit = async (params: UserResponseSchemaType) => {
     // 編集モードでも重複チェックを行う（自分以外の名前との重複をチェック）
     const isDuplicate = await checkDuplicateUserName(params.user_name);
-    
+
     if (isDuplicate) {
       // 重複がある場合はモーダルを表示
       setDuplicateUserName(params.user_name);
@@ -163,12 +163,22 @@ export default function Form(props: SchedulesProp) {
     }
 
     // APIに送信するデータ
-    const data = {
-      userId: userId, // userIdを追加して送信
+    const data = userId ? {
+      userId,
       user_name: params.user_name,
-      schedules: params.schedules,
-      comment: params.comment,
-    };    
+      schedules: params.schedules || [],
+      comment: params.comment || "",
+    } : {
+      user_name: params.user_name,
+      schedules: params.schedules || [],
+      comment: params.comment || "",
+    };
+
+    // データの検証
+    if (!data.user_name || !data.schedules || data.schedules.length === 0) {
+      console.error("送信データが不完全です:", data);
+      return;
+    }
 
     reset();
 
@@ -185,29 +195,33 @@ export default function Form(props: SchedulesProp) {
         body: JSON.stringify(data),
       });
 
-      if (response.ok) {     
+      if (response.ok) {
         setValue("comment", '');
         setValue("user_name", '');
         // スケジュールのレスポンスを初期値に戻す
-        props.schedules.forEach((schedule, index) => {
+        props.schedules.forEach((_, index) => {
           setValue(`schedules.${index}.response`, 'ATTEND', { shouldValidate: true });
         });
-    
+
         // 編集モードかどうかで表示するモーダルを切り替え
         if (userId) {
           setIsEditSuccessModalOpen(true);
-          // 3秒後に自動的に閉じる
+          // 2秒後に自動的に閉じる
           setTimeout(() => {
             setIsEditSuccessModalOpen(false);
-            props.onCreate();   
+            // 画面上部へスクロール
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            props.onCreate();
             props.onSuccess();
+
           }, 2000);
         } else {
           setIsSuccessModalOpen(true);
-          // 3秒後に自動的に閉じる
+          // 2秒後に自動的に閉じる
           setTimeout(() => {
             setIsSuccessModalOpen(false);
-            props.onCreate();   
+
+            props.onCreate();
             props.onSuccess();
           }, 2000);
         }
@@ -222,8 +236,8 @@ export default function Form(props: SchedulesProp) {
   return (
     <FormProvider {...methods}>
       {/* 重複ユーザー名の警告モーダル */}
-      <Modal 
-        isOpen={isDuplicateUserModalOpen} 
+      <Modal
+        isOpen={isDuplicateUserModalOpen}
         onClose={() => setIsDuplicateUserModalOpen(false)}
         type="warning"
       >
@@ -251,7 +265,7 @@ export default function Form(props: SchedulesProp) {
           <p>イベントへの参加情報が正常に登録されました。</p>
         </div>
       </Modal>
-      
+
       {/* 編集完了モーダル */}
       <Modal isOpen={isEditSuccessModalOpen} onClose={() => setIsEditSuccessModalOpen(false)} type="info">
         <div className={styles.modalContent}>
@@ -266,9 +280,9 @@ export default function Form(props: SchedulesProp) {
           <div className={styles.formHeading}>
             <h3 className={styles.formTitle}>{userId ? `${userName}さんの回答を編集` : "参加登録"}</h3>
             {userId && (
-              <button 
-                type="button" 
-                onClick={handleClickCreate} 
+              <button
+                type="button"
+                onClick={handleClickCreate}
                 className={styles.cancelButton}
               >
                 新規登録へ戻る
@@ -305,7 +319,7 @@ export default function Form(props: SchedulesProp) {
                 });
 
                 const responseValue = methods.getValues(`schedules.${index}.response`);
-                
+
                 return (
                   <div key={schedule.id} className={styles.scheduleCard}>
                     <input type="hidden" {...register(`schedules.${index}.id`)} />
@@ -323,7 +337,7 @@ export default function Form(props: SchedulesProp) {
                         </div>
                         <span className={styles.responseText}>参加</span>
                       </button>
-                      
+
                       <button
                         type="button"
                         className={`${styles.responseOption} ${responseValue === "UNDECIDED" ? styles.responseSelected : ''}`}
@@ -334,7 +348,7 @@ export default function Form(props: SchedulesProp) {
                         </div>
                         <span className={styles.responseText}>未定</span>
                       </button>
-                      
+
                       <button
                         type="button"
                         className={`${styles.responseOption} ${responseValue === "ABSENT" ? styles.responseSelected : ''}`}

@@ -102,7 +102,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 fileInputRef.current.value = '';
             }
             
-            // 先に親コンポーネントに通知
+            // 親コンポーネントに通知（画像が取得される）
             if (onImageUploaded) {
                 onImageUploaded();
             }
@@ -110,12 +110,21 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
             // アルバム表示前のオーバーレイを表示
             setShowAlbumOverlay(true);
             
-            // 3秒後にアルバム表示オーバーレイを非表示にし、アルバムを表示
-            // 必要ならコメントアウトを外す
+            // 3秒後にアルバム表示オーバーレイを非表示にする
             setTimeout(() => {
                 setShowAlbumOverlay(false);
                 setIsUploading(false);
-                // window.location.href = `/event?eventId=${eventData.id}&tab=album`;
+                
+                // URLパラメータを直接変更（リロードなし）
+                const queryParams = new URLSearchParams(window.location.search);
+                queryParams.set('tab', 'album');
+                const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
+                window.history.pushState({}, '', newUrl);
+                
+                // イベントは発行せず、直接親コンポーネントのコールバックを再度呼び出して画像表示
+                if (onImageUploaded) {
+                    onImageUploaded();
+                }
             }, 3000);
         } catch (error) {
             console.error('画像アップロード中にエラーが発生しました:', error);

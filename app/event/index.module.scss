@@ -241,9 +241,9 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   
   th, td {
-    position: relative;
+  position: relative;
     z-index: 3; /* アニメーションレイヤーの上に配置 */
-  }
+}
 }
 
 .tableDesign th,
@@ -1956,14 +1956,85 @@
   &:hover {
     background-color: #f5f5f5;
   }
+  
+  // モバイル対応のレイアウト
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: 10px;
+    position: relative;
+    padding-bottom: 50px; // ボタン用の余白を確保
+    
+    .dragHandle {
+      margin-right: 8px;
+    }
+    
+    .scheduleInputs {
+      flex: 1;
+      min-width: 0; // flexboxがはみ出ないように
+    }
+    
+    .scheduleActionButton, .scheduleStatus {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      justify-content: center;
+      margin-left: 0;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px;
+    padding-bottom: 45px; // ボタン用の余白を確保
+    
+    .scheduleInputs {
+      flex-direction: column;
+    }
+  }
 }
 
 .newScheduleItem {
   background-color: #fff8f9;
   border: 1px dashed #e8b1c2;
+  transition: all 0.2s ease-in-out;
+  position: relative;
   
   &:hover {
     background-color: #fff0f3;
+  }
+  
+  // ドラッグハンドルをより目立たせる
+  .dragHandle {
+    background-color: rgba(222, 49, 99, 0.08);
+    color: #de3163;
+    
+    &:hover {
+      background-color: rgba(222, 49, 99, 0.15);
+      color: #c72a56;
+    }
+  }
+  
+  // ドラッグ可能であることを示す視覚的なヒント
+  &::before {
+    content: '↕ ドラッグして移動できます';
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(222, 49, 99, 0.9);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  
+  &:hover::before {
+    opacity: 1;
   }
 }
 
@@ -1995,13 +2066,15 @@
   display: flex;
   gap: 10px;
   flex: 1;
+  max-width: calc(100% - 140px); // ボタン用の幅を確保
   
-  input {
+  input, select {
     flex: 1;
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 0.9rem;
+    min-width: 0; // flexboxの子要素がはみ出ないように
     
     &:focus {
       border-color: #de3163;
@@ -2013,6 +2086,33 @@
       background-color: #f0f0f0;
       cursor: not-allowed;
       opacity: 0.7;
+    }
+  }
+  
+  input[type="date"] {
+    cursor: pointer;
+    position: relative;
+    
+    &::-webkit-calendar-picker-indicator {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    gap: 8px;
+    max-width: 100%; // モバイルでは全幅使用
+    
+    input, select {
+      padding: 6px 10px;
+      font-size: 0.85rem;
     }
   }
 }
@@ -2056,10 +2156,21 @@
   min-width: 80px;
   height: 32px;
   margin-left: 8px;
+  flex-shrink: 0; // ボタンが縮まないようにする
   
   .buttonIcon {
     margin-right: 5px;
     font-size: 1rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    min-width: 70px;
+    
+    .buttonIcon {
+      font-size: 0.9rem;
+    }
   }
 }
 
@@ -2115,4 +2226,29 @@
 .dragging {
   opacity: 0.5;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  
+  // 新規日程アイテムがドラッグされている時の特別なスタイル
+  &.newScheduleItem {
+    opacity: 0.7;
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(222, 49, 99, 0.25);
+    border: 1px dashed #de3163;
+    background-color: #fff0f3;
+    z-index: 1000;
+    
+    // ドラッグ中にテキストを表示
+    &::after {
+      content: '移動中...';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(222, 49, 99, 0.9);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      z-index: 10;
+    }
+  }
 }
