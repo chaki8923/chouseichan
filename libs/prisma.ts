@@ -14,13 +14,23 @@
 // if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
 // これより上を使用すればaccelerate
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+// PrismaClientのグローバルインスタンスを定義
+// 開発環境での多重インスタンス化を防ぐための対策
+const globalForPrisma = global as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+// 既存のインスタンスを使用するか、新しいインスタンスを作成
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+});
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// 開発環境でのみグローバルにインスタンスを設定
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 // 動かなくなったら上のコードを使用
 // import { PrismaClient as PrismaClientEdge } from "@prisma/client/edge";
 // import { withAccelerate } from "@prisma/extension-accelerate";

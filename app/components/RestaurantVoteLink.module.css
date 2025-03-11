@@ -1,0 +1,25 @@
+.voteLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f9fafb;
+  color: #4b5563;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid #e5e7eb;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.voteLink:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border-color: #d1d5db;
+}
+
+.voteLinkText {
+  font-size: 0.95rem;
+}

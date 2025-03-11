@@ -14,7 +14,6 @@ import Scroll from "../component/scroll/arrow";
 import { IoTriangleOutline } from "react-icons/io5";
 import { Schedule } from "@/types/schedule";
 import { Response } from "@/types/response";
-import { User } from "@/types/user";
 import { Event } from "@/types/event";
 import Form from "./form";
 import Modal from "../component/modal/modal";
@@ -24,7 +23,7 @@ import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove, FiAlertCircle, FiImage } from 'react-icons/fi';
+import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove } from 'react-icons/fi';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -47,6 +46,8 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { RadioGroup } from "@headlessui/react";
+import RestaurantVoteLink from "../components/RestaurantVoteLink";
 
 type maxAttend = {
   id: number;
@@ -1832,6 +1833,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             </div>
 
           </div>
+
+          {/* 店舗投票へのリンク */}
+          {!isEditing && (
+            <RestaurantVoteLink eventId={eventData.id} />
+          )}
 
           {/* テーブルの前にスワイプ案内を移動し、シンプルな表示に変更 */}
           {eventData.schedules.length > 0 && isTableScrollable && (

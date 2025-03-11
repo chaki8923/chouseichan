@@ -1,0 +1,746 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ロード中とエラー表示 */
+.loadingContainer, .errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  width: 100%;
+}
+
+.loadingContent, .errorContent {
+  text-align: center;
+  max-width: 500px;
+}
+
+.loadingSpinner {
+  animation: spin 1s linear infinite;
+  color: #de3163;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorIcon {
+  color: #de3163;
+  margin-bottom: 12px;
+}
+
+.errorTitle {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.errorMessage {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.inlineError {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: #fff0f0;
+  color: #cc0000;
+  border: 1px solid #ffcccc;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.closeErrorButton {
+  background: none;
+  border: none;
+  color: #cc0000;
+  cursor: pointer;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.closeErrorButton:hover {
+  background-color: rgba(204, 0, 0, 0.1);
+}
+
+/* ヘッダー */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin: 0 0 5px;
+}
+
+.eventTitle {
+  color: #666;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 10px;
+}
+
+.addButton, .backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addButton {
+  background-color: #de3163;
+  color: white;
+}
+
+.backButton {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.addButton:hover {
+  background-color: #c72a56;
+}
+
+.backButton:hover {
+  background-color: #e0e0e0;
+}
+
+/* 店舗リスト */
+.restaurantGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.restaurantCard {
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.restaurantCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.restaurantImage {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background-color: #f5f5f5;
+}
+
+.noImage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  gap: 8px;
+}
+
+.restaurantInfo {
+  padding: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.restaurantName {
+  font-size: 1.2rem;
+  margin: 0 0 8px;
+  color: #333;
+}
+
+.restaurantDescription {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  flex: 1;
+}
+
+.voteCount {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.editButton, .deleteButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.editButton:hover, .deleteButton:hover {
+  background-color: #e0e0e0;
+}
+
+.deleteButton:hover {
+  color: #cc0000;
+}
+
+.disabledButton {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: #fff0f0;
+  color: #d32f2f;
+  border: 1px dashed #ffcdd2;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.disabledButton svg {
+  color: #d32f2f;
+}
+
+.disabledButton:hover {
+  background-color: #fff0f0;
+  color: #d32f2f;
+}
+
+.voteButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.voteButton.voted {
+  background-color: #de3163;
+  color: white;
+}
+
+.voteButton.notVoted {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.voteButton.voted:hover:not(:disabled) {
+  background-color: #c72a56;
+}
+
+.voteButton.notVoted:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.loadingIcon {
+  animation: spin 1s linear infinite;
+}
+
+.urlLink {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #0077cc;
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  width: fit-content;
+}
+
+.urlLink:hover {
+  text-decoration: underline;
+}
+
+.noRestaurants {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+/* モーダル */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalContainer {
+  background-color: white;
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  margin: 0 0 16px;
+  color: #333;
+  text-align: center;
+}
+
+.modalText {
+  color: #666;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modalCancelButton, .modalDeleteButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modalCancelButton {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.modalDeleteButton {
+  background-color: #de3163;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalCancelButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.modalDeleteButton:hover:not(:disabled) {
+  background-color: #c72a56;
+}
+
+.modalCancelButton:disabled, .modalDeleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* フォーム */
+.formContainer {
+  background-color: white;
+  border-radius: 10px;
+  padding: 0;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+}
+
+.form {
+  padding: 0 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background-color: white;
+}
+
+.formTitle {
+  font-size: 1.3rem;
+  margin: 0;
+  color: #333;
+}
+
+.closeFormButton {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.closeFormButton:hover {
+  background-color: #f0f0f0;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.requiredBadge {
+  display: inline-block;
+  background-color: #de3163;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+.formInput, .formTextarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+}
+
+.formInput:focus, .formTextarea:focus {
+  outline: none;
+  border-color: #de3163;
+  box-shadow: 0 0 0 3px rgba(222, 49, 99, 0.1);
+}
+
+.inputError {
+  border-color: #cc0000;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1);
+}
+
+.fieldError {
+  color: #cc0000;
+  font-size: 0.8rem;
+  margin-top: 6px;
+  display: block;
+}
+
+.charCount {
+  display: block;
+  text-align: right;
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 4px;
+}
+
+.formTextarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* ドラッグ&ドロップ領域のスタイル */
+.dropArea {
+  width: 100%;
+  min-height: 150px;
+  border: 2px dashed #ddd;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropArea:hover {
+  border-color: #de3163;
+  background-color: rgba(222, 49, 99, 0.03);
+}
+
+.dragging {
+  border-color: #de3163;
+  background-color: rgba(222, 49, 99, 0.05);
+}
+
+.dropError {
+  border-color: #cc0000;
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.uploadPlaceholder p {
+  margin: 8px 0 0;
+  font-size: 0.95rem;
+}
+
+.uploadPlaceholder span {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.previewContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: 300px;
+}
+
+.removeImageButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.removeImageButton:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.cancelButton, .saveButton {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancelButton {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.saveButton {
+  background-color: #de3163;
+  color: white;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.saveButton:hover:not(:disabled) {
+  background-color: #c72a56;
+}
+
+.cancelButton:disabled, .saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* レスポンシブ */
+@media (max-width: 640px) {
+  .restaurantGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .buttonContainer {
+    width: 100%;
+  }
+  
+  .addButton, .backButton {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .form {
+    padding: 0 16px 16px;
+  }
+  
+  .formActions {
+    flex-direction: column;
+  }
+  
+  .cancelButton, .saveButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ツールチップスタイル */
+.tooltipWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip {
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 5px 10px;
+  position: absolute;
+  z-index: 200;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s, visibility 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  width: max-content;
+  max-width: 200px;
+}
+
+.tooltipWrapper:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+} 

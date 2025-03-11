@@ -88,6 +88,7 @@ model Event {
   user      User?        @relation(fields: [userId], references: [id])
   schedules Schedule[]
   images    EventImage[]
+  restaurants Restaurant[]
 }
 
 model Schedule {
@@ -122,4 +123,35 @@ model EventImage {
   eventId   String
   imagePath String
   event     Event    @relation(fields: [eventId], references: [id])
+}
+
+// レストラン候補モデル
+model Restaurant {
+  id           String   @id @default(cuid())
+  name         String   // 店舗名
+  imageUrl     String?  // 店舗画像URL（任意）
+  websiteUrl   String?  // 店舗ウェブサイトURL（任意）
+  description  String?  // 説明（任意）
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  eventId      String   // 関連するイベントID
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  votes        Vote[]   // 投票との関連
+
+  @@index([eventId])
+}
+
+// 投票モデル
+model Vote {
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  voterToken   String     // 投票者を識別するトークン（匿名）
+  restaurantId String     // 投票対象のレストランID
+  eventId      String     // イベントID（一人一票の制限のため）
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, voterToken]) // 1イベントにつき1ユーザー1票の制限
+  @@index([restaurantId])
+  @@index([eventId])
 }

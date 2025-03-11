@@ -38,6 +38,7 @@
     "flowbite-react": "^0.10.2",
     "framer-motion": "^12.4.2",
     "googleapis": "^144.0.0",
+    "lucide-react": "^0.479.0",
     "microcms-js-sdk": "^3.1.2",
     "mime-types": "^2.1.35",
     "next": "15.1.4",
