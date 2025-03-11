@@ -220,7 +220,8 @@ export default function Form(props: SchedulesProp) {
           // 2秒後に自動的に閉じる
           setTimeout(() => {
             setIsSuccessModalOpen(false);
-
+            // 画面上部へスクロール
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             props.onCreate();
             props.onSuccess();
           }, 2000);

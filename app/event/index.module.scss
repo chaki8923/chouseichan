@@ -1931,8 +1931,62 @@
 
 // スケジュール編集関連のスタイル
 .schedulesContainer {
+  position: relative;
   margin-bottom: 20px;
-  width: 100%;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  
+  &:first-of-type {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    
+    .scheduleSubheading {
+      color: #555;
+      border-bottom-color: #ddd;
+    }
+    
+    .scheduleItem {
+      background-color: white;
+      border: 1px solid #e6e6e6;
+      
+      &:hover {
+        background-color: #fafafa;
+      }
+    }
+    
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(to right, #666, #ccc);
+      border-radius: 3px 3px 0 0;
+    }
+  }
+  
+  &:last-of-type:not(:first-of-type) {
+    background-color: #fff8f9;
+    border: 1px solid rgba(222, 49, 99, 0.15);
+    
+    .scheduleSubheading {
+      color: #de3163;
+      border-bottom-color: rgba(222, 49, 99, 0.2);
+    }
+    
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(to right, #de3163, #e195ab);
+      border-radius: 3px 3px 0 0;
+    }
+  }
 }
 
 .scheduleSubheading {
@@ -2006,9 +2060,12 @@
   border: 1px dashed #e8b1c2;
   transition: all 0.2s ease-in-out;
   position: relative;
+  box-shadow: 0 1px 3px rgba(222, 49, 99, 0.1);
   
   &:hover {
     background-color: #fff0f3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(222, 49, 99, 0.15);
   }
   
   // ドラッグハンドルをより目立たせる
@@ -2020,28 +2077,6 @@
       background-color: rgba(222, 49, 99, 0.15);
       color: #c72a56;
     }
-  }
-  
-  // ドラッグ可能であることを示す視覚的なヒント
-  &::before {
-    content: '↕ ドラッグして移動できます';
-    position: absolute;
-    top: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(222, 49, 99, 0.9);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  
-  &:hover::before {
-    opacity: 1;
   }
 }
 
@@ -2232,30 +2267,117 @@
 // ドラッグ中のアイテムのスタイル
 .dragging {
   opacity: 0.5;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+  cursor: grabbing !important;
+  transform: scale(1.03);
+  animation: breathe 1.5s infinite ease-in-out;
+  will-change: transform, box-shadow; // パフォーマンス最適化
+  
+  @keyframes breathe {
+    0%, 100% {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    50% {
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+    }
+  }
   
   // 新規日程アイテムがドラッグされている時の特別なスタイル
   &.newScheduleItem {
-    opacity: 0.7;
-    transform: scale(1.02);
-    box-shadow: 0 8px 20px rgba(222, 49, 99, 0.25);
-    border: 1px dashed #de3163;
-    background-color: #fff0f3;
+    opacity: 0.8;
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(222, 49, 99, 0.35) !important;
+    border: 2px dashed #de3163 !important;
+    background-color: #fff0f3 !important;
     z-index: 1000;
+    animation: breathePink 1.5s infinite ease-in-out;
+    
+    @keyframes breathePink {
+      0%, 100% {
+        box-shadow: 0 10px 25px rgba(222, 49, 99, 0.35);
+      }
+      50% {
+        box-shadow: 0 15px 30px rgba(222, 49, 99, 0.5);
+      }
+    }
     
     // ドラッグ中にテキストを表示
     &::after {
       content: '移動中...';
       position: absolute;
-      top: 50%;
+      top: -25px;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       background-color: rgba(222, 49, 99, 0.9);
       color: white;
-      padding: 3px 10px;
-      border-radius: 4px;
-      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
       z-index: 10;
+      font-weight: bold;
+      white-space: nowrap;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
     }
+  }
+}
+
+// DragOverlay用のスタイル
+.dragOverlayWrapper {
+  pointer-events: none; // ドラッグ中に下層をクリックできるように
+  z-index: 3000;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+  
+  // 新規スケジュールアイテムのスタイル
+  :global(.newScheduleItem) {
+    filter: drop-shadow(0 5px 15px rgba(222, 49, 99, 0.4));
+  }
+}
+
+// 全体をドラッグ可能に
+.scheduleItem {
+  cursor: grab;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+  
+  &:hover {
+    border-color: #ccc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  &:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+  }
+  
+  .editInput, select {
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  
+  button {
+    pointer-events: auto;
+  }
+}
+
+// 新規スケジュールの区分
+.newSchedulesSection {
+  border-top: 2px dashed rgba(222, 49, 99, 0.3);
+  margin-top: 20px;
+  padding-top: 15px;
+  position: relative;
+  
+  &::before {
+    content: '新規追加スケジュール';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    padding: 0 10px;
+    font-size: 0.85rem;
+    color: #de3163;
+    font-weight: 500;
   }
 }
