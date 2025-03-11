@@ -58,8 +58,6 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
   register
 }) => {
   const {
-    attributes,
-    listeners,
     setNodeRef,
     transform,
     transition
@@ -84,9 +82,6 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
       style={style}
       className={styles.scheduleItem}
     >
-      <div className={styles.dragHandle} {...attributes} {...listeners}>
-        <FiMove />
-      </div>
       <div className={styles.scheduleInputs}>
         <div className={styles.scheduleInputGroup}>
           <div className={styles.scheduleInputWrapper}>

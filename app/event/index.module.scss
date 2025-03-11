@@ -805,6 +805,13 @@
   }
 }
 
+@media (max-width: 768px) {
+  .editButton {
+    top: 10px;
+    font-size: 30px;
+  }
+}
+
 // 編集コンテナ
 .editContainer {
   background-color: #fff;
@@ -1850,7 +1857,7 @@
 
 @media screen and (max-width: 768px) {
   .deleteButton {
-    right: 2px;
+    right: 7px;
     bottom: -20px;
   }
 }

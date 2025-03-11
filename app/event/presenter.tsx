@@ -311,6 +311,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   async function fetchEventWithSchedules(eventId: string) {
     try {
       const response = await fetch(`/api/events?eventId=${eventId}`);
+      
+      // APIから404レスポンスが返された場合、nullを返す
+      if (response.status === 404) {
+        console.log("イベントが見つかりません（404）");
+        return null;
+      }
+      
       const data = await response.json();
 
       if (!response.ok) {
@@ -353,10 +360,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const getEventData = useCallback(async () => {
     try {
       setLoading(true);
-        const data = await fetchEventWithSchedules(eventId!);
+      const data = await fetchEventWithSchedules(eventId!);
 
       if (!data) {
         // イベントが見つからない場合の処理
+        console.log("イベントデータがありません - モーダル表示準備");
         setError("指定されたイベントが見つかりませんでした");
         setEventNotFound(true);
 
@@ -574,8 +582,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // イベントが見つからない場合のリダイレクト処理
   useEffect(() => {
     if (eventNotFound) {
+      console.log("eventNotFoundフラグがtrueです - カウントダウン開始");
       // countdownBarのアニメーションが終了する5秒後に自動的にトップページへリダイレクト
       const redirectTimer = setTimeout(() => {
+        console.log("カウントダウン完了 - トップページへリダイレクト");
         window.location.href = '/';
       }, 5000);
       
