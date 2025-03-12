@@ -420,12 +420,12 @@ export default function Form({ categoryName }: { categoryName: string }) {
       return false;
     }
 
-    // 少なくとも1つの日程が指定されていることを確認
-    const hasValidSchedule = schedules.some(schedule => 
-      schedule.date && schedule.date.trim() !== ''
+    // 全ての日程に日付が指定されていることを確認
+    const hasEmptyScheduleDate = schedules.some(schedule => 
+      !schedule.date || schedule.date.trim() === ''
     );
 
-    if (!hasValidSchedule) {
+    if (hasEmptyScheduleDate) {
       return false;
     }
 
