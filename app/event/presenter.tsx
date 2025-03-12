@@ -833,15 +833,22 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           try {
             // 古い画像のURLからCloudflareのパスを抽出
             const oldImageUrl = eventData.image;
+            console.log("古い画像を削除します:", oldImageUrl);
 
             // 古い画像を削除するAPIを呼び出す
-            await fetch(`/api/delete-event-icon`, {
+            const deleteResponse = await fetch(`/api/delete-event-icon`, {
               method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({ imageUrl: oldImageUrl }),
             });
+            
+            if (!deleteResponse.ok) {
+              console.warn("古い画像の削除中にエラーが発生しましたが、処理を続行します");
+            } else {
+              console.log("古い画像を正常に削除しました");
+            }
           } catch (error) {
             console.error("古い画像の削除に失敗しました", error);
             // エラーが発生しても処理を続行
@@ -850,9 +857,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
         // 新しい画像をアップロード
         const formData = new FormData();
-        formData.append("image", selectedIconFile);
+        formData.append("file", selectedIconFile);
         formData.append("eventId", eventId);
+        formData.append("folder", "images"); // 正しいフォルダ名に修正
+        
+        // 古い画像URLがある場合は送信
+        if (eventData.image) {
+          formData.append("oldImageUrl", eventData.image);
+        }
 
+        console.log("新しい画像をアップロードします");
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
           body: formData,
@@ -864,9 +878,17 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
         const uploadData = await uploadResponse.json();
         iconPath = uploadData.url;
+        console.log("新しい画像のURL:", iconPath);
       }
 
       // イベント情報の更新
+      console.log("イベント情報を更新します:", {
+        eventId,
+        name: editedTitle,
+        memo: editedMemo,
+        iconPath,
+      });
+      
       const eventUpdateResponse = await fetch("/api/events", {
         method: "PATCH",
         headers: {
@@ -925,9 +947,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       if (!eventUpdateResponse.ok) {
         throw new Error("イベント情報の更新に失敗しました");
       }
+      
+      console.log("イベント情報の更新に成功しました");
 
       // 更新されたイベントデータを取得して状態を更新
       const updatedEventData = await eventUpdateResponse.json();
+      console.log("更新されたイベントデータ:", updatedEventData);
 
       // スケジュールをdisplayOrderでソートする
       if (updatedEventData && updatedEventData.schedules) {
@@ -971,11 +996,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       // editEventDataを新しいデータに更新
       setEventData(updatedEventData);
 
-      // 更新が成功したらフォームをリセットして編集モードを終了
-      // setEditMessage({ type: "success", message: "イベント情報を更新しました" });
-
-      // APIからの応答後に処理
-      setEventData(updatedEventData);
       // 編集完了モーダルを表示
       setIsEditCompleteModalOpen(true);
 

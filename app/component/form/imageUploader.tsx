@@ -360,8 +360,8 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                                     <>アップロード中...</>
                                 ) : (
                                     <>
-                                        <FiImage style={{ marginRight: '8px' }} />
-                                        画像をアップロード
+                                        <FiImage style={{marginRight: '8px' }} />
+                                        画像をアップロード?
                                     </>
                                 )}
                             </button>
@@ -386,7 +386,7 @@ const uploadImagesToCloudflare = async (files: File[], eventId: string) => {
 
         // eventId を追加
         formData.append('eventId', eventId);
-        formData.append('folder', 'event_images'); // 保存先フォルダを指定
+        formData.append('folder', 'event_images'); // 思い出アルバム用のフォルダは元のまま
 
         // APIへリクエスト送信
         const response = await fetch('/api/upload', {

@@ -7,12 +7,12 @@ import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink, ThumbsUp, AlertCircle, X
 import styles from './page.module.css';
 import { isEventOwner } from "@/app/utils/strages";
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
-import { 
-  getAnonymousId, 
-  hasVoted, 
-  saveVote, 
-  removeVote, 
-  getEventVote 
+import {
+  getAnonymousId,
+  hasVoted,
+  saveVote,
+  removeVote,
+  getEventVote
 } from '@/app/utils/voteStorage';
 import { use } from 'react';
 
@@ -22,7 +22,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [event, setEvent] = useState<{ title: string, name: string } | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -32,14 +32,14 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [votedRestaurantId, setVotedRestaurantId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [voteInProgress, setVoteInProgress] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   // フォーム状態
   const [formData, setFormData] = useState<RestaurantFormData>({
     name: '',
@@ -52,8 +52,8 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
   // フィールド変更時のバリデーション
   const validateField = (name: string, value: string) => {
     let error = '';
-    
-    switch(name) {
+
+    switch (name) {
       case 'name':
         if (!value.trim()) {
           error = '店舗名は必須です';
@@ -61,40 +61,40 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           error = '店舗名は50文字以内で入力してください';
         }
         break;
-        
+
       case 'websiteUrl':
         if (value && !value.match(/^(https?:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}(:[0-9]{1,5})?(\/.*)?$/i)) {
           error = '有効なウェブサイトURLを入力してください';
         }
         break;
-        
+
       case 'description':
         if (value.length > 200) {
           error = '説明は200文字以内で入力してください';
         }
         break;
     }
-    
+
     return error;
   };
 
   // ファイルのバリデーション
   const validateFile = (file: File) => {
     let error = '';
-    
+
     // ファイルタイプの確認
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       error = '画像ファイル（JPG, PNG, GIF, WEBP）のみアップロードできます';
       return error;
     }
-    
+
     // ファイルサイズの確認 (2MB制限)
     if (file.size > 2 * 1024 * 1024) {
       error = '画像サイズは2MB以下にしてください';
       return error;
     }
-    
+
     return error;
   };
 
@@ -102,7 +102,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
   const handleFieldChange = (name: string, value: string) => {
     // フォームデータを更新
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // フィールドエラーの更新
     const error = validateField(name, value);
     setFieldErrors(prev => ({
@@ -115,7 +115,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
+
     const file = files[0];
     handleFileSelection(file);
   };
@@ -143,10 +143,10 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
+
     const files = e.dataTransfer.files;
     if (!files || files.length === 0) return;
-    
+
     const file = files[0];
     handleFileSelection(file);
   };
@@ -161,13 +161,13 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       }));
       return;
     }
-    
+
     setSelectedFile(file);
     setFieldErrors(prev => ({
       ...prev,
       file: ''
     }));
-    
+
     // プレビュー表示
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -183,13 +183,13 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
 
   // フォームの全体バリデーション
   const validateForm = () => {
-    const errors: {[key: string]: string} = {};
-    
+    const errors: { [key: string]: string } = {};
+
     // 名前は必須
     if (!formData.name.trim()) {
       errors.name = '店舗名は必須です';
     }
-    
+
     // 画像ファイル検証
     if (selectedFile) {
       const fileError = validateFile(selectedFile);
@@ -197,12 +197,12 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
         errors.file = fileError;
       }
     }
-    
+
     // ウェブサイトURLのバリデーション（入力されている場合）
     if (formData.websiteUrl && !formData.websiteUrl.match(/^(https?:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}(:[0-9]{1,5})?(\/.*)?$/i)) {
       errors.websiteUrl = '有効なウェブサイトURLを入力してください';
     }
-    
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -215,23 +215,23 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     formData.append('eventId', eventId);
     // restaurant-imagesフォルダに保存するよう指定
     formData.append('folder', 'restaurant-images');
-    
+
     try {
       // アップロード処理
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'アップロードに失敗しました');
       }
-      
+
       const data = await response.json();
       console.log('アップロード成功:', data); // デバッグログ
       // アップロード成功時にURLを返す
-      return data.url; 
+      return data.url;
     } catch (error) {
       console.error('アップロードエラー:', error);
       throw error;
@@ -249,7 +249,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // イベント情報を取得 - クエリパラメータを id から eventId に修正
         const eventResponse = await fetch(`/api/events?eventId=${eventId}`);
         if (!eventResponse.ok) {
@@ -257,14 +257,14 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           console.error('イベント取得エラー:', errorData);
           throw new Error(`イベント情報の取得に失敗しました: ${eventResponse.status} ${errorData.error || ''}`);
         }
-        
+
         const eventData = await eventResponse.json();
         setEvent(eventData);
-        
+
         // イベントオーナーかどうかをローカルストレージから確認
         const storedEventId = localStorage.getItem('eventId');
         setIsOwner(storedEventId === eventId);
-        
+
         // 店舗一覧を取得
         const restaurantResponse = await fetch(`/api/restaurants?eventId=${eventId}`);
         if (!restaurantResponse.ok) {
@@ -272,14 +272,14 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           console.error('店舗情報取得エラー:', errorData);
           throw new Error(`店舗情報の取得に失敗しました: ${restaurantResponse.status} ${errorData.error || ''}`);
         }
-        
+
         const restaurantData = await restaurantResponse.json();
         setRestaurants(restaurantData);
-        
+
         // 投票状態を取得
         const votedId = getEventVote(eventId);
         setVotedRestaurantId(votedId);
-        
+
       } catch (err: any) {
         console.error('データ取得エラー:', err);
         setError(err.message);
@@ -287,10 +287,10 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [eventId]);
-  
+
   // ESCキーでフォームを閉じる
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -298,56 +298,56 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
         resetForm();
       }
     };
-    
+
     window.addEventListener('keydown', handleEsc);
     return () => {
       window.removeEventListener('keydown', handleEsc);
     };
   }, []);
-  
+
   // フォーム送信処理
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // バリデーション
     if (!validateForm()) {
       // フォームにエラーがある場合はここで処理を中断
       return;
     }
-    
+
     try {
       setSubmitting(true);
       setError(null);
-      
+
       let imageUrl = formData.imageUrl;
-      
+
       // 新しい画像がある場合はアップロード
       if (selectedFile) {
         imageUrl = await uploadImageToCloudflare(selectedFile);
       }
-      
-      const url = editingRestaurant?.id 
-        ? '/api/restaurants' 
+
+      const url = editingRestaurant?.id
+        ? '/api/restaurants'
         : '/api/restaurants';
-      
+
       const method = editingRestaurant?.id ? 'PATCH' : 'POST';
-      
+
       // 編集時に古い画像を削除する必要があるか確認
-      const shouldDeleteOldImage = selectedFile && editingRestaurant?.imageUrl && 
-                                   editingRestaurant.imageUrl !== imageUrl;
-      
+      const shouldDeleteOldImage = selectedFile && editingRestaurant?.imageUrl &&
+        editingRestaurant.imageUrl !== imageUrl;
+
       // リクエストボディの作成
-      const requestBody = editingRestaurant?.id 
-        ? { 
-            ...formData, 
-            id: editingRestaurant.id,
-            imageUrl,
-            oldImageUrl: shouldDeleteOldImage ? editingRestaurant.imageUrl : undefined
-          } 
+      const requestBody = editingRestaurant?.id
+        ? {
+          ...formData,
+          id: editingRestaurant.id,
+          imageUrl,
+          oldImageUrl: shouldDeleteOldImage ? editingRestaurant.imageUrl : undefined
+        }
         : { ...formData, imageUrl };
-      
+
       console.log('送信データ:', requestBody); // デバッグ用
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -355,41 +355,41 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
         },
         body: JSON.stringify(requestBody),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || '保存に失敗しました');
       }
-      
+
       const savedRestaurant = await response.json();
-      
+
       // 店舗一覧を更新
       if (editingRestaurant?.id) {
-        setRestaurants(restaurants.map(r => 
+        setRestaurants(restaurants.map(r =>
           r.id === editingRestaurant.id ? savedRestaurant : r
         ));
       } else {
         setRestaurants([...restaurants, savedRestaurant]);
       }
-      
+
       // フォームをリセット
       resetForm();
-      
+
     } catch (err: any) {
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   // 投票処理
   const handleVote = async (restaurantId: string) => {
     // 投票中の場合は処理をスキップ
     if (voteInProgress) return;
-    
+
     try {
       setVoteInProgress(true);
-      
+
       // 既に投票済みかチェック
       if (hasVoted(eventId)) {
         // 同じ店舗への投票なら取り消し
@@ -397,24 +397,24 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           await fetch(`/api/votes?eventId=${eventId}&voterToken=${getAnonymousId()}`, {
             method: 'DELETE',
           });
-          
+
           removeVote(eventId);
           setVotedRestaurantId(null);
-          
+
           // 投票数を更新 - 一度リセットして最新状態を取得
           await refreshRestaurantList();
           return;
         }
-        
+
         // 別の店舗に投票する場合は一度削除
         await fetch(`/api/votes?eventId=${eventId}&voterToken=${getAnonymousId()}`, {
           method: 'DELETE',
         });
-        
+
         // 前の投票状態をリセット
         removeVote(eventId);
       }
-      
+
       // 新しい投票を登録
       const response = await fetch('/api/votes', {
         method: 'POST',
@@ -427,25 +427,25 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           voterToken: getAnonymousId()
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('投票に失敗しました');
       }
-      
+
       // ローカルストレージに保存
       saveVote(eventId, restaurantId);
       setVotedRestaurantId(restaurantId);
-      
+
       // 最新のレストラン一覧を取得して反映
       await refreshRestaurantList();
-      
+
     } catch (err: any) {
       setError(err.message);
     } finally {
       setVoteInProgress(false);
     }
   };
-  
+
   // 最新の店舗一覧を取得
   const refreshRestaurantList = async () => {
     try {
@@ -453,69 +453,69 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       if (!response.ok) {
         throw new Error('レストラン情報の更新に失敗しました');
       }
-      
+
       const data = await response.json();
       setRestaurants(data);
-      
+
     } catch (err: any) {
       console.error('レストラン一覧更新エラー:', err);
     }
   };
-  
+
   // 削除確認ダイアログを表示
   const confirmDelete = (id: string) => {
     setShowDeleteConfirm(id);
   };
-  
+
   // 削除をキャンセル
   const cancelDelete = () => {
     setShowDeleteConfirm(null);
   };
-  
+
   // 店舗削除処理
   const handleDelete = async (id: string) => {
     try {
       setSubmitting(true);
-      
+
       const restaurantToDelete = restaurants.find(r => r.id === id);
-      
+
       if (!restaurantToDelete) {
         throw new Error('店舗情報が見つかりません');
       }
-      
+
       // 投票数をチェック
       const voteCount = restaurantToDelete._count?.votes || 0;
       if (voteCount > 0) {
         throw new Error(`この店舗には${voteCount}票の投票があるため削除できません。投票がない店舗のみ削除できます。`);
       }
-      
+
       const response = await fetch(`/api/restaurants?id=${id}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        
+
         // 403エラーの場合は投票があるため削除できない
         if (response.status === 403) {
           throw new Error(`この店舗には${errorData.votesCount || ''}票の投票があるため削除できません。投票がない店舗のみ削除できます。`);
         }
-        
+
         throw new Error(errorData.error || '削除に失敗しました');
       }
-      
+
       // 店舗一覧から削除
       setRestaurants(restaurants.filter(r => r.id !== id));
-      
+
       // 削除した店舗に投票していた場合は投票を取り消し
       if (votedRestaurantId === id) {
         removeVote(eventId);
         setVotedRestaurantId(null);
       }
-      
+
       // 削除確認ダイアログを閉じる
       setShowDeleteConfirm(null);
-      
+
     } catch (err: any) {
       setError(err.message);
       setShowDeleteConfirm(null); // エラー時もダイアログを閉じる
@@ -523,7 +523,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       setSubmitting(false);
     }
   };
-  
+
   // 編集モード開始
   const handleEdit = (restaurant: Restaurant) => {
     setEditingRestaurant({
@@ -534,7 +534,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       description: restaurant.description || '',
       eventId
     });
-    
+
     setFormData({
       name: restaurant.name,
       imageUrl: restaurant.imageUrl || '',
@@ -542,19 +542,19 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       description: restaurant.description || '',
       eventId
     });
-    
+
     // 画像プレビューを設定
     if (restaurant.imageUrl) {
       setImagePreview(restaurant.imageUrl);
     }
-    
+
     setShowForm(true);
-    
+
     // フィールドエラーをリセット
     setFieldErrors({});
     setSelectedFile(null);
   };
-  
+
   // フォームリセット
   const resetForm = () => {
     setFormData({
@@ -573,7 +573,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       fileInputRef.current.value = '';
     }
   };
-  
+
   // 一般的なローディング表示
   if (loading) {
     return (
@@ -585,7 +585,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       </div>
     );
   }
-  
+
   // エラー表示
   if (error && !showForm) {
     return (
@@ -594,7 +594,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           <AlertCircle className={styles.errorIcon} size={40} />
           <h2 className={styles.errorTitle}>エラーが発生しました</h2>
           <p className={styles.errorMessage}>{error}</p>
-          <button 
+          <button
             className={styles.backButton}
             onClick={() => router.push(`/event?eventId=${eventId}`)}
           >
@@ -616,18 +616,18 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
             {event?.title || event?.name || 'イベント名不明'}
           </p>
         </div>
-        
+
         <div className={styles.buttonContainer}>
-          <button 
+          <button
             className={styles.backButton}
             onClick={() => router.push(`/event?eventId=${eventId}`)}
           >
             <ArrowLeft size={16} />
             戻る
           </button>
-          
+
           {isOrganizer && (
-            <button 
+            <button
               className={styles.addButton}
               onClick={() => setShowForm(true)}
             >
@@ -637,13 +637,13 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           )}
         </div>
       </div>
-      
+
       {/* エラーメッセージ (インライン表示) */}
       {error && showForm && (
         <div className={styles.inlineError}>
           <AlertCircle size={16} />
           <span>{error}</span>
-          <button 
+          <button
             className={styles.closeErrorButton}
             onClick={() => setError(null)}
           >
@@ -672,47 +672,66 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                   <Utensils size={40} />
                 </div>
               )}
-              
+
               <div className={styles.restaurantInfo}>
                 <h3 className={styles.restaurantName}>{restaurant.name}</h3>
-                
+
                 {restaurant.description && (
                   <p className={styles.restaurantDescription}>
                     {restaurant.description}
                   </p>
                 )}
-                
+
                 {restaurant.websiteUrl && (
-                  <a 
-                    href={restaurant.websiteUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href={restaurant.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={styles.urlLink}
                   >
                     <ExternalLink size={16} />
                     ウェブサイトを開く
                   </a>
                 )}
-                
+
                 <div className={styles.voteCount}>
                   <ThumbsUp size={16} />
                   <span>{restaurant._count?.votes || 0}票</span>
                 </div>
-                
+
                 <div className={styles.actionButtons}>
                   {isOrganizer && (
                     <>
-                      <button 
-                        className={styles.editButton}
-                        onClick={() => handleEdit(restaurant)}
-                      >
-                        <Pencil size={16} />
-                        編集
-                      </button>
-                      
+
                       {(restaurant._count?.votes || 0) > 0 ? (
                         <div className={styles.tooltipWrapper}>
-                          <button 
+                          <button
+                            className={`${styles.deleteButton} ${styles.disabledButton}`}
+                            disabled={true}
+                          >
+                            <AlertCircle size={16} />
+                            編集不可
+                          </button>
+                          <div className={styles.tooltip}>
+                            この店舗には{restaurant._count?.votes}票の投票があるため編集できません。
+                            投票がない店舗のみ編集できます。
+                          </div>
+                        </div>
+                      ) : (
+
+                        <button
+                          className={styles.editButton}
+                          onClick={() => handleEdit(restaurant)}
+                        >
+                          <Pencil size={16} />
+                          編集
+                        </button>
+                      )}
+
+
+                      {(restaurant._count?.votes || 0) > 0 ? (
+                        <div className={styles.tooltipWrapper}>
+                          <button
                             className={`${styles.deleteButton} ${styles.disabledButton}`}
                             disabled={true}
                           >
@@ -725,7 +744,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                           </div>
                         </div>
                       ) : (
-                        <button 
+                        <button
                           className={styles.deleteButton}
                           onClick={() => confirmDelete(restaurant.id)}
                         >
@@ -735,8 +754,8 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                       )}
                     </>
                   )}
-                  
-                  <button 
+
+                  <button
                     className={`${styles.voteButton} ${votedRestaurantId === restaurant.id ? styles.voted : styles.notVoted}`}
                     onClick={() => handleVote(restaurant.id)}
                     disabled={voteInProgress}
@@ -758,7 +777,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           <Utensils size={40} />
           <p>まだ店舗が登録されていません</p>
           {isOrganizer && (
-            <button 
+            <button
               className={styles.addButton}
               onClick={() => setShowForm(true)}
             >
@@ -768,7 +787,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           )}
         </div>
       )}
-      
+
       {/* フォームオーバーレイ */}
       {showForm && (
         <div className={styles.modalOverlay}>
@@ -778,16 +797,16 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
               <h2 className={styles.formTitle}>
                 {editingRestaurant ? '店舗情報を編集' : '新しい店舗を登録'}
               </h2>
-              <button 
+              <button
                 className={styles.closeFormButton}
                 onClick={resetForm}
               >
                 <X size={24} />
               </button>
             </div>
-            
+
             {/* フォーム */}
-            <form 
+            <form
               ref={formRef}
               className={styles.form}
               onSubmit={handleSubmit}
@@ -810,7 +829,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                 )}
                 <span className={styles.charCount}>{formData.name.length}/50</span>
               </div>
-              
+
               {/* 画像アップロード */}
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
@@ -831,7 +850,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     className={styles.fileInput}
                   />
-                  
+
                   {imagePreview ? (
                     <div className={styles.previewContainer}>
                       <img
@@ -869,7 +888,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                   <span className={styles.fieldError}>{fieldErrors.file}</span>
                 )}
               </div>
-              
+
               {/* ウェブサイトURL */}
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
@@ -886,7 +905,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                   <span className={styles.fieldError}>{fieldErrors.websiteUrl}</span>
                 )}
               </div>
-              
+
               {/* 説明 */}
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
@@ -904,10 +923,10 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                 )}
                 <span className={styles.charCount}>{(formData.description || '').length}/200</span>
               </div>
-              
+
               {/* 送信ボタン */}
               <div className={styles.formActions}>
-                <button 
+                <button
                   type="button"
                   className={styles.cancelButton}
                   onClick={resetForm}
@@ -915,8 +934,8 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                 >
                   キャンセル
                 </button>
-                
-                <button 
+
+                <button
                   type="submit"
                   className={styles.saveButton}
                   disabled={submitting}
@@ -938,24 +957,24 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           </div>
         </div>
       )}
-      
+
       {/* 削除確認モーダル */}
       {showDeleteConfirm && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContainer}>
             <h2 className={styles.modalTitle}>削除の確認</h2>
             <p className={styles.modalText}>この店舗を削除しますか？この操作は元に戻せません。</p>
-            
+
             <div className={styles.modalButtons}>
-              <button 
+              <button
                 className={styles.modalCancelButton}
                 onClick={cancelDelete}
                 disabled={submitting}
               >
                 キャンセル
               </button>
-              
-              <button 
+
+              <button
                 className={styles.modalDeleteButton}
                 onClick={() => handleDelete(showDeleteConfirm)}
                 disabled={submitting}

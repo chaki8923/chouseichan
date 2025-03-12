@@ -500,6 +500,13 @@
   border: 2px solid #d67e97;
 }
 
+@media (max-width: 768px) {
+  .eventImage{
+    width: 100px!important;
+    height: 100px!important;
+  }
+}
+
 .colspan3 {
   border-left: none !important;
 }
@@ -783,6 +790,12 @@
   justify-content: center;
   position: relative;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .eventTitleContainer {
+    margin-bottom: 0;
+  }
 }
 
 // 編集ボタン

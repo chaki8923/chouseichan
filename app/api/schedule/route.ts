@@ -18,51 +18,60 @@ export async function POST(request: NextRequest) {
     const schedules = JSON.parse(formData.get("schedules") as string);
     const memo = formData.get("memo") as string;
     const imageFile = formData.get("image") as File | null;
-    let uploadedUrl = null;
+    let uploadedUrl: string | null = null;
 
+    // 画像がアップロードされている場合、先に保存する
     if (imageFile) {
-      // 拡張子を取得
-      const extension = imageFile.name.split(".").pop() || "jpg"; // デフォルトは "jpg"
-    
-      // File をバッファに変換
-      const arrayBuffer = await imageFile.arrayBuffer();
-      const imageBuffer = Buffer.from(arrayBuffer);
-    
-      // S3 クライアント作成（Cloudflare R2 用）
-      const s3 = new S3Client({
-        region: "auto",
-        endpoint: process.env.R2_ENDPOINT!,
-        credentials: {
-          accessKeyId: process.env.R2_ACCESS_KEY!,
-          secretAccessKey: process.env.R2_SECRET_KEY!,
-        },
-      });
-    
-      const key = `images/${Date.now()}.${extension}`;
-    
-      await s3.send(
-        new PutObjectCommand({
-          Bucket:  process.env.BUCKET_NAME!,
-          Key: key,
-          ContentType: imageFile.type, // FileオブジェクトからMIMEタイプを取得
-          Body: imageBuffer,
-        }),
-      );
-    
-      // 正しい公開 URL を生成
-      uploadedUrl = `${process.env.R2_PUBLIC_BUCKET_DOMAIN}/${key}`;
+      try {
+        // 拡張子を取得
+        const extension = imageFile.name.split(".").pop() || "jpg";
+        const timestamp = Date.now();
+        const key = `images/${timestamp}.${extension}`;
+        
+        // File をバッファに変換
+        const arrayBuffer = await imageFile.arrayBuffer();
+        const imageBuffer = Buffer.from(arrayBuffer);
+        
+        // S3 クライアント作成（Cloudflare R2 用）
+        const s3 = new S3Client({
+          region: "auto",
+          endpoint: process.env.R2_ENDPOINT!,
+          credentials: {
+            accessKeyId: process.env.R2_ACCESS_KEY!,
+            secretAccessKey: process.env.R2_SECRET_KEY!,
+          },
+        });
+        
+        // imagesフォルダ直下に保存
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: process.env.BUCKET_NAME!,
+            Key: key,
+            ContentType: imageFile.type,
+            Body: imageBuffer,
+          }),
+        );
+        
+        // 正しい公開 URL を生成
+        uploadedUrl = `${process.env.R2_PUBLIC_BUCKET_DOMAIN}/${key}`;
+      } catch (uploadError) {
+        console.error("画像のアップロード中にエラーが発生しました:", uploadError);
+        // 画像アップロードに失敗しても、イベント自体は作成する
+      }
     }
 
     // トランザクションで処理を一括管理
     const result = await prisma.$transaction(async (prisma) => {
+      // イベントを作成（既に保存した画像URLを使用）
       const newEvent = await prisma.event.create({
         data: {
           name: event_name,
-          image: uploadedUrl,
+          image: uploadedUrl, // 先に保存した画像のURLを使用
           memo: memo,
         },
       });
 
+      // スケジュールを作成
       await prisma.schedule.createMany({
         data: schedules.map((schedule: { date: string; time: string }) => ({
           eventId: newEvent.id,

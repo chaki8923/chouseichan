@@ -259,9 +259,6 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        console.log(`イベント確認: ${existingEvent.name} (ID: ${existingEvent.id})`);
-        console.log(`スケジュール数: ${existingEvent.schedules.length}`);
-        console.log(`画像数: ${existingEvent.images.length}`);
 
         // トランザクションで関連レコードを順番に削除
         await prisma.$transaction(async (tx) => {
