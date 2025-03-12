@@ -42,45 +42,14 @@
 .eventName {
   color: #de3163;
   font-weight: bold;
-  font-size: 28px;
-  padding: 1rem 0;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  position: relative;
-  background: linear-gradient(to right, transparent, rgba(222, 49, 99, 0.1), transparent);
+  font-size: 26px;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  text-align: left;
   
-  &::before, &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(to right, transparent, #de3163, transparent);
-  }
-  
-  &::before {
-    top: 0;
-  }
-  
-  &::after {
-    bottom: 0;
-  }
-
-  // 回答期限バッジのスタイル
-  .deadlineBadge {
-    display: block;
-    font-size: 16px;
-    font-weight: normal;
-    color: #666;
-    margin-top: 8px;
-    padding: 4px 12px;
-    border-radius: 16px;
-    background-color: #f5f5f5;
-    
-    &.deadlinePassed {
-      color: #d32f2f;
-      background-color: #ffebee;
-    }
+  @media (max-width: 768px) {
+    font-size: 22px;
+    text-align: center;
   }
 }
 
@@ -89,7 +58,7 @@
   align-items: flex-start;
   width: 100%;
   text-wrap: wrap;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   background-color: #fff;
   padding: 1rem;
   border-radius: 8px;
@@ -100,6 +69,7 @@
     align-items: center;
     text-align: center;
     padding: 0.75rem;
+    margin-top: 0.5rem;  // タイトルコンテナとの間隔を追加
   }
   
   img {
@@ -227,47 +197,51 @@
     }
   }
 }
+.declineCount{
+  width: 20px;
+}
 
 /* モバイル用追加スタイル */
 @media (max-width: 768px) {
   .tableDesign {
     min-width: auto;
-    width: 100%;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
 
-  .tableDesign th,
   .tableDesign td {
-    padding: 0.7rem 0.5rem;
+    padding: 0.4rem 0.3rem;
   }
 
   .tableDesign th {
+    padding: 0.5rem 0.3rem;
     white-space: nowrap;
   }
 }
 
+
 .tableDesign {
   border-collapse: collapse;
   min-width: 700px;
-  width: 100%;
   font-weight: 500;
   text-align: center;
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.03);
+  font-size: 0.85rem;
+  line-height: 1.2;
   
   th, td {
-  position: relative;
+    position: relative;
     z-index: 3; /* アニメーションレイヤーの上に配置 */
-}
+  }
 }
 
 .tableDesign th,
 .tableDesign td {
-  padding: 0.9rem 1rem;
+  padding: 0.5rem 0.6rem;
   border: none;
-  border-bottom: 1px solid rgba(222, 49, 99, 0.15);
+  border-bottom: 1px solid rgba(222, 49, 99, 0.08);
   color: #333;
 }
 
@@ -276,8 +250,9 @@
   text-align: center;
   color: #fff;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0px;
   position: relative;
+  padding: 0.6rem 0.5rem;
   
   &:not(:last-child)::after {
     content: '';
@@ -297,22 +272,24 @@
 
 /* 奇数行と偶数行で微妙な色の違いを出す */
 .tableDesign tr:nth-child(even) td {
-  background-color: rgba(249, 249, 249, 0.7);
+  background-color: rgba(250, 250, 250, 0.5);
 }
 
 /* ホバー効果 */
 .tableDesign tr:hover td {
-  background-color: rgba(222, 49, 99, 0.05);
+  background-color: rgba(222, 49, 99, 0.03);
   transition: background-color 0.2s ease;
 }
 
 .reactIcon {
-  width: 100%;
+  width: 85%;
   color: #333;
+  font-size: 0.9rem;
 }
 .reactIconTable {
-  width: 100%;
+  width: 85%;
   color: #fff;
+  font-size: 0.9rem;
 }
 
 .userResponse_batu {
@@ -448,15 +425,18 @@
 }
 
 .userName {
-  cursor: pointer;
-  text-decoration: underline;
-  transition: 0.2s;
-  min-width: 140px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  max-width: 50px;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 }
-.userName:hover {
-  color: #f7cad6;
-  transition: 0.2s;
-}
+
 .scheduleForm {
   // border: #ed9ad6 solid 2px;
   position: relative;
@@ -528,7 +508,7 @@
   border-left: none !important;
 }
 .userComment {
-  min-width: 260px;
+  width: 160px;
   font-weight: normal;
 }
 
@@ -803,10 +783,41 @@
 // イベントタイトルコンテナ（タイトルと編集ボタンを横に並べる）
 .eventTitleContainer {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: space-between;
   position: relative;
   margin-bottom: 1.5rem;
+  padding: 1.2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  // タイトルコンテンツエリア
+  .titleContent {
+    flex: 1;
+    
+    @media (max-width: 768px) {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+  
+  // アクションボタンエリア
+  .actionButtons {
+    display: flex;
+    gap: 0.5rem;
+    
+    @media (max-width: 768px) {
+      position: absolute;
+      top: -25px;
+      right: 0;
+    }
+  }
 }
 
 @media (max-width: 768px) {
@@ -817,28 +828,29 @@
 
 // 編集ボタン
 .editButton {
-  position: absolute;
-  right: 0;
-  background: none;
-  border: none;
-  color: #999;
-  font-size: 1.2rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  font-size: 1.1rem;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
   &:hover {
     color: #de3163;
-    background-color: rgba(222, 49, 99, 0.1);
-    transform: scale(1.1);
+    background-color: #fdf4f7;
+    border-color: #de3163;
   }
 }
 
 @media (max-width: 768px) {
   .editButton {
     top: 10px;
-    font-size: 30px;
+    font-size: 20px;
   }
 }
 
@@ -1867,21 +1879,22 @@
 
 // 削除ボタン
 .deleteButton {
-  position: absolute;
-  right: 50px;
-  background: none;
-  border: none;
-  color: #999;
-  font-size: 1.2rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  font-size: 1.1rem;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
   &:hover {
     color: #d9534f;
-    background-color: rgba(217, 83, 79, 0.1);
-    transform: scale(1.1);
+    background-color: #fff8f8;
+    border-color: #d9534f;
   }
 }
 
@@ -2537,5 +2550,23 @@
   .dateSelectWrapper,
   .timeSelectWrapper {
     width: 100%;
+  }
+}
+
+// 回答期限バッジの改善
+.deadlineBadge {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+  margin-top: 0.5rem;
+  
+  .deadlineIcon {
+    margin-right: 0.4rem;
+    font-size: 16px;
+  }
+  
+  &.deadlinePassed {
+    color: #d32f2f;
   }
 }

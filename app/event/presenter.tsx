@@ -23,7 +23,7 @@ import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove } from 'react-icons/fi';
+import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove, FiClock } from 'react-icons/fi';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -1956,36 +1956,37 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             </div>
           ) : (
             <div className={styles.eventTitleContainer}>
-              <h1 className={styles.eventName}>
-                {eventData.name}
+              <div className={styles.titleContent}>
+                <h1 className={styles.eventName}>
+                  {eventData.name}
+                </h1>
                 {eventData.responseDeadline && (
-                  <span className={`${styles.deadlineBadge} ${isDeadlinePassed ? styles.deadlinePassed : ''}`}>
+                  <div className={`${styles.deadlineBadge} ${isDeadlinePassed ? styles.deadlinePassed : ''}`}>
+                    <FiClock className={styles.deadlineIcon} />
                     回答期限: {formatDeadline(eventData.responseDeadline)}
                     {isDeadlinePassed ? ' (終了)' : ''}
-                  </span>
-                )}
-              </h1>
-              <div className="flex">
-                {isOrganizer && (
-                  <>
-                    <button
-                      className={styles.editButton}
-                      onClick={handleStartEdit}
-                      title="イベントを編集"
-                    >
-                      <FaEdit />
-                    </button>
-
-                    <button
-                      className={styles.deleteButton}
-                      onClick={showDeleteConfirmation}
-                      title="イベントを削除"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </>
+                  </div>
                 )}
               </div>
+              {isOrganizer && (
+                <div className={styles.actionButtons}>
+                  <button
+                    className={styles.editButton}
+                    onClick={handleStartEdit}
+                    title="イベントを編集"
+                  >
+                    <FaEdit />
+                  </button>
+
+                  <button
+                    className={styles.deleteButton}
+                    onClick={showDeleteConfirmation}
+                    title="イベントを削除"
+                  >
+                    <FiTrash2 />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -2035,10 +2036,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             <RestaurantVoteLink eventId={eventData.id} />
           )}
 
-          {/* テーブルの前にスワイプ案内を移動し、シンプルな表示に変更 */}
+          {/* テーブルの前にスワイプ案内 */}
           {eventData.schedules.length > 0 && isTableScrollable && (
-            <div className={styles.mobileScrollHint} style={{ width: '100%', maxWidth: '100%', overflow: 'visible', position: 'relative', left: 0, right: 0 }}>
-              <span className={styles.swipeText}>スワイプできます</span>
+            <div style={{ fontSize: '0.8rem', color: '#666', textAlign: 'center', marginBottom: '0.5rem' }}>
+              ← スワイプできます →
             </div>
           )}
 
@@ -2047,12 +2048,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
               <tbody>
                 <tr>
                   {isOrganizer && (
-                    <th></th>
+                    <th className="min-w-[150px]"></th>
                   )}
-                  <th>候補日</th>
-                  <th><FaRegCircle className={styles.reactIconTable} /></th>
-                  <th><IoTriangleOutline className={styles.reactIconTable} /></th>
-                  <th><RxCross2 className={styles.reactIconTable} /></th>
+                  <th className="min-w-[220px]">候補日</th>
+                  <th className="min-w-[60px]"><FaRegCircle className={styles.reactIconTable} /></th>
+                  <th className="min-w-[60px]"><IoTriangleOutline className={styles.reactIconTable} /></th>
+                  <th className="min-w-[60px]"><RxCross2 className={styles.reactIconTable} /></th>
                   {/* ユーザー名のリストを表示 */}
                   {eventData.schedules
                     .flatMap(schedule =>
@@ -2069,7 +2070,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                       <th
                         key={user.id}
                         onClick={() => changeUpdate(user.id, user.name)}
-                        className={styles.userName}
+                        className={`${styles.userName} max-w-[40px]`}
                         role="button"
                         title={`${user.name}さんの回答を編集する`}
                       >
@@ -2113,7 +2114,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   return (
                     <tr key={schedule.id} className={highlightClass}>
                       {isOrganizer && (
-                        <td className="min-w-[180px]">
+                        <td className="max-w-[70px]">
                           {
                             !schedule.isConfirmed ? (
                               <ConfirmScheduleButton
@@ -2134,10 +2135,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
                         </td>
                       )}
-                      <td className={`${label} min-w-[310px]`}>{formattedDate} - {schedule.time}</td>
-                      <td className="min-w-[75px]">{attendCount}人</td>
-                      <td className="min-w-[75px]">{undecidedCount}人</td>
-                      <td className="min-w-[75px]">{declineCount}人</td>
+                      <td className={`${label} max-w-[120px]`}>{formattedDate} - {schedule.time}</td>
+                      <td className={`max-w-[20px] ${styles.declineCount}`}>{attendCount}人</td>
+                      <td className={`max-w-[20px] ${styles.declineCount}`}>{undecidedCount}人</td>
+                      <td className={`max-w-[20px] ${styles.declineCount}`}>{declineCount}人</td>
                       {/* 各ユーザーの回答を表示 */}
                       {eventData.schedules
                         .flatMap(s => s.responses)
@@ -2145,10 +2146,25 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                         // 重複を排除
                         .filter((name, index, self) => self.indexOf(name) === index)
                         .map(userName => (
-                          <td key={`${schedule.id}-${userName}`}>
-                            {userResponses[userName] === "ATTEND" && <FaRegCircle className={styles.reactIcon} />}
-                            {userResponses[userName] === "UNDECIDED" && <IoTriangleOutline className={styles.reactIcon} />}
-                            {userResponses[userName] === "ABSENT" && <RxCross2 className={styles.reactIcon} />}
+                          <td key={`${schedule.id}-${userName}`} className="max-w-[40px]">
+                            {userResponses[userName] === "ATTEND" && (
+                              <FaRegCircle 
+                                className={styles.reactIcon} 
+                                title={`${userName}さんは参加可能です`} 
+                              />
+                            )}
+                            {userResponses[userName] === "UNDECIDED" && (
+                              <IoTriangleOutline 
+                                className={styles.reactIcon} 
+                                title={`${userName}さんは未定です`} 
+                              />
+                            )}
+                            {userResponses[userName] === "ABSENT" && (
+                              <RxCross2 
+                                className={styles.reactIcon} 
+                                title={`${userName}さんは不参加です`} 
+                              />
+                            )}
                           </td>
                         ))
                       }
