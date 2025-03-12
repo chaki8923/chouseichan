@@ -83,6 +83,7 @@ model Event {
   image     String?
   memo      String?
   userId    String?
+  responseDeadline DateTime? // 回答期限（任意項目）
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   user      User?        @relation(fields: [userId], references: [id])

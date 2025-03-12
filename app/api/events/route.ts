@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 // イベントのタイトル、メモ、アイコン、日程を更新するエンドポイント
 export async function PATCH(request: NextRequest) {
     try {
-        const { eventId, name, memo, iconPath, schedules } = await request.json();
+        const { eventId, name, memo, iconPath, responseDeadline, schedules } = await request.json();
 
         // バリデーション
         if (!eventId) {
@@ -108,6 +108,7 @@ export async function PATCH(request: NextRequest) {
                     ...(name !== undefined && { name }),
                     ...(memo !== undefined && { memo }),
                     ...(iconPath !== undefined && { image: iconPath }),
+                    ...(responseDeadline !== undefined && { responseDeadline: responseDeadline ? new Date(responseDeadline) : null }),
                 },
             });
 

@@ -65,6 +65,23 @@
   &::after {
     bottom: 0;
   }
+
+  // 回答期限バッジのスタイル
+  .deadlineBadge {
+    display: block;
+    font-size: 16px;
+    font-weight: normal;
+    color: #666;
+    margin-top: 8px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    background-color: #f5f5f5;
+    
+    &.deadlinePassed {
+      color: #d32f2f;
+      background-color: #ffebee;
+    }
+  }
 }
 
 .eventTitleSection {
@@ -2028,7 +2045,9 @@
   border: 1px solid #eee;
   
   &:hover {
-    background-color: #f5f5f5;
+    border-color: #ccc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   }
   
   // モバイル対応のレイアウト
@@ -2393,5 +2412,20 @@
     font-size: 0.85rem;
     color: #de3163;
     font-weight: 500;
+  }
+}
+
+// 回答期限切れメッセージのスタイル
+.deadlinePassedMessage {
+  text-align: center;
+  padding: 2rem;
+  margin: 1rem 0;
+  background-color: #ffebee;
+  border-radius: 8px;
+  color: #d32f2f;
+  font-weight: bold;
+  
+  p {
+    margin: 0;
   }
 }

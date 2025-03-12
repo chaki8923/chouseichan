@@ -138,6 +138,7 @@ interface EventFormData {
   event_name: string;
   memo: string;
   schedules: ScheduleFormData[];
+  responseDeadline?: string;
 }
 
 export default function Form({ categoryName }: { categoryName: string }) {
@@ -180,6 +181,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
     defaultValues: {
       event_name: '',
       memo: '',
+      responseDeadline: '',
       schedules: [{ date: '', time: '19:00' }],
     },
   });
@@ -187,6 +189,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
   // フォームの値をwatch
   const eventNameValue = watch('event_name');
   const memoValue = watch('memo');
+  const responseDeadlineValue = watch('responseDeadline');
 
   // クライアントサイドの処理を行うための処理
   useEffect(() => {
@@ -477,6 +480,11 @@ export default function Form({ categoryName }: { categoryName: string }) {
     formData.append("event_name", params.event_name);
     formData.append("schedules", JSON.stringify(params.schedules));
     formData.append("memo", params.memo);
+    
+    // 回答期限があれば追加
+    if (params.responseDeadline) {
+      formData.append("responseDeadline", params.responseDeadline);
+    }
 
     // オーバーレイを表示し、送信中状態にする
     setIsSubmitting(true);
@@ -708,11 +716,39 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
           <div className={styles.formStepDivider}></div>
 
+          <div className={styles.formStep}>
+            <div className={styles.stepNumber}>3</div>
+            <h2 className={styles.stepTitle}>回答期限</h2>
+            <span className={styles.badgeOptional}>任意</span>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              回答期限
+              <span className={styles.badgeOptional}>任意</span>
+            </label>
+            <input
+              type="datetime-local"
+              className={styles.modernInput}
+              placeholder="回答期限を設定する場合は選択してください"
+              min={new Date().toISOString().slice(0, 16)}
+              {...register('responseDeadline')}
+            />
+            <div className={styles.inputHelper}>
+              期限を過ぎると参加者は回答できなくなります
+            </div>
+            {errors.responseDeadline && (
+              <span className={styles.errorMessage}>{errors.responseDeadline.message}</span>
+            )}
+          </div>
+
+          <div className={styles.formStepDivider}></div>
+
           {/* 画像アップロード - コメントが入力されている場合のみ表示 */}
           {memoValue && memoValue.trim() !== '' && (
             <>
               <div className={styles.formStep}>
-                <div className={styles.stepNumber}>3</div>
+                <div className={styles.stepNumber}>{responseDeadlineValue ? '4' : '3'}</div>
                 <h2 className={styles.stepTitle}>アイコン画像</h2>
                 <span className={styles.badgeOptional}>任意</span>
               </div>

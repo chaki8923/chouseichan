@@ -13,6 +13,9 @@ export const ScheduleSchema = z.object({
   memo: z
     .string()
     .max(300, { message: "メモは300文字以内で入力してください" }),
+  responseDeadline: z
+    .string()
+    .optional(), // 回答期限（任意項目）
   schedules: z
     .array(
       z.object({

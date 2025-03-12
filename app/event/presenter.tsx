@@ -46,7 +46,6 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { RadioGroup } from "@headlessui/react";
 import RestaurantVoteLink from "../components/RestaurantVoteLink";
 
 type maxAttend = {
@@ -330,6 +329,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [editedTitle, setEditedTitle] = useState<string>("");
   const [editedMemo, setEditedMemo] = useState<string>("");
   const [editedIcon, setEditedIcon] = useState<string>("");
+  const [editedResponseDeadline, setEditedResponseDeadline] = useState<string>("");
   const [selectedIconFile, setSelectedIconFile] = useState<File | null>(null);
   const [previewIcon, setPreviewIcon] = useState<string>("");
   const [editedSchedules, setEditedSchedules] = useState<{ id: number; date: string; time: string; hasResponses: boolean; displayOrder: number }[]>([]);
@@ -347,6 +347,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [tempMovedSchedules, setTempMovedSchedules] = useState<number[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<any | null>(null);
+  const [isDeadlinePassed, setIsDeadlinePassed] = useState<boolean>(false);
+  // ステート定義部分に確定スケジュール用の状態変数を追加
+  const [confirmedSchedule, setConfirmedSchedule] = useState<Schedule | undefined>(undefined);
 
   // DnDkit用のセンサーをコンポーネントのトップレベルで定義
   const sensors = useSensors(
@@ -367,35 +370,76 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const containerRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (eventId) {
+      setIsOrganizer(isEventOwner(eventId)); // ✅ クライアントサイドで実行
+    }
+  }, [eventId]);
+
   async function fetchEventWithSchedules(eventId: string) {
+    setLoading(true);
+
     try {
       const response = await fetch(`/api/events?eventId=${eventId}`);
-
-      // APIから404レスポンスが返された場合、nullを返す
-      if (response.status === 404) {
-        console.log("イベントが見つかりません（404）");
-        return null;
-      }
-
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "エラーが発生しました");
+        throw new Error("Failed to fetch event data");
       }
 
-      // スケジュールをdisplayOrderでソートする
-      if (data && data.schedules) {
-        data.schedules.sort((a: { displayOrder?: number }, b: { displayOrder?: number }) => {
-          const orderA = a.displayOrder ?? 0;
-          const orderB = b.displayOrder ?? 0;
-          return orderA - orderB;
-        });
+      const eventData = await response.json();
+      setEventData(eventData);
+      
+      // 回答期限が過ぎているかチェック
+      if (eventData.responseDeadline) {
+        const now = new Date();
+        const deadline = new Date(eventData.responseDeadline);
+        setIsDeadlinePassed(now > deadline);
+      } else {
+        setIsDeadlinePassed(false);
       }
 
-      return data;
+      // if (eventData.userId && session?.user?.id) {
+      //   // イベントの所有者の場合
+      //   if (eventData.userId === session.user.id) {
+      //     setIsOrganizer(true);
+      //   } else {
+      //     setIsOrganizer(false);
+      //   }
+      // } else {
+      //   setIsOrganizer(false);
+      // }
+
+      // イベント画像を設定
+      if (eventData.images) {
+        setEventImages(Array.isArray(eventData.images) 
+          ? eventData.images.map((img: string) => ({ url: img })) 
+          : []);
+      }
+      
+      setLoading(false);
+      return eventData; // イベントデータを返す
     } catch (error) {
       console.error("Error fetching event:", error);
-      throw error;
+      setError("イベントが開かない場合は再読み込みしてみてください");
+      setEventNotFound(true);
+      setLoading(false);
+      return null; // エラー時はnullを返す
+    }
+  }
+
+  // fetchEventImages関数がある場合は更新（呼び出されているため）
+  async function fetchEventImages(eventId: string) {
+    try {
+      const response = await fetch(`/api/events/images?eventId=${eventId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch event images");
+      }
+      
+      const images = await response.json();
+      if (images && Array.isArray(images)) {
+        setEventImages(images.map((img: string) => ({ url: img })));
+      }
+    } catch (error) {
+      console.error("Error fetching event images:", error);
     }
   }
 
@@ -419,6 +463,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const getEventData = useCallback(async () => {
     try {
       setLoading(true);
+      // fetchEventWithSchedulesの戻り値を受け取り、それを利用する
       const data = await fetchEventWithSchedules(eventId!);
 
       if (!data) {
@@ -653,6 +698,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   }, [eventNotFound]);
 
+  useEffect(() => {
+    if (eventData && eventData.schedules) {
+      const foundConfirmedSchedule = eventData.schedules.find(
+        (schedule: any) => schedule.isConfirmed
+      );
+      setConfirmedSchedule(foundConfirmedSchedule);
+    }
+  }, [eventData]);
+
   if (!eventId) return <p>イベントidがありません</p>
 
   if (eventNotFound) {
@@ -693,9 +747,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     attendCount: (schedule.responses as Response[]).filter((res) => res.response === "ATTEND").length,
   }));
 
-
-  const confirmedSchedule = eventData.schedules.filter((res) => res.isConfirmed === true)[0];
-
   // ✅ ATTEND数が最も多いスケジュールを取得
   const maxAttendCount = Math.max(...schedulesWithAttendCount.map((s: maxAttend) => s.attendCount));
   const highlightScheduleIds = schedulesWithAttendCount
@@ -713,6 +764,16 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     setEditedMemo(eventData.memo || "");
     setEditedIcon(eventData.image || "");
     setPreviewIcon(eventData.image || "");
+    
+    // 回答期限の初期化（存在する場合はフォーマットして設定）
+    if (eventData.responseDeadline) {
+      const deadline = new Date(eventData.responseDeadline);
+      // ISO形式で取得してdatetime-local入力用にフォーマット（末尾のZを削除）
+      const formattedDeadline = deadline.toISOString().slice(0, 16);
+      setEditedResponseDeadline(formattedDeadline);
+    } else {
+      setEditedResponseDeadline("");
+    }
 
     // 日程情報を初期化
     const schedules = eventData.schedules.map((schedule, index) => {
@@ -744,6 +805,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     setEditMessage({ type: "", message: "" });
     setSelectedIconFile(null);
     setPreviewIcon("");
+    setEditedResponseDeadline("");
     // 日程編集関連の状態をリセット
     setEditedSchedules([]);
     setNewSchedules([]);
@@ -899,6 +961,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           name: editedTitle,
           memo: editedMemo,
           iconPath,
+          responseDeadline: editedResponseDeadline || null, // 回答期限
           schedules: {
             // 更新する既存の日程（id: -999かつ削除マークされていないものだけを含む）
             update: editedSchedules.filter(s => 
@@ -1304,14 +1367,35 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   };
 
   // フォーム送信後の処理
-  const handleFormSuccess = () => {
-    // 完了モーダルを表示
-    // 2秒後に閉じる
-    // setTimeout(() => {
-    // }, 2000);
+  const handleFormSuccess = async () => {
+    // リロードしてページの状態を更新
+    if (eventId) {
+      try {
+        // イベントデータの再取得
+        const data = await fetchEventWithSchedules(eventId);
 
-    // スケジュールとイベントデータを再取得（fetchSchedules関数に記述されているリセット処理は実行される）
-    fetchSchedules();
+        if (data) {
+          addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
+          setEventData(data);
+
+          // 画像データはイベントデータに含まれているので直接設定
+          if (data && data.images) {
+            setEventImages(Array.isArray(data.images) ? data.images.map((img: string) => ({ url: img })) : []);
+          }
+
+          // 確定済みスケジュールを検索する部分を削除
+          // const foundConfirmedSchedule = data.schedules.filter((res: any) => res.isConfirmed === true)[0];
+          // ここでは状態を更新しない（setConfirmedScheduleは使用しない）
+
+          // 編集モードから戻る（ユーザー名、IDをリセットして新規登録モードへ）
+          setIsCreateForm(true);
+          setUserName("");
+          setUserId("");
+        }
+      } catch (error) {
+        console.error("Error reloading data after form submission:", error);
+      }
+    }
   };
 
   // 画像の削除処理関数を追加
@@ -1506,6 +1590,18 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }),
   };
 
+  // 回答期限のフォーマット関数
+  const formatDeadline = (dateStr: string | Date) => {
+    const date = new Date(dateStr);
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <>
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
@@ -1590,6 +1686,21 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     )}
                   </div>
                 )}
+
+                <div className={styles.formGroup}>
+                  <label className={styles.editLabel}>
+                    回答期限 <span className={styles.tagNoRequire}>任意</span>
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={editedResponseDeadline}
+                    onChange={(e) => setEditedResponseDeadline(e.target.value)}
+                    className={styles.editInput}
+                    min={new Date().toISOString().slice(0, 16)}
+                    placeholder="回答期限を設定"
+                  />
+                  <p className={styles.formHint}>期限を過ぎると参加者は回答できなくなります</p>
+                </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.editLabel}>
@@ -1788,7 +1899,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             </div>
           ) : (
             <div className={styles.eventTitleContainer}>
-              <h1 className={styles.eventName}>{eventData.name}</h1>
+              <h1 className={styles.eventName}>
+                {eventData.name}
+                {eventData.responseDeadline && (
+                  <span className={`${styles.deadlineBadge} ${isDeadlinePassed ? styles.deadlinePassed : ''}`}>
+                    回答期限: {formatDeadline(eventData.responseDeadline)}
+                    {isDeadlinePassed ? ' (終了)' : ''}
+                  </span>
+                )}
+              </h1>
               <div className="flex">
                 {isOrganizer && (
                   <>
@@ -2008,7 +2127,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             </table>
             <Scroll containerRef={containerRef} />
             {accessToken ?
-              <CreateEventButton accessToken={accessToken} refreshToken={refreshToken} confirmedSchedule={confirmedSchedule} event={eventData} /> :
+              <CreateEventButton 
+                accessToken={accessToken} 
+                refreshToken={refreshToken} 
+                confirmedSchedule={confirmedSchedule || null as any} 
+                event={eventData} 
+              /> :
               <SigninButton />
             }
           </div>
@@ -2016,40 +2140,46 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       </div>
       <div id="response_area" className="mt-12">
         <h2 className={styles.h2Title}>回答フォーム</h2>
-        {isCreateForm ? (
-          <Form
-            onSuccess={handleFormSuccess}
-            onCreate={handleCreate}
-            schedules={eventData.schedules.map((schedule) => ({
-              ...schedule,
-              responses: schedule.responses.map((response) => ({
-                ...response,
-                user: {
-                  ...response.user,
-                  comment: response.user.comment || "",
-                },
-              })),
-            }))}
-            userId={userId}
-            userName={userName}
-          />
+        {isDeadlinePassed ? (
+          <div className={styles.deadlinePassedMessage}>
+            <p>回答期限が過ぎているため、回答は受け付けていません。</p>
+          </div>
         ) : (
-          <Form
-            onSuccess={handleFormSuccess}
-            onCreate={handleCreate}
-            schedules={eventData.schedules.map((schedule) => ({
-              ...schedule,
-              responses: schedule.responses.map((response) => ({
-                ...response,
-                user: {
-                  ...response.user,
-                  comment: response.user.comment || "",
-                },
-              })),
-            }))}
-            userId={userId}
-            userName={userName}
-          />
+          isCreateForm ? (
+            <Form
+              onSuccess={handleFormSuccess}
+              onCreate={handleCreate}
+              schedules={eventData.schedules.map((schedule) => ({
+                ...schedule,
+                responses: schedule.responses.map((response) => ({
+                  ...response,
+                  user: {
+                    ...response.user,
+                    comment: response.user.comment || "",
+                  },
+                })),
+              }))}
+              userId={userId}
+              userName={userName}
+            />
+          ) : (
+            <Form
+              onSuccess={handleFormSuccess}
+              onCreate={handleCreate}
+              schedules={eventData.schedules.map((schedule) => ({
+                ...schedule,
+                responses: schedule.responses.map((response) => ({
+                  ...response,
+                  user: {
+                    ...response.user,
+                    comment: response.user.comment || "",
+                  },
+                })),
+              }))}
+              userId={userId}
+              userName={userName}
+            />
+          )
         )}
       </div>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>

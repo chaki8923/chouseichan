@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     const event_name = formData.get("event_name") as string;
     const schedules = JSON.parse(formData.get("schedules") as string);
     const memo = formData.get("memo") as string;
+    const responseDeadline = formData.get("responseDeadline") as string || null;
     const imageFile = formData.get("image") as File | null;
     let uploadedUrl: string | null = null;
 
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
           name: event_name,
           image: uploadedUrl, // 先に保存した画像のURLを使用
           memo: memo,
+          responseDeadline: responseDeadline ? new Date(responseDeadline) : null, // 回答期限があれば追加
         },
       });
 

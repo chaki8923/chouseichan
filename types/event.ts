@@ -14,6 +14,7 @@ export type Event = {
   name: string;
   image?: string;
   memo: string;
+  responseDeadline?: string | Date; // 回答期限
   schedules: Schedule[];
   images?: string[];
 };
