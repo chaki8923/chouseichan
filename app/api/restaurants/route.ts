@@ -62,23 +62,23 @@ async function deleteImageFromCloudflare(imageUrl: string): Promise<boolean> {
     // 2つの方法で削除を試みる
     
     // 1. upload APIを使用した削除
-    try {
-      const response = await fetch(`/api/upload?key=${encodeURIComponent(objectKey)}`, {
-        method: 'DELETE',
-      });
+    // try {
+    //   const response = await fetch(`/api/upload?key=${encodeURIComponent(objectKey)}`, {
+    //     method: 'DELETE',
+    //   });
       
-      if (response.ok) {
-        console.log('画像削除成功 (upload API):', objectKey);
-        return true;
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('画像削除エラー (upload API):', errorData);
-        // 失敗した場合は次の方法を試みる
-      }
-    } catch (error) {
-      console.error('画像削除リクエストエラー (upload API):', error);
-      // エラーが発生しても次の方法を試みる
-    }
+    //   if (response.ok) {
+    //     console.log('画像削除成功 (upload API):', objectKey);
+    //     return true;
+    //   } else {
+    //     const errorData = await response.json().catch(() => ({}));
+    //     console.error('画像削除エラー (upload API):', errorData);
+    //     // 失敗した場合は次の方法を試みる
+    //   }
+    // } catch (error) {
+    //   console.error('画像削除リクエストエラー (upload API):', error);
+    //   // エラーが発生しても次の方法を試みる
+    // }
     
     // 2. S3クライアントを直接使用した削除
     try {
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
           select: { votes: true }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'asc' }
     });
 
     return new Response(

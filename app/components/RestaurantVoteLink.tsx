@@ -10,9 +10,23 @@ export default function RestaurantVoteLink({ eventId }: RestaurantVoteLinkProps)
   if (!eventId) return null;
   
   return (
-    <Link href={`/restaurant-vote/${eventId}`} className={styles.voteLink}>
-      <Utensils size={18} />
-      <span className={styles.voteLinkText}>店舗投票</span>
-    </Link>
+    <div className={styles.voteLinkContainer}>
+      <Link href={`/restaurant-vote/${eventId}`} className={styles.voteLink}>
+        <div className={styles.voteLinkInner}>
+          <div className={styles.voteLinkIcon}>
+            <Utensils size={22} />
+          </div>
+          <div className={styles.voteLinkContent}>
+            <span className={styles.voteLinkTitle}>店舗投票</span>
+            <span className={styles.voteLinkDescription}>参加する店舗を投票・選択できます</span>
+          </div>
+          <div className={styles.voteLinkArrow}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </Link>
+    </div>
   );
 }
