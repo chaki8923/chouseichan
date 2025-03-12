@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink, ThumbsUp, AlertCircle, X, Check, Loader2, Utensils, Upload } from 'lucide-react';
+import { FiTrash2 } from 'react-icons/fi';
 import styles from './page.module.css';
 import { isEventOwner } from "@/app/utils/strages";
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
@@ -486,7 +487,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       // 投票数をチェック
       const voteCount = restaurantToDelete._count?.votes || 0;
       if (voteCount > 0) {
-        throw new Error(`この店舗には${voteCount}票の投票があるため削除できません。投票がない店舗のみ削除できます。`);
+        throw new Error(`投票がない店舗のみ削除できます。`);
       }
 
       const response = await fetch(`/api/restaurants?id=${id}`, {
@@ -498,7 +499,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
 
         // 403エラーの場合は投票があるため削除できない
         if (response.status === 403) {
-          throw new Error(`この店舗には${errorData.votesCount || ''}票の投票があるため削除できません。投票がない店舗のみ削除できます。`);
+          throw new Error(`投票がない店舗のみ削除できます。`);
         }
 
         throw new Error(errorData.error || '削除に失敗しました');
@@ -713,7 +714,6 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                             編集不可
                           </button>
                           <div className={styles.tooltip}>
-                            この店舗には{restaurant._count?.votes}票の投票があるため編集できません。
                             投票がない店舗のみ編集できます。
                           </div>
                         </div>
@@ -739,7 +739,6 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                             削除不可
                           </button>
                           <div className={styles.tooltip}>
-                            この店舗には{restaurant._count?.votes}票の投票があるため削除できません。
                             投票がない店舗のみ削除できます。
                           </div>
                         </div>
@@ -858,7 +857,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                         alt="プレビュー"
                         className={styles.previewImage}
                       />
-                      <button
+                        <button
                         type="button"
                         className={styles.removeImageButton}
                         onClick={(e) => {
@@ -872,9 +871,10 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                             fileInputRef.current.value = '';
                           }
                         }}
-                      >
-                        <X size={20} />
-                      </button>
+                    >
+                      <FiTrash2 />
+                    </button>
+                     
                     </div>
                   ) : (
                     <div className={styles.uploadPlaceholder}>

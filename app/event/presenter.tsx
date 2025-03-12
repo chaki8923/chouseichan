@@ -350,6 +350,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isDeadlinePassed, setIsDeadlinePassed] = useState<boolean>(false);
   // ステート定義部分に確定スケジュール用の状態変数を追加
   const [confirmedSchedule, setConfirmedSchedule] = useState<Schedule | undefined>(undefined);
+  // 追加の状態変数
+  const [editedResponseDeadlineDate, setEditedResponseDeadlineDate] = useState("");
+  const [editedResponseDeadlineTime, setEditedResponseDeadlineTime] = useState("");
 
   // DnDkit用のセンサーをコンポーネントのトップレベルで定義
   const sensors = useSensors(
@@ -768,10 +771,22 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     // 回答期限の初期化（存在する場合はフォーマットして設定）
     if (eventData.responseDeadline) {
       const deadline = new Date(eventData.responseDeadline);
-      // ISO形式で取得してdatetime-local入力用にフォーマット（末尾のZを削除）
-      const formattedDeadline = deadline.toISOString().slice(0, 16);
-      setEditedResponseDeadline(formattedDeadline);
+      // ISO形式で取得
+      const isoString = deadline.toISOString();
+      // 日付部分 (YYYY-MM-DD)
+      const datePart = isoString.split('T')[0];
+      // 時間部分 (HH)
+      const timePart = deadline.getHours().toString().padStart(2, '0');
+      
+      // 個別のフィールドに設定
+      setEditedResponseDeadlineDate(datePart);
+      setEditedResponseDeadlineTime(timePart);
+      
+      // 従来のフィールドにも設定（API互換性のため）
+      setEditedResponseDeadline(`${datePart}T${timePart}:00`);
     } else {
+      setEditedResponseDeadlineDate("");
+      setEditedResponseDeadlineTime("");
       setEditedResponseDeadline("");
     }
 
@@ -1691,20 +1706,55 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   <label className={styles.editLabel}>
                     回答期限 <span className={styles.tagNoRequire}>任意</span>
                   </label>
-                  <div className={styles.dateTimeContainer}>
-                    <input
-                      type="datetime-local"
-                      value={editedResponseDeadline}
-                      onChange={(e) => setEditedResponseDeadline(e.target.value)}
-                      className={styles.editInput}
-                      min={new Date().toISOString().slice(0, 16)}
-                      placeholder="回答期限を設定"
-                      onClick={(e) => {
-                        // inputフィールドをクリックしたときにカレンダーを開く
-                        const input = e.target as HTMLInputElement;
-                        input.showPicker();
-                      }}
-                    />
+                  <div className={styles.dateTimeSelectContainer}>
+                    <div className={styles.dateSelectWrapper}>
+                      <label className={styles.dateTimeLabel}>日付</label>
+                      <input
+                        type="date"
+                        value={editedResponseDeadlineDate}
+                        min={new Date().toISOString().split('T')[0]}
+                        onClick={(e) => {
+                          // 日付フィールドをクリックしたらカレンダーを表示
+                          const input = e.target as HTMLInputElement;
+                          input.showPicker();
+                        }}
+                        onChange={(e) => {
+                          const dateValue = e.target.value;
+                          setEditedResponseDeadlineDate(dateValue);
+                          
+                          if (dateValue && editedResponseDeadlineTime) {
+                            // 日付と時間を組み合わせてISO形式の文字列を作成
+                            setEditedResponseDeadline(`${dateValue}T${editedResponseDeadlineTime}:00`);
+                          } else if (!dateValue) {
+                            setEditedResponseDeadline("");
+                          }
+                        }}
+                        className={styles.dateInput}
+                      />
+                    </div>
+                    <div className={styles.timeSelectWrapper}>
+                      <label className={styles.dateTimeLabel}>時間</label>
+                      <select
+                        value={editedResponseDeadlineTime}
+                        onChange={(e) => {
+                          const timeValue = e.target.value;
+                          setEditedResponseDeadlineTime(timeValue);
+                          
+                          if (editedResponseDeadlineDate && timeValue) {
+                            // 日付と時間を組み合わせてISO形式の文字列を作成
+                            setEditedResponseDeadline(`${editedResponseDeadlineDate}T${timeValue}:00`);
+                          }
+                        }}
+                        className={styles.timeSelect}
+                      >
+                        <option value="">--</option>
+                        {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                          <option key={hour} value={`${hour.toString().padStart(2, '0')}`}>
+                            {hour.toString().padStart(2, '0')}時
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <p className={styles.formHint}>期限を過ぎると参加者は回答できなくなります</p>
                 </div>

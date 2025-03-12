@@ -727,19 +727,58 @@ export default function Form({ categoryName }: { categoryName: string }) {
               回答期限
               <span className={styles.badgeOptional}>任意</span>
             </label>
-            <div className={styles.dateTimeContainer}>
-              <input
-                type="datetime-local"
-                className={`${styles.modernInput} ${styles.dateTimeInput}`}
-                placeholder="回答期限を設定する場合は選択してください"
-                min={new Date().toISOString().slice(0, 16)}
-                {...register('responseDeadline')}
-                onClick={(e) => {
-                  // inputフィールドをクリックしたときにカレンダーを開く
-                  const input = e.target as HTMLInputElement;
-                  input.showPicker();
-                }}
-              />
+            <div className={styles.dateTimeSelectContainer}>
+              <div className={styles.dateSelectWrapper}>
+                <label className={styles.dateTimeLabel}>日付</label>
+                <input
+                  type="date"
+                  className={`${styles.modernInput} ${styles.dateInput}`}
+                  min={new Date().toISOString().split('T')[0]}
+                  onClick={(e) => {
+                    // 日付フィールドをクリックしたらカレンダーを表示
+                    const input = e.target as HTMLInputElement;
+                    input.showPicker();
+                  }}
+                  onChange={(e) => {
+                    const dateValue = e.target.value;
+                    const timeValue = document.getElementById('deadline-time') as HTMLSelectElement;
+                    
+                    if (dateValue && timeValue?.value) {
+                      // 日付と時間を組み合わせてISO形式の文字列を作成
+                      const deadlineValue = `${dateValue}T${timeValue.value}:00`;
+                      setValue('responseDeadline', deadlineValue);
+                    } else if (!dateValue) {
+                      // 日付が空の場合は回答期限をクリア
+                      setValue('responseDeadline', '');
+                    }
+                  }}
+                />
+              </div>
+              <div className={styles.timeSelectWrapper}>
+                <label className={styles.dateTimeLabel}>時間</label>
+                <select
+                  id="deadline-time"
+                  className={`${styles.modernInput} ${styles.timeSelect}`}
+                  onChange={(e) => {
+                    const timeValue = e.target.value;
+                    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+                    const dateValue = dateInput?.value;
+                    
+                    if (dateValue && timeValue) {
+                      // 日付と時間を組み合わせてISO形式の文字列を作成
+                      const deadlineValue = `${dateValue}T${timeValue}:00`;
+                      setValue('responseDeadline', deadlineValue);
+                    }
+                  }}
+                >
+                  <option value="">--</option>
+                  {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                    <option key={hour} value={`${hour.toString().padStart(2, '0')}`}>
+                      {hour.toString().padStart(2, '0')}時
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className={styles.inputHelper}>
               期限を過ぎると参加者は回答できなくなります

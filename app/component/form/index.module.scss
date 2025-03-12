@@ -2775,3 +2775,89 @@
     }
   }
 }
+
+.dateTimeSelectContainer {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.dateSelectWrapper,
+.timeSelectWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.dateSelectWrapper {
+  flex: 1.5;
+}
+
+.timeSelectWrapper {
+  flex: 1;
+}
+
+.dateTimeLabel {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.dateInput,
+.timeSelect {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  
+  &:focus {
+    border-color: #af1740;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(175, 23, 64, 0.1);
+  }
+  
+  &:hover {
+    border-color: #af1740;
+  }
+}
+
+.dateInput {
+  cursor: pointer;
+  position: relative;
+  background-color: white;
+  
+  // カレンダーアイコンのスタイル調整
+  &::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 8px;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.timeSelect {
+  cursor: pointer;
+  height: 43px; // 日付入力と高さを揃える
+  background-color: white;
+}
+
+// モバイル対応
+@media (max-width: 480px) {
+  .dateTimeSelectContainer {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .dateSelectWrapper,
+  .timeSelectWrapper {
+    width: 100%;
+  }
+}

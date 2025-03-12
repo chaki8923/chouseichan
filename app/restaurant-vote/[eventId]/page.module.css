@@ -13,6 +13,10 @@
   width: 100%;
 }
 
+.removeImageButton{
+  padding: 0!important;
+}
+
 .loadingContent, .errorContent {
   text-align: center;
   max-width: 500px;
@@ -143,7 +147,7 @@
 .restaurantCard {
   background-color: white;
   border-radius: 10px;
-  overflow: hidden;
+  /* overflow: hidden; */
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
@@ -718,7 +722,7 @@
   position: absolute;
   z-index: 200;
   bottom: 125%;
-  left: 50%;
+  left: 70%;
   transform: translateX(-50%);
   font-size: 0.75rem;
   white-space: nowrap;

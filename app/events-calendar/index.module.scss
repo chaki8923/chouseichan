@@ -916,7 +916,7 @@
 
 /* カレンダーのスクロールインジケーター */
 .scrollIndicator {
-  display: none; /* デフォルトでは非表示 */
+  display: none!important; /* デフォルトでは非表示 */
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
