@@ -2752,3 +2752,26 @@
   background-color: #C72A56;
   transform: translateY(-2px);
 }
+
+.dateTimeContainer {
+  position: relative;
+  width: 100%;
+}
+
+.dateTimeInput {
+  cursor: pointer;
+  position: relative;
+  
+  &::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    opacity: 0.8;
+    padding: 10px;  // タップ可能な領域を広げる
+    background-size: 20px;  // アイコンサイズ調整
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

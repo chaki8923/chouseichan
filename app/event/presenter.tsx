@@ -1691,14 +1691,21 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   <label className={styles.editLabel}>
                     回答期限 <span className={styles.tagNoRequire}>任意</span>
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={editedResponseDeadline}
-                    onChange={(e) => setEditedResponseDeadline(e.target.value)}
-                    className={styles.editInput}
-                    min={new Date().toISOString().slice(0, 16)}
-                    placeholder="回答期限を設定"
-                  />
+                  <div className={styles.dateTimeContainer}>
+                    <input
+                      type="datetime-local"
+                      value={editedResponseDeadline}
+                      onChange={(e) => setEditedResponseDeadline(e.target.value)}
+                      className={styles.editInput}
+                      min={new Date().toISOString().slice(0, 16)}
+                      placeholder="回答期限を設定"
+                      onClick={(e) => {
+                        // inputフィールドをクリックしたときにカレンダーを開く
+                        const input = e.target as HTMLInputElement;
+                        input.showPicker();
+                      }}
+                    />
+                  </div>
                   <p className={styles.formHint}>期限を過ぎると参加者は回答できなくなります</p>
                 </div>
 

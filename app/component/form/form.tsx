@@ -727,13 +727,20 @@ export default function Form({ categoryName }: { categoryName: string }) {
               回答期限
               <span className={styles.badgeOptional}>任意</span>
             </label>
-            <input
-              type="datetime-local"
-              className={styles.modernInput}
-              placeholder="回答期限を設定する場合は選択してください"
-              min={new Date().toISOString().slice(0, 16)}
-              {...register('responseDeadline')}
-            />
+            <div className={styles.dateTimeContainer}>
+              <input
+                type="datetime-local"
+                className={`${styles.modernInput} ${styles.dateTimeInput}`}
+                placeholder="回答期限を設定する場合は選択してください"
+                min={new Date().toISOString().slice(0, 16)}
+                {...register('responseDeadline')}
+                onClick={(e) => {
+                  // inputフィールドをクリックしたときにカレンダーを開く
+                  const input = e.target as HTMLInputElement;
+                  input.showPicker();
+                }}
+              />
+            </div>
             <div className={styles.inputHelper}>
               期限を過ぎると参加者は回答できなくなります
             </div>
