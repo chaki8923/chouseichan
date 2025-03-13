@@ -11,6 +11,9 @@ type EventData = {
 type BlogPost = {
   id: string;
   updatedAt: string;
+  category?: {
+    id: string;
+  };
 };
 
 type CategoryData = {
@@ -92,23 +95,19 @@ async function getAllEvents(): Promise<EventData[]> {
 // microCMSからブログ記事一覧を取得する関数
 async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
-    const contentIds = await client.getAllContentIds({ endpoint: 'blog' });
+    const response = await client.get({
+      endpoint: 'blog',
+      queries: {
+        fields: 'id,publishedAt,updatedAt,category',
+        limit: 100, // 必要に応じて調整
+      },
+    });
     
-    // 各ブログのlastModifiedを取得するために詳細情報も取得
-    const blogPosts = await Promise.all(
-      contentIds.map(async (id) => {
-        const post = await client.get({
-          endpoint: 'blog',
-          contentId: id,
-        });
-        return {
-          id,
-          updatedAt: post.publishedAt || post.updatedAt || new Date().toISOString(),
-        };
-      })
-    );
-    
-    return blogPosts;
+    return response.contents.map((post: any) => ({
+      id: post.id,
+      updatedAt: post.publishedAt || post.updatedAt || new Date().toISOString(),
+      category: post.category
+    }));
   } catch (error) {
     console.error('ブログ記事一覧の取得に失敗しました:', error);
     return [];
@@ -182,6 +181,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
   
+  // カテゴリーごとのブログ一覧ページをサイトマップに追加
+  const categoryBlogRoutes = categories.map((category: CategoryData) => ({
+    url: `${baseUrl}/blog/${category.id}`,
+    lastModified: new Date(category.updatedAt),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+  
   // 全てのルートを結合して返す
-  return [...routes, ...eventRoutes, ...blogRoutes, ...categoryRoutes];
+  return [...routes, ...eventRoutes, ...blogRoutes, ...categoryRoutes, ...categoryBlogRoutes];
 } 
