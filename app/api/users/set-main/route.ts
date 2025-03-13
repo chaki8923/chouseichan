@@ -30,13 +30,8 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    const message = updatedUser.main 
-      ? `${updatedUser.name}さんをメイン担当者に設定しました`
-      : `${updatedUser.name}さんのメイン担当者設定を解除しました`;
-
     return NextResponse.json({
       success: true,
-      message: message,
       isMain: updatedUser.main,
       user: {
         id: updatedUser.id,
@@ -45,7 +40,7 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('メイン担当者設定エラー:', error);
-    return NextResponse.json({ error: 'メイン担当者の設定に失敗しました' }, { status: 500 });
+    console.error('主役設定エラー:', error);
+    return NextResponse.json({ error: '主役の設定に失敗しました' }, { status: 500 });
   }
 } 

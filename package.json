@@ -36,7 +36,7 @@
     "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.13",
     "flowbite-react": "^0.10.2",
-    "framer-motion": "^12.4.2",
+    "framer-motion": "^12.5.0",
     "googleapis": "^144.0.0",
     "lucide-react": "^0.479.0",
     "microcms-js-sdk": "^3.1.2",

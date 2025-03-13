@@ -52,11 +52,6 @@ const secondaryRoutes = [
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   },
-  {
-    path: '/infomation',
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }
 ];
 
 // 補足的なページのリスト（低優先度）

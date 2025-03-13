@@ -1,0 +1,200 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+
+// シンプルなオーバーレイ（解除時）
+.simpleOverlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.modalContent {
+  position: relative;
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 
+              0 0 20px rgba(255, 215, 0, 0.2),
+              0 0 60px rgba(255, 215, 0, 0.1);
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  text-align: center;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+// シンプルなモーダルコンテンツ（解除時）
+.simpleModalContent {
+  background: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.iconContainer {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #faf0c8, #ffe875);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border: 4px solid white;
+}
+
+// シンプルなアイコンコンテナ（解除時）
+.simpleIconContainer {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+}
+
+.crownIcon {
+  color: #FFD700;
+  font-size: 42px;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+}
+
+.starIcon {
+  color: #FFA500;
+  font-size: 42px;
+}
+
+.title {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  font-weight: 700;
+  color: #333;
+  background: linear-gradient(90deg, #FF6B6B, #FFD166, #06D6A0, #118AB2);
+  background-size: 300% 300%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradientFlow 5s ease infinite;
+}
+
+// シンプルなタイトル（解除時）
+.simpleTitle {
+  font-size: 1.3rem;
+  color: #333;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  animation: none;
+}
+
+.message {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+// シンプルなメッセージ（解除時）
+.simpleMessage {
+  color: #777;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+.closeButton {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(145deg, #f5f5f5, #ffffff);
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+// シンプルな閉じるボタン（解除時）
+.simpleCloseButton {
+  padding: 8px 20px;
+  background: #f5f5f5;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.closeButton:hover {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 5;
+  filter: blur(0.5px);
+  box-shadow: 0 0 10px currentColor;
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 600px) {
+  .modalContent, .simpleModalContent {
+    padding: 25px 15px;
+  }
+  
+  .title, .simpleTitle {
+    font-size: 1.2rem;
+  }
+  
+  .message, .simpleMessage {
+    font-size: 0.9rem;
+  }
+  
+  .iconContainer {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .simpleIconContainer {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .crownIcon, .starIcon {
+    font-size: 30px;
+  }
+} 

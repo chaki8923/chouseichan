@@ -17,6 +17,7 @@ import { Response } from "@/types/response";
 import { Event } from "@/types/event";
 import Form from "./form";
 import Modal from "../component/modal/modal";
+import MainUserModal from "../component/modal/mainUserModal"; // 追加: 主役用特別モーダル
 import SpinLoader from "../component/loader/spin";
 import { isEventOwner, addEvent, removeEvent } from "@/app/utils/strages";
 import ImageSwiper from "../component/form/ImageSwiper";
@@ -352,6 +353,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // 追加の状態変数
   const [editedResponseDeadlineDate, setEditedResponseDeadlineDate] = useState("");
   const [editedResponseDeadlineTime, setEditedResponseDeadlineTime] = useState("");
+  
+  // 主役モーダル用の状態管理
+  const [showMainUserModal, setShowMainUserModal] = useState(false);
+  const [mainUserModalData, setMainUserModalData] = useState({
+    userName: '',
+    isSettingMain: false
+  });
 
   // DnDkit用のセンサーをコンポーネントのトップレベルで定義
   const sensors = useSensors(
@@ -1668,6 +1676,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     try {
       // APIエンドポイントを呼び出してメイン担当者ステータスを切り替える
       if (eventData) {
+        // 対象のユーザー名を取得
+        const userName = eventData.schedules
+          .flatMap((s: any) => s.responses)
+          .find((r: any) => r.user.id === userId)?.user.name || '';
+        
         // サーバーサイドの更新を行う
         try {
           const response = await fetch('/api/users/set-main', {
@@ -1716,9 +1729,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             setEventData(updatedEventData as SetStateAction<Event | null>);
           }
           
-          // 成功メッセージを表示
-          setModalText(data.message);
-          setIsOpen(true);
+          // 特別モーダルを表示する
+          setMainUserModalData({
+            userName: userName,
+            isSettingMain: !isCurrentlyMain // 主役に設定する場合はtrue、解除する場合はfalse
+          });
+          setShowMainUserModal(true);
           
           // イベントデータを強制的に再フェッチして最新の状態を取得
           if (eventId) {
@@ -1737,8 +1753,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         }
       }
     } catch (error) {
-      console.error('メイン担当者設定エラー:', error);
-      setModalText("メイン担当者の設定に失敗しました");
+      console.error('エラー:', error);
+      setModalText("メイン担当者の更新に失敗しました");
       setIsOpen(true);
     }
   };
@@ -2627,6 +2643,15 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </div>
         </div>
       </Modal>
+      
+      {/* 主役設定用の特別モーダル */}
+      <MainUserModal 
+        isOpen={showMainUserModal}
+        onClose={() => setShowMainUserModal(false)}
+        message={mainUserModalData.message}
+        userName={mainUserModalData.userName}
+        isSettingMain={mainUserModalData.isSettingMain}
+      />
     </>
   );
 }
