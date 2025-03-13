@@ -10,7 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: [
           '/',
-          '/event',
           '/events-calendar',
           '/image-resize',
           '/situation',
@@ -22,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/api/',
           '/contact',
+          '/event',
           '/_next/',
           '/_vercel/',
           '/server-sitemap.xml',
