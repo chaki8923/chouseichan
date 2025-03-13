@@ -6,12 +6,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('eventId');
+    // キャッシュを無効化するためのタイムスタンプパラメータを取得
+    const timestamp = searchParams.get('_t') || Date.now();
 
     if (!eventId) {
       return new Response(JSON.stringify({ error: 'イベントIDが必要です' }), {
         status: 400,
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0' // キャッシュを無効化
         },
       });
     }
@@ -25,7 +28,15 @@ export async function GET(request: NextRequest) {
           include: {
             responses: {
               include: {
-                user: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    comment: true,
+                    image: true,
+                    main: true // mainフラグを必ず含める
+                  }
+                },
               },
             },
           },
@@ -42,6 +53,7 @@ export async function GET(request: NextRequest) {
         status: 404,
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0' // キャッシュを無効化
         },
       });
     }
@@ -50,6 +62,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0' // キャッシュを無効化
       },
     });
   } catch (error) {

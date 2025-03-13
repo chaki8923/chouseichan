@@ -3,4 +3,5 @@ export type User = {
   name: string;
   response: string;
   comment?: string; // コメントはオプショナル
+  main?:  bigint;
 };

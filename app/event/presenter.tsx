@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, SetStateAction } from "react";
 import Image from "next/image";
 import { Session } from "@auth/core/types";
 import SigninButton from "@/app/component/calendar/SignInButton"
@@ -379,15 +379,32 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   }, [eventId]);
 
   async function fetchEventWithSchedules(eventId: string) {
-    setLoading(true);
+      setLoading(true);
 
     try {
-      const response = await fetch(`/api/events?eventId=${eventId}`);
+      // キャッシュを回避するためのタイムスタンプを追加
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/events?eventId=${eventId}&_t=${timestamp}`);
       if (!response.ok) {
         throw new Error("Failed to fetch event data");
       }
 
       const eventData = await response.json();
+      console.log('取得したイベントデータ:', eventData);
+      
+      // ユーザー情報の詳細を確認
+      if (eventData.schedules && eventData.schedules.length > 0) {
+        const allUsers = eventData.schedules
+          .flatMap(s => s.responses)
+          .map(r => r.user)
+          .filter((user, index, self) => 
+            index === self.findIndex(u => u.id === user.id)
+          );
+          
+        console.log('全ユーザー情報:', allUsers);
+        console.log('user.mainプロパティの有無を確認:', allUsers.map(u => ({id: u.id, name: u.name, hasMain: 'main' in u, mainValue: u.main})));
+      }
+      
       setEventData(eventData);
       
       // 回答期限が過ぎているかチェック
@@ -455,7 +472,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     try {
       setLoading(true);
       // fetchEventWithSchedulesの戻り値を受け取り、それを利用する
-      const data = await fetchEventWithSchedules(eventId!);
+        const data = await fetchEventWithSchedules(eventId!);
 
       if (!data) {
         // イベントが見つからない場合の処理
@@ -489,7 +506,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         });
       }
 
-      setEventData(data);
+        setEventData(data);
     } catch (error) {
       console.error("Error fetching event data:", error);
       setError("データの取得中にエラーが発生しました");
@@ -520,10 +537,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     } catch {
       // エラーが発生した場合でもUIにはメッセージを表示
       setError("データの取得に失敗しました");
-    } finally {
+      } finally {
       // 処理完了時は必ずローディング状態を解除
-      setLoading(false);
-    }
+        setLoading(false);
+      }
   }, [eventId]);
 
   useEffect(() => {
@@ -988,7 +1005,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   ? Math.max(...editedSchedules.map(es => es.displayOrder)) 
                   : -1;
 
-                return {
+      return {
                   date: s.date,
                   time: s.time,
                   displayOrder: maxDisplayOrder + 1 + index // 既存の最大値より大きい値を設定
@@ -1051,7 +1068,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           setOwnerEvent(eventId, updatedEventData.name || "", formattedSchedules);
 
           console.log("ローカルストレージのイベント情報を更新しました");
-        } catch (error) {
+    } catch (error) {
           console.error("ローカルストレージの更新に失敗しました:", error);
         }
       }
@@ -1401,11 +1418,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     if (eventId) {
       try {
         // イベントデータの再取得
-        const data = await fetchEventWithSchedules(eventId);
+    const data = await fetchEventWithSchedules(eventId);
 
         if (data) {
           addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
-          setEventData(data);
+    setEventData(data);
 
           // 画像データはイベントデータに含まれているので直接設定
           if (data && data.images) {
@@ -1629,6 +1646,101 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // ユーザータイプを拡張
+  interface ExtendedUser {
+    id: string;
+    name: string;
+    main?: boolean;
+  }
+
+  // レスポンスでのユーザー型を型アサーションで処理できるように拡張
+  type UserWithMain = {
+    id: string;
+    name: string;
+    main: boolean | bigint | null | undefined; // bigint型も許容する
+    [key: string]: any;
+  };
+
+  // ユーザーをメイン担当者に設定/解除する関数
+  const setUserAsMain = async (userId: string, isCurrentlyMain: boolean | undefined) => {
+    try {
+      // APIエンドポイントを呼び出してメイン担当者ステータスを切り替える
+      if (eventData) {
+        // サーバーサイドの更新を行う
+        try {
+          const response = await fetch('/api/users/set-main', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, eventId }),
+          });
+          
+          if (!response.ok) {
+            throw new Error('APIリクエストに失敗しました');
+          }
+          
+          const data = await response.json();
+          console.log('API応答:', data);
+          
+          // 更新されたユーザー情報を直接反映
+          if (data.user && eventData) {
+            // レスポンスから現在のユーザー情報を取得
+            const updatedUser = data.user;
+            console.log('更新されたユーザー:', updatedUser);
+            
+            // 既存のイベントデータをコピー
+            const updatedEventData = { ...eventData } as any; // 任意の型を許可するためにanyを使用
+            
+            // 各スケジュールのレスポンスでユーザー情報を更新
+            updatedEventData.schedules.forEach((schedule: any) => {
+              schedule.responses.forEach((response: any) => {
+                if (response.user.id === userId) {
+                  // ユーザーのmainステータスを切り替える
+                  response.user.main = !isCurrentlyMain;
+                  
+                  // 更新されたユーザー情報をログ出力
+                  console.log('更新後のユーザー情報in state:', response.user);
+                }
+              });
+            });
+            
+            // 更新後の状態をログ出力
+            const updatedUserAfterChange = updatedEventData.schedules
+              .flatMap((s: any) => s.responses)
+              .find((r: any) => r.user.id === userId)?.user;
+            console.log('更新後のユーザー情報in state:', updatedUserAfterChange);
+            
+            setEventData(updatedEventData as SetStateAction<Event | null>);
+          }
+          
+          // 成功メッセージを表示
+          setModalText(data.message);
+          setIsOpen(true);
+          
+          // イベントデータを強制的に再フェッチして最新の状態を取得
+          if (eventId) {
+            const freshData = await fetchEventWithSchedules(eventId);
+            if (freshData) {
+              console.log('再フェッチされたデータ:', 
+                freshData.schedules.flatMap(s => s.responses)
+                  .find(r => r.user.id === userId)?.user
+              );
+            }
+          }
+        } catch (error) {
+          console.error('APIエンドポイントエラー:', error);
+          setModalText("メイン担当者の更新に失敗しました");
+          setIsOpen(true);
+        }
+      }
+    } catch (error) {
+      console.error('メイン担当者設定エラー:', error);
+      setModalText("メイン担当者の設定に失敗しました");
+      setIsOpen(true);
+    }
   };
 
   return (
@@ -2072,25 +2184,48 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   {eventData.schedules
                     .flatMap(schedule =>
                       schedule.responses.map(response => ({
-                        id: response.user.id,
-                        name: response.user.name
+                            id: response.user.id,
+                        name: response.user.name,
+                        main: response.user.main // mainプロパティを明示的に含める
                       }))
                     )
                     // 重複を排除
                     .filter((user, index, self) =>
                       index === self.findIndex(u => u.id === user.id)
                     )
-                    .map(user => (
+                    .map((user) => {
+                      // unknownを経由してから型アサーションを適用
+                      const userWithMain = user as unknown as UserWithMain;
+                      const isMain = Boolean(userWithMain.main); // Booleanに変換して比較
+                      
+                      console.log('ユーザー情報:', userWithMain.id, userWithMain.name, '直接アクセス:', userWithMain.main, 'isMain:', isMain);
+                      return (
                       <th
-                        key={user.id}
-                        onClick={() => changeUpdate(user.id, user.name)}
+                        key={userWithMain.id}
                         className={`${styles.userName} max-w-[40px]`}
-                        role="button"
-                        title={`${user.name}さんの回答を編集する`}
                       >
-                        {user.name}
+                        <div className={styles.userNameCell}>
+                          <span 
+                            onClick={() => changeUpdate(userWithMain.id, userWithMain.name)}
+                            role="button"
+                            title={`${userWithMain.name}さんの回答を編集する`}
+                            className={`${isMain ? styles.mainUser : ''}`}
+                          >
+                            {userWithMain.name}{isMain && ' ★'}
+                          </span>
+                          {isOrganizer && (
+                            <button
+                              onClick={() => setUserAsMain(userWithMain.id, isMain)}
+                              className={`${styles.makeMainButton} ${isMain ? styles.mainButtonActive : ''}`}
+                              title={isMain ? "メイン担当者から解除" : "メイン担当者に設定"}
+                            >
+                              {isMain ? "解除" : "主役"}
+                            </button>
+                          )}
+                        </div>
                       </th>
-                    ))
+                      );
+                    })
                   }
                 </tr>
                 {eventData.schedules.map((schedule: Schedule) => {
@@ -2109,13 +2244,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   // ✅ ハイライトの適用
                   const isHighlighted = highlightScheduleIds.includes(schedule.id);
 
-                  let highlightClass = ''
-                  if (schedule.isConfirmed) {
-                    highlightClass = styles.confirmed
-                  } else if (isHighlighted && !confirmedSchedule) {
-                    highlightClass = styles.attend
-                  }
-                  // const totalCount = schedule.responses.length;
                   // ユーザーごとの response を取得
                   const userResponses = schedule.responses.reduce((acc, res) => {
                     if (res.user) {
@@ -2124,7 +2252,23 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     return acc;
                   }, {} as Record<string, string>);
 
+                  // メイン担当者が出席する日程かチェック
+                  const hasMainUserAttending = schedule.responses.some(res => 
+                    (res.user as ExtendedUser).main && res.response === "ATTEND"
+                  );
+
                   const label = !schedule.isConfirmed ? "" : styles.confirmedLabel
+                  
+                  // ハイライトクラスを設定
+                  let highlightClass = ''
+                  if (schedule.isConfirmed) {
+                    highlightClass = styles.confirmed
+                  } else if (hasMainUserAttending) {
+                    highlightClass = styles.mainUserAttending
+                  } else if (isHighlighted && !confirmedSchedule) {
+                    highlightClass = styles.attend
+                  }
+                  
                   return (
                     <tr key={schedule.id} className={highlightClass}>
                       {isOrganizer && (
@@ -2179,7 +2323,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                                 title={`${userName}さんは不参加です`} 
                               />
                             )}
-                          </td>
+                        </td>
                         ))
                       }
                     </tr>
@@ -2194,8 +2338,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   {eventData.schedules
                     .flatMap(schedule =>
                       schedule.responses.map(response => ({
-                        id: response.user.id,
-                        name: response.user.name,
+                            id: response.user.id,
+                            name: response.user.name,
                         comment: response.user.comment || ""
                       }))
                     )
@@ -2205,8 +2349,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     )
                     .map(user => (
                       <td key={`comment-${user.id}`} className={styles.userComment}>
-                        {user.comment}
-                      </td>
+                      {user.comment}
+                    </td>
                     ))
                   }
                 </tr>
@@ -2237,31 +2381,31 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
               onSuccess={handleFormSuccess}
               onCreate={handleCreate}
               schedules={eventData.schedules.map((schedule) => ({
-                ...schedule,
-                responses: schedule.responses.map((response) => ({
-                  ...response,
-                  user: {
-                    ...response.user,
+            ...schedule,
+            responses: schedule.responses.map((response) => ({
+              ...response,
+              user: {
+                ...response.user,
                     comment: response.user.comment || "",
-                  },
-                })),
+              },
+            })),
               }))}
               userId={userId}
               userName={userName}
             />
-          ) : (
+        ) : (
             <Form
               onSuccess={handleFormSuccess}
               onCreate={handleCreate}
               schedules={eventData.schedules.map((schedule) => ({
-                ...schedule,
-                responses: schedule.responses.map((response) => ({
-                  ...response,
-                  user: {
-                    ...response.user,
+            ...schedule,
+            responses: schedule.responses.map((response) => ({
+              ...response,
+              user: {
+                ...response.user,
                     comment: response.user.comment || "",
-                  },
-                })),
+              },
+            })),
               }))}
               userId={userId}
               userName={userName}
@@ -2295,7 +2439,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
               </div>
             </>
           ) : (
-            <h2 className={styles.modalTitle}>{modalText}</h2>
+        <h2 className={styles.modalTitle}>{modalText}</h2>
           )}
           {formattedDate && <p className={styles.modalText}>{formattedDate}</p>}
         </div>
@@ -2390,12 +2534,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         >
           <FiCamera className={styles.cameraIcon} />
           <span>✨ 思い出アルバムを開く ✨</span>
-        </button>
+      </button>
       )}
 
       {isImageSwiperOpen && (
         (console.log("ImageSwiperに渡すデータ:", eventImages),
-          <ImageSwiper
+        <ImageSwiper 
             images={eventImages}
             title={`${eventData.name}の画像`}
             onClose={() => {
