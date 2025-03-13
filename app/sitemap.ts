@@ -1,12 +1,6 @@
 import { MetadataRoute } from 'next';
-import { prisma } from '@/libs/prisma';
 import { client } from '@/libs/microcms';
 
-// 型定義
-type EventData = {
-  id: string;
-  updatedAt: Date;
-};
 
 type BlogPost = {
   id: string;
@@ -71,22 +65,6 @@ const tertiaryRoutes = [
 // 全ルートの結合
 const allRoutes = [...primaryRoutes, ...secondaryRoutes, ...tertiaryRoutes];
 
-// データベースからイベント一覧を取得する関数
-async function getAllEvents(): Promise<EventData[]> {
-  try {
-    const events = await prisma.event.findMany({
-      select: {
-        id: true,
-        updatedAt: true,
-      },
-    });
-    return events;
-  } catch (error) {
-    console.error('イベント一覧の取得に失敗しました:', error);
-    return [];
-  }
-}
-
 // microCMSからブログ記事一覧を取得する関数
 async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
@@ -149,14 +127,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   })) as MetadataRoute.Sitemap;
   
-  // イベント一覧を取得してサイトマップに追加
-  const events = await getAllEvents();
-  const eventRoutes = events.map((event: EventData) => ({
-    url: `${baseUrl}/event?eventId=${event.id}`,
-    lastModified: new Date(event.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
   
   // ブログ記事一覧を取得してサイトマップに追加
   const blogPosts = await getAllBlogPosts();
@@ -185,5 +155,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
   
   // 全てのルートを結合して返す
-  return [...routes, ...eventRoutes, ...blogRoutes, ...categoryRoutes, ...categoryBlogRoutes];
+  return [...routes, ...blogRoutes, ...categoryRoutes, ...categoryBlogRoutes];
 } 
