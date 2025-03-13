@@ -769,10 +769,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     .filter((s: maxAttend) => s.attendCount === maxAttendCount && maxAttendCount != 0)
     .map((s: maxAttend) => s.id);
 
-  // eventData.imagesの構造を詳しく確認
-  // if (eventData.images && eventData.images.length > 0) {
-  //   console.log("First image structure:", JSON.stringify(eventData.images[0]));
-  // }
 
   // イベント編集を開始する関数
   const handleStartEdit = () => {
@@ -1759,6 +1755,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
   };
 
+  // 日付フォーマットを修正 - ISO形式から YYYY-MM-DD 形式へ
+  const formatSimpleDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0]; // "2025-03-12" の形式に変換
+  };
+
   return (
     <>
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
@@ -2214,28 +2217,37 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                       const userWithMain = user as unknown as UserWithMain;
                       const isMain = Boolean(userWithMain.main); // Booleanに変換して比較
                       
-                      console.log('ユーザー情報:', userWithMain.id, userWithMain.name, '直接アクセス:', userWithMain.main, 'isMain:', isMain);
                       return (
                       <th
                         key={userWithMain.id}
-                        className={`${styles.userName} max-w-[40px]`}
+                        className={`${styles.userName} max-w-[50px]`}
                       >
-                        <div className={styles.userNameCell}>
-                          <span 
-                            onClick={() => changeUpdate(userWithMain.id, userWithMain.name)}
-                            role="button"
-                            title={`${userWithMain.name}さんの回答を編集する`}
-                            className={`${isMain ? styles.mainUser : ''}`}
-                          >
-                            {userWithMain.name}{isMain && ' ★'}
-                          </span>
+                        <div className={`${styles.userNameCell} ${isMain ? styles.mainUserCell : ''}`}>
+                          {/* ユーザー名表示 */}
+                          <div className={styles.nameContainer}>
+                            <span 
+                              onClick={() => changeUpdate(userWithMain.id, userWithMain.name)}
+                              role="button"
+                              title={`${userWithMain.name}さんの回答を編集する`}
+                              className={styles.nameText}
+                            >
+                              {userWithMain.name}
+                            </span>
+                            {/* 主役表示バッジ */}
+                            {isMain && (
+                              <span className={styles.mainBadge} title="メイン担当者">★</span>
+                            )}
+                          </div>
+
+                          {/* 主役設定/解除ボタン - 主催者のみ表示 */}
                           {isOrganizer && (
                             <button
                               onClick={() => setUserAsMain(userWithMain.id, isMain)}
                               className={`${styles.makeMainButton} ${isMain ? styles.mainButtonActive : ''}`}
                               title={isMain ? "メイン担当者から解除" : "メイン担当者に設定"}
+                              aria-label={isMain ? "メイン担当者から解除" : "メイン担当者に設定"}
                             >
-                              {isMain ? "解除" : "主役"}
+                              {isMain ? "解除" : "主役にする"}
                             </button>
                           )}
                         </div>
@@ -2245,14 +2257,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   }
                 </tr>
                 {eventData.schedules.map((schedule: Schedule) => {
-                  // 日付と時刻のフォーマット
-                  const formattedDate = new Date(schedule.date).toLocaleDateString("ja-JP", {
-                    year: "numeric",
-                    month: "numeric",
-                    day: "numeric",
-                    weekday: "short", // 曜日を短縮形で表示
-                  });
-
                   // responses のカウント
                   const attendCount = schedule.responses.filter((res) => res.response === "ATTEND").length;
                   const undecidedCount = schedule.responses.filter((res) => res.response === "UNDECIDED").length;
@@ -2273,8 +2277,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     (res.user as ExtendedUser).main && res.response === "ATTEND"
                   );
 
-                  const label = !schedule.isConfirmed ? "" : styles.confirmedLabel
-                  
+                  // 主役ユーザーの名前を取得（複数いる場合は最初の1人）
+                  const mainUserName = hasMainUserAttending ? 
+                    schedule.responses.find(res => 
+                      (res.user as ExtendedUser).main && res.response === "ATTEND"
+                    )?.user.name : '';
+                    
+                  // 参加する主役の数をカウント
+                  const mainUsersCount = hasMainUserAttending ? 
+                    schedule.responses.filter(res => 
+                      (res.user as ExtendedUser).main && res.response === "ATTEND"
+                    ).length : 0;
+
+                  console.log('mainUsersCount:', mainUsersCount);
                   // ハイライトクラスを設定
                   let highlightClass = ''
                   if (schedule.isConfirmed) {
@@ -2302,17 +2317,33 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                                 scheduleId={0}
                                 eventId={eventData.id}
                                 onConfirm={handleConfirmSchedule}
-                                buttonText="キャンセル"
+                                buttonText="確定を解除"
                               />
                             )
                           }
-
                         </td>
                       )}
-                      <td className={`${label} max-w-[120px]`}>{formattedDate} - {schedule.time}</td>
-                      <td className={`max-w-[20px] ${styles.declineCount}`}>{attendCount}人</td>
-                      <td className={`max-w-[20px] ${styles.declineCount}`}>{undecidedCount}人</td>
-                      <td className={`max-w-[20px] ${styles.declineCount}`}>{declineCount}人</td>
+                      <td 
+                        className={`${styles.dateCell} ${hasMainUserAttending ? styles.mainUserDateCell : ''}`}
+                      >
+                        <div className={styles.dateCellContent}>
+                          <span>{formatSimpleDate(schedule.date)} {schedule.time}</span>
+                          {hasMainUserAttending && (
+                            <div className={styles.mainUserBadge} title={`主役(${mainUsersCount}人)が参加可能な日程です`}>
+                              <span className={styles.mainUserIcon}>★</span>
+                              <span className={styles.mainUserCount}>{mainUsersCount > 1 ? `×${mainUsersCount}` : ''}</span>
+                            </div>
+                          )}
+                        {hasMainUserAttending && mainUserName && (
+                          <div className={styles.mainUserInfo}>
+                            <span>{mainUserName}{mainUsersCount > 1 ? ` 他${mainUsersCount-1}名` : ''}</span>
+                          </div>
+                        )}
+                        </div>
+                      </td>
+                      <td className={styles.responseRateCell}>{attendCount}人</td>
+                      <td className={styles.responseRateCell}>{undecidedCount}人</td>
+                      <td className={styles.responseRateCell}>{declineCount}人</td>
                       {/* 各ユーザーの回答を表示 */}
                       {eventData.schedules
                         .flatMap(s => s.responses)

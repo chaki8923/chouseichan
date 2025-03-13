@@ -20,33 +20,40 @@ export async function GET(request: NextRequest) {
     }
 
     const event = await prisma.event.findUnique({
-      where: {
-        id: eventId,
-      },
-      include: {
-        schedules: {
-          include: {
-            responses: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    comment: true,
-                    image: true,
-                    main: true // mainフラグを必ず含める
-                  }
+        where: {
+          id: eventId,
+        },
+        include: {
+          schedules: {
+            include: {
+              responses: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      comment: true,
+                      image: true,
+                      main: true, // mainフラグを必ず含める
+                    },
+                  },
+                },
+                // ここで user の createdAt を desc に指定
+                orderBy: {
+                  user: {
+                    createdAt: 'desc',
+                  },
                 },
               },
             },
+            orderBy: {
+              displayOrder: 'asc',
+            },
           },
-          orderBy: {
-            displayOrder: 'asc',
-          },
+          images: true,
         },
-        images: true,
-      },
-    });
+      });
+      
 
     if (!event) {
       return new Response(JSON.stringify({ error: '指定されたイベントが見つかりませんでした' }), {
