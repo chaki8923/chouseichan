@@ -23,7 +23,7 @@ import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy, FaEdit } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove, FiClock } from 'react-icons/fi';
+import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove, FiClock, FiHeart } from 'react-icons/fi';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -317,7 +317,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [modalText, setModalText] = useState<string>('');
   const [formattedDate, setFormattedDate] = useState<string>();
   const [isImageSwiperOpen, setIsImageSwiperOpen] = useState(false);
-  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
   const [isDeleteCompleteModal, setIsDeleteCompleteModal] = useState(false);
   const [eventImages, setEventImages] = useState<{ imagePath?: string; id?: string; url?: string }[]>([]);
   const [isOrganizer, setIsOrganizer] = useState(false);
@@ -399,17 +398,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       } else {
         setIsDeadlinePassed(false);
       }
-
-      // if (eventData.userId && session?.user?.id) {
-      //   // イベントの所有者の場合
-      //   if (eventData.userId === session.user.id) {
-      //     setIsOrganizer(true);
-      //   } else {
-      //     setIsOrganizer(false);
-      //   }
-      // } else {
-      //   setIsOrganizer(false);
-      // }
 
       // イベント画像を設定
       if (eventData.images) {
@@ -1336,48 +1324,74 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   // 画像アップロード後に画像リストを更新
   const handleImageUploaded = async () => {
-    // アップロード成功を示すフラグをローカルストレージに保存
-    // リロード後もアップロード完了を認識できるようにする
-    localStorage.setItem(`image_uploaded_${eventId}`, 'true');
-    localStorage.setItem(`image_upload_time_${eventId}`, Date.now().toString());
+    // アップロード時の処理フラグ
+    setLoading(true);
 
-    // キャッシュを回避するためのタイムスタンプを追加
-    const timestamp = new Date().getTime();
-
-    // まず専用の画像APIから取得を試みる
     try {
+      // キャッシュを回避するためのタイムスタンプを追加
+      const timestamp = new Date().getTime();
+      
+      // まず専用の画像APIから取得を試みる
       const imagesResponse = await fetch(`/api/event/images?eventId=${eventId}&_t=${timestamp}`);
+      
       if (imagesResponse.ok) {
         const imageData = await imagesResponse.json();
         console.log("アップロード後のイメージAPI応答:", imageData);
 
-        // 応答形式に応じて適切に処理
+        // 画像データを処理
+        let imageArray = [];
+        
         if (Array.isArray(imageData)) {
           console.log("画像データは配列形式です:", imageData.length);
-          setEventImages(imageData);
+          imageArray = imageData;
         } else if (imageData.images && Array.isArray(imageData.images)) {
           console.log("画像データはオブジェクトのimagesプロパティにあります:", imageData.images.length);
-          setEventImages(imageData.images);
+          imageArray = imageData.images;
         } else {
-          // イベントAPI経由で取得を試みる
-          const response = await fetch(`/api/events?eventId=${eventId}&_t=${timestamp}`);
-          if (response.ok) {
-            const data = await response.json();
-            console.log("アップロード後のイベントAPI応答:", data);
-            if (data && data.images && Array.isArray(data.images)) {
-              console.log("イベントデータから画像取得:", data.images.length);
-              setEventImages(data.images);
+          // フォールバック: イベントAPI経由で取得を試みる
+          console.log("画像フォーマットが予期せぬ形式のため、イベントAPIから取得を試みます");
+          const eventResponse = await fetch(`/api/events?eventId=${eventId}&_t=${timestamp}`);
+          
+          if (eventResponse.ok) {
+            const eventDataFromApi = await eventResponse.json();
+            
+            if (eventDataFromApi && eventDataFromApi.images && Array.isArray(eventDataFromApi.images)) {
+              console.log("イベントデータから画像取得:", eventDataFromApi.images.length);
+              imageArray = eventDataFromApi.images;
+              
+              // イベントデータ全体を更新
+              setEventData(eventDataFromApi);
             }
           }
         }
+        
+        // 画像配列が取得できた場合
+        if (imageArray.length > 0) {
+          // 画像データを設定
+          setEventImages(imageArray);
+          
+          // eventDataを更新して「思い出アルバム」ボタンを表示させる
+          setEventData(prevData => {
+            if (!prevData) return prevData;
+            return { ...prevData, images: imageArray };
+          });
+          
+          console.log("画像アップロード後、eventData.imagesを更新しました:", imageArray.length);
+        }
+        
+        // アップロード完了のフィードバックを表示
+        setModalText("画像のアップロードが完了しました！「思い出アルバム」ボタンからご覧いただけます。");
+        setIsOpen(true);
+      } else {
+        console.error("画像API応答エラー:", imagesResponse.status);
+        throw new Error("画像の取得に失敗しました");
       }
-
-      // 画像が取得できたらSwiperを表示
-      setTimeout(() => {
-        setIsImageSwiperOpen(true);
-      }, 500);
     } catch (error) {
       console.error("画像データの更新に失敗:", error);
+      setModalText("画像のアップロードは完了しましたが、表示の更新に失敗しました。ページをリロードしてください。");
+      setIsOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -2256,8 +2270,35 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         )}
       </div>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <h2 className={styles.modalTitle}>{modalText}</h2>
-        <p className={styles.modalText}>{formattedDate}</p>
+        <div className={styles.cuteModalContent}>
+          {modalText.includes('完了') && !modalText.includes('失敗') ? (
+            <>
+              <div className={styles.successIcon}>
+                <FiCheck className={styles.checkIcon} />
+              </div>
+              <div className={styles.photoFrame}>
+                <div className={styles.photoFrameInner}>
+                  <FiCamera className={styles.photoFrameIcon} />
+                </div>
+              </div>
+              <div className={styles.successAnimation}>
+                <FiHeart className={styles.heartIcon} />
+                <FiHeart className={styles.heartIcon} style={{ animationDelay: '0.3s' }} />
+                <FiHeart className={styles.heartIcon} style={{ animationDelay: '0.6s' }} />
+              </div>
+              <h2 className={styles.cuteModalTitle}>{modalText}</h2>
+              <p className={styles.cuteModalSubtitle}>思い出の共有ありがとう♪</p>
+              <div className={styles.decorationLine}>
+                <span className={styles.decorationDot}></span>
+                <span className={styles.decorationDot}></span>
+                <span className={styles.decorationDot}></span>
+              </div>
+            </>
+          ) : (
+            <h2 className={styles.modalTitle}>{modalText}</h2>
+          )}
+          {formattedDate && <p className={styles.modalText}>{formattedDate}</p>}
+        </div>
       </Modal>
 
       {isCopyModal && (
@@ -2268,26 +2309,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           コピーしました
         </div>
       )}
-
-      <Modal isOpen={isImageUploadModalOpen} onClose={() => setIsImageUploadModalOpen(false)} type="info">
-        <div className={styles.modalContent}>
-          <h2 className={styles.modalTitle}>画像投稿について</h2>
-          <p>画像の投稿は以下の条件を満たす場合のみ可能です：</p>
-          <ul className={styles.modalList}>
-            <li>イベントの開催日が確定されている</li>
-            <li>現在の日付がイベント開催日以降である</li>
-          </ul>
-          <p>イベント開催後に再度お試しください。</p>
-          <div className={styles.modalActions}>
-            <button
-              onClick={() => setIsImageUploadModalOpen(false)}
-              className={styles.modalButton}
-            >
-              閉じる
-            </button>
-          </div>
-        </div>
-      </Modal>
 
       {/* 削除完了用の特別なオーバーレイ通知（albumContainerの上に表示） */}
       {isDeleteCompleteModal && (
@@ -2315,7 +2336,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       )}
 
       {/* 画像がある場合のみボタンを表示 */}
-      {eventData && eventData.images && eventData.images.length > 0 && (
+      {eventData && (
+        (eventData.images && eventData.images.length > 0) || 
+        (eventImages && eventImages.length > 0)
+      ) && (
         <button
           onClick={async () => {
             if (eventData && eventData.id) {
@@ -2324,7 +2348,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 const timestamp = new Date().getTime();
                 const imagesResponse = await fetch(`/api/event/images?eventId=${eventData.id}&_t=${timestamp}`);
                 const imagesData = await imagesResponse.json();
-
+                
+                // 既存の処理を維持...
                 console.log("取得した画像データ:", imagesData);
 
                 // API応答がそのままの配列の場合と、images配列にネストされている場合の両方に対応

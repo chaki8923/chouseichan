@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Event } from "@/types/event";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss";
-import { FiUpload, FiX, FiImage, FiCamera, FiAlertCircle, FiCrop } from 'react-icons/fi';
+import { FiUpload, FiX, FiImage, FiCamera, FiAlertCircle, FiCrop, FiCheck, FiHeart } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, EffectCoverflow } from 'swiper/modules';
 import Link from 'next/link';
@@ -88,7 +88,8 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
         setErrorMessage(null); // アップロード開始時にエラーメッセージをクリア
 
         try {
-            await uploadImagesToCloudflare(selectedImages, eventData.id);
+            // 画像をアップロード
+            const result = await uploadImagesToCloudflare(selectedImages, eventData.id);
             
             // フォームをリセット
             setSelectedImages([]);
@@ -102,30 +103,16 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 fileInputRef.current.value = '';
             }
             
-            // 親コンポーネントに通知（画像が取得される）
+            // アップロード完了メッセージを表示（親コンポーネントで行うためコメントアウト）
+            // setModalText('画像のアップロードが完了しました！「思い出アルバム」ボタンからご覧いただけます。');
+            // setIsOpen(true);
+            
+            // 親コンポーネントに通知（画像が取得されるようにする）
             if (onImageUploaded) {
                 onImageUploaded();
             }
             
-            // アルバム表示前のオーバーレイを表示
-            setShowAlbumOverlay(true);
-            
-            // 3秒後にアルバム表示オーバーレイを非表示にする
-            setTimeout(() => {
-                setShowAlbumOverlay(false);
-                setIsUploading(false);
-                
-                // URLパラメータを直接変更（リロードなし）
-                const queryParams = new URLSearchParams(window.location.search);
-                queryParams.set('tab', 'album');
-                const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
-                window.history.pushState({}, '', newUrl);
-                
-                // イベントは発行せず、直接親コンポーネントのコールバックを再度呼び出して画像表示
-                if (onImageUploaded) {
-                    onImageUploaded();
-                }
-            }, 3000);
+            setIsUploading(false);
         } catch (error) {
             console.error('画像アップロード中にエラーが発生しました:', error);
             setIsUploading(false);
@@ -137,9 +124,9 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 setErrorMessage('アップロード中に予期せぬエラーが発生しました。もう一度お試しください。');
             }
             
-            // モーダルメッセージも表示
-            setModalText('画像のアップロードに失敗しました。もう一度お試しください。');
-            setIsOpen(true);
+            // モーダルメッセージも表示（親コンポーネントで行うためコメントアウト）
+            // setModalText('画像のアップロードに失敗しました。もう一度お試しください。');
+            // setIsOpen(true);
         }
     };
 
@@ -361,7 +348,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                                 ) : (
                                     <>
                                         <FiImage style={{marginRight: '8px' }} />
-                                        画像をアップロード?
+                                        画像をアップロード
                                     </>
                                 )}
                             </button>
@@ -370,7 +357,34 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                 </div>
                 
                 <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-                    <h2 className={styles.modalTitle}>{modalText}</h2>
+                    <div className={styles.cuteModalContent}>
+                        {modalText.includes('完了') && !modalText.includes('失敗') ? (
+                            <>
+                                <div className={styles.successIcon}>
+                                    <FiCheck className={styles.checkIcon} />
+                                </div>
+                                <div className={styles.photoFrame}>
+                                    <div className={styles.photoFrameInner}>
+                                        <FiCamera className={styles.photoFrameIcon} />
+                                    </div>
+                                </div>
+                                <div className={styles.successAnimation}>
+                                    <FiHeart className={styles.heartIcon} />
+                                    <FiHeart className={styles.heartIcon} style={{ animationDelay: '0.3s' }} />
+                                    <FiHeart className={styles.heartIcon} style={{ animationDelay: '0.6s' }} />
+                                </div>
+                                <h2 className={styles.cuteModalTitle}>{modalText}</h2>
+                                <p className={styles.cuteModalSubtitle}>思い出の共有ありがとう♪</p>
+                                <div className={styles.decorationLine}>
+                                    <span className={styles.decorationDot}></span>
+                                    <span className={styles.decorationDot}></span>
+                                    <span className={styles.decorationDot}></span>
+                                </div>
+                            </>
+                        ) : (
+                            <h2 className={styles.modalTitle}>{modalText}</h2>
+                        )}
+                    </div>
                 </Modal>
             </div>
         </>

@@ -31,11 +31,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { UseFormRegister } from 'react-hook-form';
-import Image from "next/image";
-import { useFormContext } from "react-hook-form";
-import { FiEdit, FiList, FiImage, FiPlusCircle, FiCheck, FiClock, FiCalendar, FiCornerDownRight } from "react-icons/fi";
-import { format } from 'date-fns';
-import { ja } from 'date-fns/locale';
+import {  FiCheck} from "react-icons/fi";
+
 
 // ドラッグ可能な日程項目のコンポーネント
 interface SortableScheduleItemProps {
@@ -717,7 +714,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
           <div className={styles.formStepDivider}></div>
 
           <div className={styles.formStep}>
-            <div className={styles.stepNumber}>3</div>
             <h2 className={styles.stepTitle}>回答期限</h2>
             <span className={styles.badgeOptional}>任意</span>
           </div>
@@ -725,7 +721,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>
               回答期限
-              <span className={styles.badgeOptional}>任意</span>
             </label>
             <div className={styles.dateTimeSelectContainer}>
               <div className={styles.dateSelectWrapper}>
@@ -794,7 +789,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
           {memoValue && memoValue.trim() !== '' && (
             <>
               <div className={styles.formStep}>
-                <div className={styles.stepNumber}>{responseDeadlineValue ? '4' : '3'}</div>
                 <h2 className={styles.stepTitle}>アイコン画像</h2>
                 <span className={styles.badgeOptional}>任意</span>
               </div>

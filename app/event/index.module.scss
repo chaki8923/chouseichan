@@ -516,6 +516,12 @@
   font-weight: normal;
 }
 
+@media screen and (max-width: 768px) {
+  .userComment {
+    min-width: 100px;
+  }
+}
+
 .attend {
   background-color: rgba(#f2e462, 0.3);
   position: relative;
@@ -2572,5 +2578,205 @@
   
   &.deadlinePassed {
     color: #d32f2f;
+  }
+}
+
+/* 可愛いモーダルスタイル */
+.cuteModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.successIcon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  position: relative;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 4px 10px rgba(255, 154, 158, 0.3);
+}
+
+.checkIcon {
+  color: white;
+  font-size: 32px;
+  animation: scaleIn 0.3s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+  transform: scale(0);
+}
+
+.photoFrame {
+  width: 90px;
+  height: 90px;
+  border: 3px solid #ffc2d1;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 243, 245, 0.8);
+  transform: rotate(-3deg);
+  box-shadow: 0 4px 15px rgba(255, 194, 209, 0.3);
+  animation: wobble 2s ease-in-out infinite;
+}
+
+.photoFrameInner {
+  width: 70px;
+  height: 70px;
+  border: 2px dashed #ffc2d1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photoFrameIcon {
+  color: #ff9a9e;
+  font-size: 28px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.successAnimation {
+  display: flex;
+  gap: 10px;
+  margin: 0.5rem 0 1rem;
+}
+
+.heartIcon {
+  color: #ff9a9e;
+  font-size: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.cuteModalTitle {
+  font-size: 1.25rem;
+  background: linear-gradient(45deg, #ff9a9e, #ffc3a0, #ffafbd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  animation: fadeIn 0.5s ease forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+.cuteModalSubtitle {
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.5s ease forwards;
+  animation-delay: 0.5s;
+  opacity: 0;
+}
+
+.decorationLine {
+  width: 80px;
+  height: 10px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.decorationDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ffd0d0;
+  animation: dotAppear 0.3s ease forwards;
+  opacity: 0;
+}
+
+.decorationDot:nth-child(1) {
+  animation-delay: 0.6s;
+}
+
+.decorationDot:nth-child(2) {
+  animation-delay: 0.7s;
+}
+
+.decorationDot:nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+/* アニメーション */
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wobble {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes dotAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
