@@ -1291,17 +1291,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   // スケジュール確定処理の関数
   const handleConfirmSchedule = (scheduleId: number) => {
+    // scheduleId が 0 の場合は確定解除（キャンセル）
+    const isCancel = scheduleId === 0;
 
     setEventData((prev: Event | null) => {
       if (!prev) return prev; // prev が null の場合はそのまま返す
 
-      return {
-        ...prev,
-        schedules: prev.schedules.map((schedule) => ({
-          ...schedule,
-          isConfirmed: schedule.id === scheduleId,
-        })),
-      };
+        return {
+          ...prev,
+          schedules: prev.schedules.map((schedule) => ({
+            ...schedule,
+          isConfirmed: !isCancel && schedule.id === scheduleId,
+          })),
+        };
     });
   };
 
@@ -1717,6 +1719,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     const date = new Date(dateString);
     return date.toISOString().split('T')[0]; // "2025-03-12" の形式に変換
   };
+
+  // 確定済みのスケジュールがあるかどうかを確認
+  const confirmedScheduleExists = eventData.schedules.some(schedule => schedule.isConfirmed);
 
   return (
     <>
@@ -2184,7 +2189,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     .flatMap(schedule =>
                       schedule.responses.map(response => ({
                             id: response.user.id,
-                        name: response.user.name,
+                            name: response.user.name,
                         main: response.user.main // mainプロパティを明示的に含める
                       }))
                     )
@@ -2231,7 +2236,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                             </button>
                           )}
                         </div>
-                      </th>
+                    </th>
                       );
                     })
                   }
@@ -2285,20 +2290,23 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                       {isOrganizer && (
                         <td className="max-w-[70px]">
                           {
-                            !schedule.isConfirmed ? (
-                              <ConfirmScheduleButton
-                                scheduleId={schedule.id}
-                                eventId={eventData.id}
-                                onConfirm={handleConfirmSchedule}
-                                buttonText="この日に開催"
-                              />
-                            ) : (
+                            schedule.isConfirmed ? (
                               <ConfirmScheduleButton
                                 scheduleId={0}
                                 eventId={eventData.id}
                                 onConfirm={handleConfirmSchedule}
                                 buttonText="確定を解除"
                               />
+                            ) : (
+                              // 確定済みのスケジュールがある場合は、他の日程の「この日に開催」ボタンを非表示
+                              !confirmedScheduleExists && (
+                              <ConfirmScheduleButton
+                                  scheduleId={schedule.id}
+                                eventId={eventData.id}
+                                onConfirm={handleConfirmSchedule}
+                                  buttonText="この日に開催"
+                              />
+                              )
                             )
                           }
                         </td>
@@ -2320,7 +2328,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                           </div>
                         )}
                         </div>
-                      </td>
+                        </td>
                       <td className={styles.responseRateCell}>{attendCount}人</td>
                       <td className={styles.responseRateCell}>{undecidedCount}人</td>
                       <td className={styles.responseRateCell}>{declineCount}人</td>
