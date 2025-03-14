@@ -5,6 +5,7 @@ export type Restaurant = {
   imageUrl?: string | null;
   websiteUrl?: string | null;
   description?: string | null;
+  decisionFlag: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
   eventId: string;

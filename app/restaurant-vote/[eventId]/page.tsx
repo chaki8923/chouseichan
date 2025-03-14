@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink, ThumbsUp, AlertCircle, X, Check, Loader2, Utensils, Upload } from 'lucide-react';
-import { FiTrash2 } from 'react-icons/fi';
+import { FiTrash2, FiCheck, FiX } from 'react-icons/fi';
 import styles from './page.module.css';
 import { isEventOwner } from "@/app/utils/strages";
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
@@ -40,6 +40,18 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
   const [voteInProgress, setVoteInProgress] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [decisionStatusModal, setDecisionStatusModal] = useState<{
+    show: boolean;
+    success: boolean;
+    title: string;
+    message: string;
+  }>({
+    show: false,
+    success: true,
+    title: '',
+    message: ''
+  });
+  const [hasConfirmedStore, setHasConfirmedStore] = useState<boolean>(false);
 
   // フォーム状態
   const [formData, setFormData] = useState<RestaurantFormData>({
@@ -251,7 +263,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       try {
         setLoading(true);
 
-        // イベント情報を取得 - クエリパラメータを id から eventId に修正
+        // イベント情報を取得
         const eventResponse = await fetch(`/api/events?eventId=${eventId}`);
         if (!eventResponse.ok) {
           const errorData = await eventResponse.json().catch(() => ({}));
@@ -276,6 +288,10 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
 
         const restaurantData = await restaurantResponse.json();
         setRestaurants(restaurantData);
+        
+        // 確定済み店舗があるかチェック
+        const confirmedStore = restaurantData.some((restaurant: Restaurant) => restaurant.decisionFlag);
+        setHasConfirmedStore(confirmedStore);
 
         // 投票状態を取得
         const votedId = getEventVote(eventId);
@@ -457,6 +473,10 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
 
       const data = await response.json();
       setRestaurants(data);
+      
+      // 確定済み店舗があるかチェック
+      const confirmedStore = data.some((restaurant: Restaurant) => restaurant.decisionFlag);
+      setHasConfirmedStore(confirmedStore);
 
     } catch (err: any) {
       console.error('レストラン一覧更新エラー:', err);
@@ -575,6 +595,85 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     }
   };
 
+  // フラグを切り替える関数
+  const toggleDecisionFlag = async (id: string, newStatus: boolean) => {
+    try {
+      setSubmitting(true);
+
+      const response = await fetch('/api/restaurants/toggle-decision', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          decisionFlag: newStatus,
+          eventId  // イベントIDも送信
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || '更新に失敗しました');
+      }
+
+      const updatedRestaurant = await response.json();
+      
+      // 成功モーダルを表示
+      setDecisionStatusModal({
+        show: true,
+        success: true,
+        title: newStatus ? '確定完了' : 'キャンセル完了',
+        message: newStatus 
+          ? `${updatedRestaurant.name}を確定済みとして登録しました`
+          : `${updatedRestaurant.name}の確定をキャンセルしました`
+      });
+
+      // 全レストランリストを更新 - 他のレストランの状態も変わっている可能性があるため
+      await refreshRestaurantList();
+
+    } catch (error: any) {
+      console.error('確定ステータス更新エラー:', error);
+      
+      // エラーモーダルを表示
+      setDecisionStatusModal({
+        show: true,
+        success: false,
+        title: 'エラーが発生しました',
+        message: error.message || 'ステータスの更新に失敗しました'
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // モーダルを閉じる関数
+  const closeStatusModal = () => {
+    setDecisionStatusModal(prev => ({
+      ...prev,
+      show: false
+    }));
+  };
+
+  // モーダル表示時のタイマー設定
+  useEffect(() => {
+    let timerId: NodeJS.Timeout;
+    
+    if (decisionStatusModal.show) {
+      // 3秒後に自動的にモーダルを閉じる
+      timerId = setTimeout(() => {
+        closeStatusModal();
+      }, 3000);
+    }
+    
+    // クリーンアップ関数
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [decisionStatusModal.show]);
+
   // 一般的なローディング表示
   if (loading) {
     return (
@@ -658,6 +757,7 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
         <div className={styles.restaurantGrid}>
           {restaurants.map((restaurant) => (
             <div key={restaurant.id} className={styles.restaurantCard}>
+
               {restaurant.imageUrl ? (
                 <div className={styles.restaurantImage}>
                   <Image
@@ -667,10 +767,28 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     style={{ objectFit: 'cover' }}
                   />
+                  {/* 確定スタンプ */}
+                  {restaurant.decisionFlag && (
+                    <div className={styles.confirmStampContainer}>
+                      <div className={styles.confirmStamp}>
+                        <FiCheck className={styles.confirmStampIcon} />
+                        <span>確定</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className={`${styles.restaurantImage} ${styles.noImage}`}>
                   <Utensils size={40} />
+                  {/* 確定スタンプ（画像がない場合） */}
+                  {restaurant.decisionFlag && (
+                    <div className={styles.confirmStampContainer}>
+                      <div className={styles.confirmStamp}>
+                        <FiCheck className={styles.confirmStampIcon} />
+                        <span>確定</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -703,6 +821,33 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                 <div className={styles.actionButtons}>
                   {isOrganizer && (
                     <>
+                      {!restaurant.decisionFlag ? (
+                        <button
+                          className={styles.confirmButton}
+                          onClick={() => toggleDecisionFlag(restaurant.id, true)}
+                          disabled={submitting}
+                        >
+                          {submitting ? (
+                            <Loader2 className={styles.loadingIcon} size={16} />
+                          ) : (
+                            <FiCheck size={16} />
+                          )}
+                          確定する
+                        </button>
+                      ) : (
+                        <button
+                          className={styles.cancelDecisionButton}
+                          onClick={() => toggleDecisionFlag(restaurant.id, false)}
+                          disabled={submitting}
+                        >
+                          {submitting ? (
+                            <Loader2 className={styles.loadingIcon} size={16} />
+                          ) : (
+                            <FiX size={16} />
+                          )}
+                          キャンセル
+                        </button>
+                      )}
 
                       {(restaurant._count?.votes || 0) > 0 ? (
                         <div className={styles.tooltipWrapper}>
@@ -754,19 +899,29 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                     </>
                   )}
 
-                  <button
-                    className={`${styles.voteButton} ${votedRestaurantId === restaurant.id ? styles.voted : styles.notVoted}`}
-                    onClick={() => handleVote(restaurant.id)}
-                    disabled={voteInProgress}
-                  >
-                    {voteInProgress && votedRestaurantId === restaurant.id ? (
-                      <Loader2 className={styles.loadingIcon} size={16} />
-                    ) : (
-                      <ThumbsUp size={16} />
-                    )}
-                    {votedRestaurantId === restaurant.id ? '投票済み' : '投票する'}
-                  </button>
+                  {/* 投票ボタン - 確定済み店舗がある場合は非表示 */}
+                  {!hasConfirmedStore && (
+                    <button
+                      className={`${styles.voteButton} ${votedRestaurantId === restaurant.id ? styles.voted : styles.notVoted}`}
+                      onClick={() => handleVote(restaurant.id)}
+                      disabled={voteInProgress}
+                    >
+                      {voteInProgress && votedRestaurantId === restaurant.id ? (
+                        <Loader2 className={styles.loadingIcon} size={16} />
+                      ) : (
+                        <ThumbsUp size={16} />
+                      )}
+                      {votedRestaurantId === restaurant.id ? '投票済み' : '投票する'}
+                    </button>
+                  )}
                 </div>
+
+                {/* 確定済み店舗がある場合のメッセージ */}
+                {hasConfirmedStore && restaurant.decisionFlag && (
+                  <div className={styles.confirmedMessage}>
+                    <FiCheck size={16} /> この店舗に決定しました
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -989,6 +1144,25 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ステータス変更モーダル */}
+      {decisionStatusModal.show && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.decisionStatusModal}>
+            <div className={`${styles.statusIcon} ${decisionStatusModal.success ? styles.success : styles.error}`}>
+              {decisionStatusModal.success ? <FiCheck size={48} /> : <FiX size={48} />}
+            </div>
+            <h3 className={styles.statusTitle}>{decisionStatusModal.title}</h3>
+            <p className={styles.statusMessage}>{decisionStatusModal.message}</p>
+            <button
+              className={styles.statusButton}
+              onClick={closeStatusModal}
+            >
+              閉じる
+            </button>
           </div>
         </div>
       )}

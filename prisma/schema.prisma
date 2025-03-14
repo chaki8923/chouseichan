@@ -134,6 +134,7 @@ model Restaurant {
   imageUrl     String?  // 店舗画像URL（任意）
   websiteUrl   String?  // 店舗ウェブサイトURL（任意）
   description  String?  // 説明（任意）
+  decisionFlag Boolean  @default(false) // 確定フラグ
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   eventId      String   // 関連するイベントID
