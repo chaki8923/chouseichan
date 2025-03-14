@@ -21,7 +21,7 @@ import MainUserModal from "../component/modal/mainUserModal"; // 追加: 主役�
 import SpinLoader from "../component/loader/spin";
 import { isEventOwner, addEvent, removeEvent } from "@/app/utils/strages";
 import ImageSwiper from "../component/form/ImageSwiper";
-import { FaRegCopy, FaEdit } from "react-icons/fa";
+import { FaRegCopy, FaEdit, FaCalendarCheck } from "react-icons/fa";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove, FiClock, FiHeart } from 'react-icons/fi';
@@ -2170,6 +2170,26 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             <RestaurantVoteLink eventId={eventData.id} />
           )}
 
+          {/* 確定されたイベント日付の表示 */}
+          {eventData.schedules.some(schedule => schedule.isConfirmed) && (
+            <div className={styles.confirmedDateBanner}>
+              <div className={styles.confirmedDateIcon}>
+                <FaCalendarCheck size={18} />
+              </div>
+              <div className={styles.confirmedDateText}>
+                開催日:{' '}
+                {(() => {
+                  const confirmedSchedule = eventData.schedules.find(schedule => schedule.isConfirmed);
+                  if (confirmedSchedule) {
+                    const date = new Date(confirmedSchedule.date);
+                    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    return `${formattedDate} ${confirmedSchedule.time}`;
+                  }
+                  return '';
+                })()}
+              </div>
+            </div>
+          )}
           {/* テーブルの前にスワイプ案内 */}
           {eventData.schedules.length > 0 && isTableScrollable && (
             <div style={{ fontSize: '0.8rem', color: '#666', textAlign: 'center', marginBottom: '0.5rem' }}>
@@ -2224,7 +2244,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                             </span>
                             {/* 主役表示バッジ */}
                             {isMain && (
-                              <span className={styles.mainBadge} title="メイン担当者">★</span>
+                              <span className={styles.mainBadge} title="主役">主役</span>
                             )}
                           </div>
 

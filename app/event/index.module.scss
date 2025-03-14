@@ -430,7 +430,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
-  max-width: 50px;
+  max-width: 120px;
 
   @media (max-width: 768px) {
     max-width: 150px;
@@ -2845,21 +2845,21 @@
 /* 主役バッジ */
 .mainBadge {
   display: inline-block;
-  color: #ff9500;
-  font-size: 0.9rem;
-  margin-left: 3px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #ff9500;
+  color: white;
+  font-size: 0.7rem;
   font-weight: bold;
-  animation: starPulse 1.5s infinite alternate;
+  padding: 2px 6px;
+  margin-left: 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  animation: badgePulse 1.5s infinite alternate;
 }
 
-@keyframes starPulse {
-  0% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(1.2);
-  }
+@keyframes badgePulse {
+  from { opacity: 0.9; }
+  to { opacity: 1; transform: scale(1.05); }
 }
 
 .mainUserAttending {
@@ -3021,4 +3021,26 @@
 .charCount {
   display: inline-block;
   transition: color 0.3s;
+}
+
+// 確定された日付バナーのスタイル
+.confirmedDateBanner {
+  display: flex;
+  align-items: center;
+  background-color: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.5);
+  border-radius: 6px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+}
+
+.confirmedDateIcon {
+  color: rgb(46, 204, 113);
+  margin-right: 10px;
+}
+
+.confirmedDateText {
+  color: rgb(39, 174, 96);
+  font-weight: 600;
+  font-size: 0.95rem;
 }
