@@ -229,6 +229,21 @@ export default function Form({ categoryName }: { categoryName: string }) {
     };
   }, [schedules, eventNameValue, memoValue]);
 
+  // 回答期限の時間初期値を設定
+  useEffect(() => {
+    if (isClient) {
+      // 日付フィールドの値を取得
+      const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+      const dateValue = dateInput?.value;
+      
+      // 日付が入力されている場合、時間のデフォルト値を17:00に設定
+      if (dateValue) {
+        const deadlineValue = `${dateValue}T17:00`;
+        setValue('responseDeadline', deadlineValue);
+      }
+    }
+  }, [isClient, setValue]);
+
   // localStorageにフォームデータを保存する関数
   const saveFormDataToLocalStorage = () => {
     try {
@@ -729,6 +744,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
                 <select
                   id="deadline-time"
                   className={`${styles.modernInput} ${styles.timeSelect}`}
+                  defaultValue="17"
                   onChange={(e) => {
                     const timeValue = e.target.value;
                     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;

@@ -1114,7 +1114,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       {
         id: tempId,
         date: formattedDate,
-        time: "12:00",
+        time: "19:00",
         displayOrder: maxDisplayOrder + 1
       }
     ]);
@@ -1723,6 +1723,75 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // 確定済みのスケジュールがあるかどうかを確認
   const confirmedScheduleExists = eventData.schedules.some(schedule => schedule.isConfirmed);
 
+  // 星アイコンをクリックした時のアニメーション効果
+  const handleStarClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const element = e.currentTarget;
+    
+    // すでにsparklingクラスがある場合は削除
+    if (element.classList.contains(styles.sparkling)) {
+      element.classList.remove(styles.sparkling);
+    } else {
+      // sparklingクラスを追加
+      element.classList.add(styles.sparkling);
+      
+      // アニメーション完了後にクラスを削除（アニメーションは0.6秒）
+      setTimeout(() => {
+        element.classList.remove(styles.sparkling);
+      }, 600);
+    }
+  };
+
+  // イベント画像をクリックした時のキラキラ効果
+  const handleEventImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    const imageElement = e.currentTarget;
+    
+    // 既に効果が適用されている場合は処理をスキップ
+    if (imageElement.classList.contains(styles.sparklingImage)) {
+      return;
+    }
+    
+    // スパークルエレメントを生成（星を飛び散らせる）
+    const createSparkle = () => {
+      const sparkle = document.createElement('span');
+      sparkle.innerHTML = '★';
+      sparkle.className = styles.imageSparkle;
+      
+      // ランダムな位置を設定
+      const randomPosition = () => Math.random() * 100 - 50;
+      const startX = randomPosition();
+      const startY = randomPosition();
+      
+      // ランダムなサイズを設定（8px〜14px）
+      const size = 8 + Math.random() * 6;
+      
+      // スタイルを設定
+      sparkle.style.setProperty('--start-x', `${startX}px`);
+      sparkle.style.setProperty('--start-y', `${startY}px`);
+      sparkle.style.setProperty('--size', `${size}px`);
+      
+      // 画像の親要素にスパークルを追加
+      imageElement.parentElement?.appendChild(sparkle);
+      
+      // アニメーション終了後にスパークルを削除
+      setTimeout(() => {
+        sparkle.remove();
+      }, 800);
+    };
+    
+    // sparklingImageクラスを追加
+    imageElement.classList.add(styles.sparklingImage);
+    
+    // 複数のスパークルを作成
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => createSparkle(), i * 50);
+    }
+    
+    // アニメーション完了後にクラスを削除
+    setTimeout(() => {
+      imageElement.classList.remove(styles.sparklingImage);
+    }, 800);
+  };
+
   return (
     <>
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
@@ -2107,6 +2176,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   width={50}
                   height={50}
                   alt="Event Crop Image"
+                  onClick={handleEventImageClick}
                   className={styles.eventImage} />
                 <h2 className={styles.memo}>{eventData.memo}</h2>
               </>
@@ -2318,7 +2388,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                           <span>{formatSimpleDate(schedule.date)} {schedule.time}</span>
                           {hasMainUserAttending && (
                             <div className={styles.mainUserBadge} title={`主役(${mainUsersCount}人)が参加可能な日程です`}>
-                              <span className={styles.mainUserIcon}>★</span>
+                              <span 
+                                className={styles.mainUserIcon} 
+                                onClick={handleStarClick}
+                              >★</span>
                               <span className={styles.mainUserCount}>{mainUsersCount > 1 ? `×${mainUsersCount}` : ''}</span>
                             </div>
                           )}

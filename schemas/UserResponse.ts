@@ -5,11 +5,11 @@ import { z } from "zod";
 export const UserResponseSchema = z.object({
   user_name: z
     .string({
-      required_error: "名は必須です",
+      required_error: "名前は必須です",
       invalid_type_error: "入力値に誤りがります",
     })
-    .min(1, { message: "名は必須です" })
-    .max(30, { message: "名は30文字以内で入力してください" }),
+    .min(1, { message: "名前は必須です" })
+    .max(12, { message: "名前は12文字以内で入力してください" }),
   comment: z
     .string()
     .max(50, { message: "コメントは50文字以内で入力してください" }),

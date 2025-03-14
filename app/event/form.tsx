@@ -387,7 +387,7 @@ export default function Form(props: SchedulesProp) {
             <button
               type="submit"
               disabled={isSubmitting || !isNameValid}
-              className={`${styles.submitButton} ${(!isNameValid || isSubmitting) ? styles.disabled : ''}`}
+              className={`${styles.submitButton} ${(!isNameValid || isSubmitting || errors.user_name) ? styles.disabled : ''}`}
             >
               {isSubmitting ? "送信中..." : userId ? "編集を完了する" : "登録する"}
             </button>
