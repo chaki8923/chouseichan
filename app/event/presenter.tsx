@@ -1700,13 +1700,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           }
         } catch (error) {
           console.error('APIエンドポイントエラー:', error);
-          setModalText("メイン担当者の更新に失敗しました");
+          setModalText("主役の更新に失敗しました");
           setIsOpen(true);
         }
       }
     } catch (error) {
       console.error('エラー:', error);
-      setModalText("メイン担当者の更新に失敗しました");
+      setModalText("主役の更新に失敗しました");
       setIsOpen(true);
     }
   };
@@ -2224,8 +2224,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                             <button
                               onClick={() => setUserAsMain(userWithMain.id, isMain)}
                               className={`${styles.makeMainButton} ${isMain ? styles.mainButtonActive : ''}`}
-                              title={isMain ? "メイン担当者から解除" : "メイン担当者に設定"}
-                              aria-label={isMain ? "メイン担当者から解除" : "メイン担当者に設定"}
+                              title={isMain ? "主役から解除" : "主役に設定"}
+                              aria-label={isMain ? "主役から解除" : "主役に設定"}
                             >
                               {isMain ? "主役解除" : "主役にする"}
                             </button>

@@ -435,6 +435,7 @@
   @media (max-width: 768px) {
     max-width: 150px;
   }
+
 }
 
 .scheduleForm {
@@ -2832,6 +2833,7 @@
   justify-content: center;
   margin-bottom: 3px;
   white-space: nowrap;
+
 }
 
 /* ユーザー名テキスト */
@@ -2839,6 +2841,11 @@
   font-size: 0.85rem;
   cursor: pointer;
   text-decoration: underline;
+  transition: .2s;
+  &:hover{
+    color: #f5a45d;
+    transform: translateY(-.8px)
+  }
   
 }
 
