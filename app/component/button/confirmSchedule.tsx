@@ -31,10 +31,10 @@ export function ConfirmScheduleButton({ scheduleId, eventId, buttonText, onConfi
       setLoading(false);
       setShowResultModal(true);
       
-      // 3秒後に自動的に結果モーダルを閉じる
+      // 1.5秒後に自動的に結果モーダルを閉じる
       setTimeout(() => {
         setShowResultModal(false);
-      }, 2400);
+      }, 1500);
     }
   };
 
