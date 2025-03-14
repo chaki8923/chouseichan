@@ -106,6 +106,15 @@
   }
 }
 
+.sp{
+  display: none;
+    @media (max-width: 768px) {
+      display: flex;
+    }
+    
+  }
+
+
 /* アップロードセクション */
 .uploadSection {
   composes: variables;

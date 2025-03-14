@@ -609,6 +609,38 @@ const ImageResizeContent = () => {
           </div>
         </div>
       </div>
+        {/* 元のページに戻るボタン */}
+        <div className={`${styles.navigationButtons} ${styles.sp}`}>
+          {fromForm && (
+            <Link 
+              href="/?from_resize=true" 
+              className={styles.backButton}
+            >
+              <FiHome className={styles.backIcon} />
+              新規イベント作成に戻る
+            </Link>
+          )}
+          
+          {fromEvent && eventId && (
+            <Link 
+              href={`/event?eventId=${eventId}&from_resize=true`} 
+              className={styles.backButton}
+            >
+              <FiImage className={styles.backIcon} />
+              イベント編集に戻る
+            </Link>
+          )}
+          
+          {!fromForm && !fromEvent && (
+            <Link 
+              href="/" 
+              className={styles.backButton}
+            >
+              <FiHome className={styles.backIcon} />
+              トップページに戻る
+            </Link>
+          )}
+        </div>
 
       <div className={styles.instructionsSection}>
         <h2 className={styles.instructionsTitle}>使い方</h2>

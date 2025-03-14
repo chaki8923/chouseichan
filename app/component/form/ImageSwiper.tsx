@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, A11y, EffectFade, Autoplay } from 'swiper/modules';
@@ -84,11 +84,9 @@ export default function ImageSwiper({
   title = '登録した画像', 
   onClose, 
   debugId, 
-  onDelete,
-  audio = { enabled: true, src: '/audio/oda.m4a', volume: 0.3 }
+  onDelete
 }: Props) {
   const [normalizedImages, setNormalizedImages] = useState<ImageType[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   useEffect(() => {
     if (!images || images.length === 0) {
@@ -109,50 +107,7 @@ export default function ImageSwiper({
     setNormalizedImages(processed);
     
   }, [images, debugId]);
-  
-  // 音声再生のためのEffect
-  useEffect(() => {
-    // 音声が無効になっている場合は何もしない
-    if (!audio || audio.enabled === false) return;
     
-    const audioSrc = audio.src || '/audio/oda.m4a';
-    const audioVolume = typeof audio.volume === 'number' ? audio.volume : 0.5;
-    
-    // audioRefが初期化されていない場合は作成
-    if (!audioRef.current) {
-      audioRef.current = new Audio(audioSrc);
-      audioRef.current.volume = audioVolume; // ボリュームを設定
-    } else {
-      // 既存のAudio要素に新しい設定を適用
-      audioRef.current.src = audioSrc;
-      audioRef.current.volume = audioVolume;
-    }
-    
-    // コンポーネントがマウントされたときに音声を再生
-    const playAudio = async () => {
-      try {
-        if (audioRef.current) {
-          // 再生が終了している場合は再度再生時間を0に戻す
-          audioRef.current.currentTime = 0;
-          await audioRef.current.play();
-        }
-      } catch (error) {
-        // ブラウザによっては自動再生ポリシーにより再生がブロックされる場合がある
-        console.warn('音声の自動再生がブラウザにより制限されました:', error);
-      }
-    };
-    
-    playAudio();
-    
-    // クリーンアップ関数
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-    };
-  }, [audio]); // audioオプションが変更されたときにも再実行
-  
   const swiperParams = {
     modules: [Navigation, Pagination, A11y, EffectFade, Autoplay],
     spaceBetween: 50,

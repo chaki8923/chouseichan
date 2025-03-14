@@ -18,7 +18,7 @@ export default function RestaurantVoteLink({ eventId }: RestaurantVoteLinkProps)
           </div>
           <div className={styles.voteLinkContent}>
             <span className={styles.voteLinkTitle}>店舗投票</span>
-            <span className={styles.voteLinkDescription}>参加する店舗を投票・選択できます</span>
+            <span className={styles.voteLinkDescription}>みんなでお店を決めよう</span>
           </div>
           <div className={styles.voteLinkArrow}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -30,8 +30,8 @@ const notoSansJP = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: "調整ちゃん | 日程登録",
-  description: "「調整ちゃん」はたったの2ステップでイベント登録。調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。",
-  keywords: ["イベント", "スケジュール", "調整", "日程調整", "カレンダー", "予定", "出欠", "グループ", "チーム", "オンライン"],
+  description: "「調整ちゃん」はたったの2ステップでイベント登録。調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。",
+  keywords: ["イベント", "スケジュール", "調整", "日程調整", "スケジュール調整","カレンダー", "予定", "出欠", "グループ", "チーム", "オンライン"],
   robots: "index, follow",
   metadataBase: new URL('https://www.chouseichan.com'),
   alternates: {
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://www.chouseichan.com/",
     title: "調整ちゃん | 日程登録",
-    description: "たったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。イベントの画像もみんなで共有できて思い出に残せます。",
+    description: "「調整ちゃん」はたったの2ステップでイベント登録。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。",
     siteName: "調整ちゃん",
     images: [
       {
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@chousei", // 公式アカウントがあれば追加
+    site: "@chouseichan2025", // 公式アカウントがあれば追加
     title: "調整ちゃん | 日程登録",
     description: "調整ちゃんはたったの2ステップでイベント登録。友達や同僚との予定調整が簡単に。",
     images: ["/logo.png"],

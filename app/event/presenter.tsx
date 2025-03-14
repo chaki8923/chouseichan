@@ -344,7 +344,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [deleteError, setDeleteError] = useState<string | null>(null);
   // 状態変数定義に追加
   const [isEditCompleteModalOpen, setIsEditCompleteModalOpen] = useState(false);
-  const [tempMovedSchedules, setTempMovedSchedules] = useState<number[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<any | null>(null);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState<boolean>(false);
@@ -358,7 +357,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [showMainUserModal, setShowMainUserModal] = useState(false);
   const [mainUserModalData, setMainUserModalData] = useState({
     userName: '',
-    isSettingMain: false
+    isSettingMain: false,
+    message: ''
   });
 
   // DnDkit用のセンサーをコンポーネントのトップレベルで定義
@@ -610,12 +610,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         if (isScrollable) {
           tableRef.current.classList.add('scrollable');
 
-          // モバイルデバイスでのスクロールヒントを強化（データが多いことを示す）
-          if (window.innerWidth <= 768) {
-            // スクロールアフォーダンス（ユーザーに横スクロールができることを示すヒント）
-            // const scheduleCount = eventData?.schedules?.length || 0;
-            // console.log(`Table is scrollable with ${scheduleCount} schedules`);
-          }
         } else {
           tableRef.current.classList.remove('scrollable');
         }
@@ -629,7 +623,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       // DOM完全読み込み後に再チェック（より確実に）
       setTimeout(checkTableScrollable, 500);
-      setTimeout(checkTableScrollable, 1000);  // 念のためもう一度
+      // setTimeout(checkTableScrollable, 1000);  // 念のためもう一度
 
       // ウィンドウサイズが変更されたときにチェック
       window.addEventListener('resize', checkTableScrollable);
@@ -882,6 +876,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       return;
     }
 
+    // メモの文字数制限（300字以内）
+    if (editedMemo && editedMemo.length > 300) {
+      setEditMessage({ type: "error", message: "メモは300字以内で入力してください" });
+      return;
+    }
+
     // 日程のバリデーション
     const hasInvalidDate = editedSchedules.some(schedule => !schedule.date || !schedule.time);
     const hasInvalidNewDate = newSchedules.some(schedule => !schedule.date || !schedule.time);
@@ -919,7 +919,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           try {
             // 古い画像のURLからCloudflareのパスを抽出
             const oldImageUrl = eventData.image;
-            console.log("古い画像を削除します:", oldImageUrl);
 
             // 古い画像を削除するAPIを呼び出す
             const deleteResponse = await fetch(`/api/delete-event-icon`, {
@@ -930,11 +929,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
               body: JSON.stringify({ imageUrl: oldImageUrl }),
             });
             
-            if (!deleteResponse.ok) {
-              console.warn("古い画像の削除中にエラーが発生しましたが、処理を続行します");
-            } else {
-              console.log("古い画像を正常に削除しました");
-            }
+           
           } catch (error) {
             console.error("古い画像の削除に失敗しました", error);
             // エラーが発生しても処理を続行
@@ -1199,9 +1194,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           return newItems.map((item, idx) => ({ ...item, displayOrder: idx }));
         });
 
-        // 重要: 特定のID（-999）を持つスケジュールの追跡リストを保持
-        // これは後でスケジュールが削除された際に、tempIdのスケジュールが再表示されないようにするために使用
-        setTempMovedSchedules(prev => [...prev, tempId]);
       }
       // activeが既存、overが新規の場合
       else if (!activeId.startsWith('new-') && overId.startsWith('new-')) {
@@ -1214,8 +1206,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           setScheduleToDelete(prev => [...prev, movedItem.id]);
           console.log("scheduleToDelete", scheduleToDelete);
         } else if (movedItem.id === -999) {
-          // -999の一時IDを持つアイテムが移動された場合、tempMovedSchedulesからも削除
-          setTempMovedSchedules(prev => prev.filter(id => id !== movedItem.id));
+ 
         }
 
         setEditedSchedules(prev => {
@@ -1692,13 +1683,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           }
           
           const data = await response.json();
-          console.log('API応答:', data);
           
           // 更新されたユーザー情報を直接反映
           if (data.user && eventData) {
-            // レスポンスから現在のユーザー情報を取得
-            const updatedUser = data.user;
-            console.log('更新されたユーザー:', updatedUser);
             
             // 既存のイベントデータをコピー
             const updatedEventData = { ...eventData } as any; // 任意の型を許可するためにanyを使用
@@ -1709,9 +1696,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 if (response.user.id === userId) {
                   // ユーザーのmainステータスを切り替える
                   response.user.main = !isCurrentlyMain;
-                  
-                  // 更新されたユーザー情報をログ出力
-                  console.log('更新後のユーザー情報in state:', response.user);
                 }
               });
             });
@@ -1728,7 +1712,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           // 特別モーダルを表示する
           setMainUserModalData({
             userName: userName,
-            isSettingMain: !isCurrentlyMain // 主役に設定する場合はtrue、解除する場合はfalse
+            isSettingMain: !isCurrentlyMain, // 主役に設定する場合はtrue、解除する場合はfalse
+            message: ''
           });
           setShowMainUserModal(true);
           
@@ -1907,14 +1892,18 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 <div className={styles.formGroup}>
                   <label className={styles.editLabel}>
                     メモ <span className={styles.tagNoRequire}>任意</span>
+                    <span className={styles.charCount} style={{ marginLeft: '10px', fontSize: '0.85rem', color: editedMemo && editedMemo.length > 280 ? (editedMemo.length > 300 ? '#dc3545' : '#ffc107') : '#6c757d' }}>
+                      {editedMemo ? editedMemo.length : 0}/300文字
+                    </span>
                   </label>
                   <textarea
                     value={editedMemo}
                     onChange={(e) => setEditedMemo(e.target.value)}
-                    className={styles.editTextarea}
-                    placeholder="メモ（任意）"
-                    maxLength={500}
+                    className={`${styles.editTextarea} ${editedMemo && editedMemo.length > 300 ? styles.textareaError : ''}`}
+                    placeholder="メモ（300文字以内）"
+                    maxLength={300}
                   />
+                  <p className={styles.formHint}>イベントに関する補足情報を記入してください。</p>
                 </div>
 
                 {/* スケジュール編集セクション */}
@@ -2247,7 +2236,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                               title={isMain ? "メイン担当者から解除" : "メイン担当者に設定"}
                               aria-label={isMain ? "メイン担当者から解除" : "メイン担当者に設定"}
                             >
-                              {isMain ? "解除" : "主役にする"}
+                              {isMain ? "主役解除" : "主役にする"}
                             </button>
                           )}
                         </div>
@@ -2522,7 +2511,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       ) : (
         // 条件を満たさない場合はクリックするとモーダルを表示するボタンを表示
         <div className={styles.disabledImageUploader}>
-          画像はイベント開催日以降に投稿できます
+          開催日以降に皆んなで画像を共有できます
         </div>
       )}
 
