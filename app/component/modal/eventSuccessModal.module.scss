@@ -1,0 +1,204 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  padding: 20px;
+}
+
+.modalContent {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 
+              0 0 30px rgba(255, 105, 180, 0.2),
+              0 0 80px rgba(255, 215, 0, 0.15);
+  padding: 30px;
+  width: 90%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  text-align: center;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+}
+
+.confetti {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 5;
+  filter: blur(0.5px);
+  box-shadow: 0 0 5px currentColor;
+}
+
+.logoContainer {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.logoImage {
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  padding: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 182, 193, 0.5);
+}
+
+.messageSection {
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.successBadge {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #FF1493, #FF69B4);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+  gap: 6px;
+}
+
+.calendarIcon {
+  font-size: 1.1rem;
+}
+
+.eventTitle {
+  font-size: 1.8rem;
+  margin: 15px 0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  
+  background: linear-gradient(90deg, #FF69B4, #FFB6C1, #87CEFA, #00BFFF);
+  background-size: 300% 300%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradientText 4s ease infinite;
+}
+
+.starIcon {
+  color: #FFD700;
+  display: inline-block;
+  font-size: 1.3rem;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
+}
+
+.heartIcon {
+  color: #FF1493;
+  display: inline-block;
+  margin: 0 4px;
+  filter: drop-shadow(0 0 2px rgba(255, 20, 147, 0.5));
+}
+
+.congratsText {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.countdownSection {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.countdownText {
+  font-size: 0.9rem;
+  color: #777;
+  margin-bottom: 8px;
+}
+
+.countdownBar {
+  width: 100%;
+  height: 6px;
+  background-color: #eee;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.countdownProgress {
+  height: 100%;
+  background: linear-gradient(90deg, #FF69B4, #00BFFF);
+  border-radius: 3px;
+}
+
+.buttonSection {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.redirectButton {
+  background: linear-gradient(135deg, #00BFFF, #87CEFA);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+}
+
+.redirectButton:hover {
+  background: linear-gradient(135deg, #00BFFF, #1E90FF);
+  box-shadow: 0 6px 18px rgba(0, 191, 255, 0.4);
+}
+
+@keyframes gradientText {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (max-width: 600px) {
+  .modalContent {
+    padding: 20px;
+  }
+  
+  .logoImage {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .eventTitle {
+    font-size: 1.5rem;
+  }
+  
+  .congratsText {
+    font-size: 1rem;
+  }
+  
+  .redirectButton {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+} 

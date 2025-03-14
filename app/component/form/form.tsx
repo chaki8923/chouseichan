@@ -32,6 +32,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { UseFormRegister } from 'react-hook-form';
 import {  FiCheck} from "react-icons/fi";
+import EventSuccessModal from "../modal/eventSuccessModal";
 
 
 // ドラッグ可能な日程項目のコンポーネント
@@ -518,20 +519,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
         
         // 送信完了状態に移行
         setSubmissionSuccess(true);
-        
-        // カウントダウンを開始
-        let count = 3;
-        setRedirectCountdown(count);
-        
-        const countdownInterval = setInterval(() => {
-          count -= 1;
-          setRedirectCountdown(count);
-          
-          if (count <= 0) {
-            clearInterval(countdownInterval);
-            router.push(`/event?eventId=${newEventId}`);
-          }
-        }, 1000);
       } else {
         setLoading(false);
         setIsSubmitting(false); // エラー時はオーバーレイを解除
@@ -603,24 +590,12 @@ export default function Form({ categoryName }: { categoryName: string }) {
                 <p className={styles.loadingText}>しばらくお待ちください</p>
               </>
             ) : (
-              <>
-                <div className={styles.successIcon}>
-                  <FiCheck size={40} />
-                </div>
-                <h3 className={styles.successTitle}>登録完了！</h3>
-                <p className={styles.successText}>
-                  {categoryName}のイベントが正常に登録されました
-                </p>
-                <p className={styles.countdownText}>
-                  {redirectCountdown}秒後にイベント詳細ページへ移動します...
-                </p>
-                <div className={styles.countdownBar}>
-                  <div 
-                    className={styles.countdownProgress} 
-                    style={{ animationDuration: '3s' }}
-                  ></div>
-                </div>
-              </>
+              <EventSuccessModal 
+                eventId={eventId || ''}
+                eventName={getValues('event_name')}
+                categoryName={categoryName}
+                redirectDelay={5}
+              />
             )}
           </div>
         </div>
