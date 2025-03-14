@@ -92,41 +92,28 @@ export default function RootLayout({
 
   // 通常のレイアウト
   return (
-    <>
-      <html lang="ja">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased`}
-        >
-          <Script
-            async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6348441325859182"
-            crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
-          <NextTopLoader 
-            color="#DE3163"
-            initialPosition={0.08}
-            crawlSpeed={200}
-            height={3}
-            crawl={true}
-            showSpinner={false}
-            easing="ease"
-            speed={200}
-            shadow="0 0 10px #DE3163,0 0 5px #DE3163"
-            zIndex={1600}
-            showAtBottom={false} 
-          />
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow container mx-auto py-6">
-              {children}
-            </main>
-            <Situation />
-            <Footer />
-            <ScrollToTopButton />
-          </div>
-        </body>
-      </html>
-    </>
+    <html
+      lang="ja"
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable}`}
+    >
+      <body>
+        <NextTopLoader color="#E195AB" showSpinner={false} />
+        <Header />
+        <main className="main">{children}</main>
+        <Footer /> 
+        <Situation />
+        <ScrollToTopButton />
+        <div id="portal-root" style={{ position: 'fixed', top: 0, left: 0, zIndex: 999999 }}></div>
+      </body>
+
+      <Script id="google-analytics">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-6B4EN14QYS');
+        `}
+      </Script>
+    </html>
   );
 }

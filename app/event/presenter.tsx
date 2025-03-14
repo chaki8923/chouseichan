@@ -22,8 +22,6 @@ import SpinLoader from "../component/loader/spin";
 import { isEventOwner, addEvent, removeEvent } from "@/app/utils/strages";
 import ImageSwiper from "../component/form/ImageSwiper";
 import { FaRegCopy, FaEdit, FaCalendarCheck } from "react-icons/fa";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import { FiCamera, FiAlertTriangle, FiTrash2, FiCheck, FiMove, FiClock, FiHeart } from 'react-icons/fi';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -1293,36 +1291,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   // スケジュール確定処理の関数
   const handleConfirmSchedule = (scheduleId: number) => {
-    setIsOpen(true);
-    setTimeout(function () {
-      setIsOpen(false);
-    }, 3500);
 
     setEventData((prev: Event | null) => {
       if (!prev) return prev; // prev が null の場合はそのまま返す
-
-      const confirmedSchedule = prev.schedules.find(
-        (schedule) => schedule.id === scheduleId
-      );
-
-      if (!confirmedSchedule) {
-        setModalText("キャンセルしました");
-        return {
-          ...prev,
-          schedules: prev.schedules.map((schedule) => ({
-            ...schedule,
-            isConfirmed: false,
-          })),
-        };
-      }
-
-      setModalText("以下の日程で決定しました");
-
-      const dateTimeString = `${confirmedSchedule.date.split("T")[0]}T${confirmedSchedule.time}:00`;
-      const date = new Date(dateTimeString);
-      const formattedDate = format(date, "yyyy/M/d(E) - HH:mm", { locale: ja });
-
-      setFormattedDate(formattedDate);
 
       return {
         ...prev,
