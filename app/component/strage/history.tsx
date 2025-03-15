@@ -82,6 +82,7 @@ export const BrowsingHistory = () => {
     modules: [Navigation, Pagination, Autoplay],
     spaceBetween: 20,
     slidesPerView: 1,
+    loop: true,
     navigation: {
       prevEl: prevRef.current,
       nextEl: nextRef.current,
@@ -94,10 +95,11 @@ export const BrowsingHistory = () => {
       disableOnInteraction: true,
     },
     breakpoints: {
-      640: { slidesPerView: 1 },
-      768: { slidesPerView: 2 },
-      1024: { slidesPerView: 3 },
-      1280: { slidesPerView: 4 },
+      480: { slidesPerView: 1, spaceBetween: 10 },
+      640: { slidesPerView: 1, spaceBetween: 15 },
+      768: { slidesPerView: 2, spaceBetween: 15 },
+      1024: { slidesPerView: 3, spaceBetween: 20 },
+      1280: { slidesPerView: 4, spaceBetween: 20 },
     },
     onBeforeInit: (swiper: SwiperType) => {
       if (swiper && swiper.params) {
@@ -130,7 +132,15 @@ export const BrowsingHistory = () => {
           </div>
           
           <Swiper
-            {...swiperSettings}
+            modules={swiperSettings.modules}
+            spaceBetween={swiperSettings.spaceBetween}
+            slidesPerView={swiperSettings.slidesPerView}
+            loop={swiperSettings.loop}
+            navigation={swiperSettings.navigation}
+            pagination={swiperSettings.pagination}
+            autoplay={swiperSettings.autoplay}
+            breakpoints={swiperSettings.breakpoints}
+            onBeforeInit={swiperSettings.onBeforeInit}
             className={styles.eventSwiper}
           >
             {events.map((event) => (
@@ -173,7 +183,7 @@ export const BrowsingHistory = () => {
                     </div>
                   </div>
                   
-                  <Link href={`/event/?eventId=${event.id}`} className={styles.viewEventButton}>
+                  <Link href={`/event?eventId=${event.id}`} className={styles.viewEventButton}>
                     イベント詳細を見る
                   </Link>
                 </div>
