@@ -33,7 +33,7 @@ export default async function Situation() {
   return (
     <div className={styles.situationFooter}>
       <div className={styles.situationContainer}>
-        <h2 className={styles.situationMainTitle}>調整ちゃんの利用シーン</h2>
+        <h2 style={{backgroundColor: "transparent"}} className={styles.situationMainTitle}>調整ちゃんの利用シーン</h2>
         <p className={styles.situationDescription}>
           様々なシーンで活用できる調整ちゃん。あなたのニーズに合わせてお選びください。
         </p>
