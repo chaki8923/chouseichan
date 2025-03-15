@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, SetStateAction } from "react";
+import { useState, useEffect, useRef, useCallback, SetStateAction, Fragment } from "react";
 import Image from "next/image";
 import { Session } from "@auth/core/types";
 import SigninButton from "@/app/component/calendar/SignInButton"
@@ -48,6 +48,7 @@ import { CSS } from '@dnd-kit/utilities';
 import RestaurantVoteLink from "../components/RestaurantVoteLink";
 import { setOwnerEvent } from "@/app/utils/strages";
 import moment from 'moment';
+import Head from 'next/head';
 
 type maxAttend = {
   id: number;
@@ -301,6 +302,167 @@ const SortableNewScheduleItem: React.FC<NewScheduleItemProps> = ({
           削除
         </>
       </button>
+    </div>
+  );
+};
+
+// イベント詳細ページ内のFloatingAnimationコンポーネントを追加
+const FloatingAnimation = () => {
+  const [isActive, setIsActive] = useState(true);
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    size: number;
+    speed: number;
+    rotation: number;
+    rotationSpeed: number;
+    type: string;
+    color: string;
+    opacity: number;
+    visible: boolean;
+    isLogo?: boolean;
+  }>>([]);
+  
+  // アニメーションの初期化
+  useEffect(() => {
+    const types = ['★', '♥', '●']; // 星、ハート、円（ジャボン玉）
+    const colors = [
+      '#ff7eb9', '#ff65a3', '#7afcff', '#feff9c', 
+      '#fff740', '#daff7d', '#a2d2ff', '#bde0fe'
+    ];
+    
+    // 20-30個のパーティクルを生成
+    const count = 20 + Math.floor(Math.random() * 10);
+    const newParticles = [];
+    
+    for (let i = 0; i < count; i++) {
+      // ランダムに20%の確率でロゴ画像を表示
+      const isLogo = Math.random() < 0.2;
+      
+      newParticles.push({
+        id: i,
+        x: Math.random() * 100, // 画面幅に対する割合（%）
+        y: -10 - Math.random() * 20, // 画面外から開始
+        size: isLogo ? (25 + Math.random() * 15) : (15 + Math.random() * 20), // サイズ調整
+        speed: 0.2 + Math.random() * 0.8, // より遅い落下速度 (0.2-1.0)
+        rotation: Math.random() * 360, // 初期回転（度）
+        rotationSpeed: (Math.random() - 0.5) * 1.2, // 回転速度も遅く
+        type: isLogo ? 'logo' : types[Math.floor(Math.random() * types.length)], // パーティクルの種類
+        color: colors[Math.floor(Math.random() * colors.length)], // 色
+        opacity: 0.7 + Math.random() * 0.3, // 透明度（0.7-1.0）
+        visible: true, // 表示状態
+        isLogo: isLogo // ロゴかどうかのフラグ
+      });
+    }
+    
+    setParticles(newParticles);
+    
+    // 10秒後にアニメーションのフェードアウトを開始
+    const timer = setTimeout(() => {
+      setIsActive(false);
+    }, 6000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // パーティクルの位置を更新
+  useEffect(() => {
+    let animationFrameId: number;
+    let lastTime = performance.now();
+    
+    const updateParticles = (currentTime: number) => {
+      const deltaTime = (currentTime - lastTime) / 16; // 16.6msで1フレーム（約60fps）を基準に調整
+      lastTime = currentTime;
+      
+      setParticles(prevParticles => {
+        if (!isActive && prevParticles.every(p => !p.visible)) return prevParticles;
+        
+        return prevParticles.map(particle => {
+          // 画面外に出たら上から再度登場（アクティブ時のみ）
+          if (particle.y > 110 && isActive) {
+            return {
+              ...particle,
+              y: -10 - Math.random() * 10,
+              x: Math.random() * 100
+            };
+          }
+          
+          // パーティクルの位置と回転を更新
+          return {
+            ...particle,
+            y: particle.y + particle.speed * deltaTime,
+            rotation: (particle.rotation + particle.rotationSpeed * deltaTime) % 360,
+            // 終了状態では徐々に透明に（より遅く）
+            opacity: !isActive ? Math.max(0, particle.opacity - 0.01 * deltaTime) : particle.opacity,
+            visible: !isActive ? particle.opacity > 0.05 : particle.visible
+          };
+        });
+      });
+      
+      // 終了条件：非アクティブかつ全パーティクルが非表示
+      if (!isActive && particles.every(p => !p.visible)) {
+        return;
+      }
+      
+      animationFrameId = requestAnimationFrame(updateParticles);
+    };
+    
+    animationFrameId = requestAnimationFrame(updateParticles);
+    
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isActive, particles]);
+  
+  // パーティクルをクリックした時のハンドラー
+  const handleParticleClick = (id: number) => {
+    setParticles(prevParticles => 
+      prevParticles.map(particle => 
+        particle.id === id ? { ...particle, visible: false } : particle
+      )
+    );
+  };
+  
+  if (particles.every(p => !p.visible)) return null;
+  
+  return (
+    <div className={styles.floatingAnimationContainer}>
+      {particles.map(particle => (
+        particle.visible && (
+          <div
+            key={particle.id}
+            className={styles.floatingParticle}
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              fontSize: particle.isLogo ? 'inherit' : `${particle.size}px`,
+              width: particle.isLogo ? `${particle.size}px` : 'auto',
+              height: particle.isLogo ? `${particle.size}px` : 'auto',
+              color: !particle.isLogo ? particle.color : 'inherit',
+              opacity: particle.opacity,
+              transform: `rotate(${particle.rotation}deg)`,
+              textShadow: !particle.isLogo ? `0 0 5px ${particle.color}80` : 'none'
+            }}
+            onClick={() => handleParticleClick(particle.id)}
+            onMouseEnter={() => handleParticleClick(particle.id)}
+          >
+            {particle.type === 'logo' ? (
+              <Image 
+                src="/logo.png" 
+                alt="Logo" 
+                width={particle.size} 
+                height={particle.size} 
+                className={styles.floatingLogo}
+              />
+            ) : (
+              particle.type
+            )}
+          </div>
+        )
+      ))}
     </div>
   );
 };
@@ -1799,6 +1961,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   return (
     <>
+      {/* フローティングアニメーションを追加 */}
+      <FloatingAnimation />
+      
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
         <div>
 
