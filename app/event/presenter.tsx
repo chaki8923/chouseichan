@@ -509,6 +509,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<any | null>(null);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState<boolean>(false);
+  const [titleError, setTitleError] = useState<string>('');
   // ステート定義部分に確定スケジュール用の状態変数を追加
   const [confirmedSchedule, setConfirmedSchedule] = useState<Schedule | undefined>(undefined);
   // 追加の状態変数
@@ -1043,6 +1044,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const handleSaveEdit = async () => {
     if (!editedTitle.trim()) {
       setEditMessage({ type: "error", message: "イベント名は必須です" });
+      return;
+    }
+
+    // タイトルの文字数制限（30文字以内）
+    if (editedTitle.length > 30) {
+      setEditMessage({ type: "error", message: "イベント名は30文字以内で入力してください" });
       return;
     }
 
@@ -1959,6 +1966,29 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }, 800);
   };
 
+  // イベントタイトルのバリデーション関数を追加
+  const validateEventTitle = (title: string) => {
+    if (title.length > 30) {
+      setTitleError('イベント名は30文字以内で入力してください。');
+      return false;
+    } else {
+      setTitleError('');
+      return true;
+    }
+  };
+
+  // フォームが有効かどうかをチェックする関数
+  const isEditFormValid = () => {
+    return editedTitle.trim() !== '' && editedTitle.length <= 30;
+  };
+
+  // タイトル変更時のハンドラー
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setEditedTitle(newTitle);
+    validateEventTitle(newTitle);
+  };
+
   return (
     <>
       {/* フローティングアニメーションを追加 */}
@@ -1978,11 +2008,21 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   <input
                     type="text"
                     value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
+                    onChange={handleTitleChange}
                     className={styles.editInput}
                     maxLength={100}
-                    placeholder="イベント名（100文字以内）"
+                    placeholder="イベント名（30文字以内）"
                   />
+                  {/* 文字数カウンターを追加 */}
+                  <div className={styles.charCount} style={{ textAlign: 'right', fontSize: '0.85rem', color: editedTitle.length > 30 ? '#dc3545' : '#6c757d' }}>
+                    {editedTitle.length}/30文字
+                  </div>
+                  {/* タイトルエラーメッセージ */}
+                  {titleError && (
+                    <div className={styles.errorMessage} style={{ color: '#dc3545', fontSize: '0.85rem', marginTop: '5px' }}>
+                      {titleError}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -2296,7 +2336,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   <button
                     onClick={handleSaveEdit}
                     className={styles.saveButton}
-                    disabled={isLoading}
+                    disabled={isLoading || !isEditFormValid()}
                   >
                     {isLoading ? "保存中..." : "変更を保存"}
                   </button>
