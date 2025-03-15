@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   };
 export default function rule() {
     return (
-        <div className='p-10'>
+        <div className='p-10 blogContainer'>
             <p className='font'>調整ちゃん （以下「本サイト」といいます）は、茶木涼（以下「当人」といいます）が提供する実験サービスです。利用者の皆様は、以下の各項目について承諾のうえ、本サイトをご利用下さい。なお、当人は、利用者の皆様が本サイトを利用することをもって、本利用規約に同意したものとみなします。</p>
 
             <h2>第1条（本サイトの運営）</h2>
