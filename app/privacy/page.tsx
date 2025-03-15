@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function rule() {
     return (
-        <div className='p-10'>
+        <div className="blogContainer">
 
             <h2>個人情報保護方針</h2>
             <p className='font'>当サイトでは事業運営上多くのお客様や従業者の個人情報を取扱うこととなるため、当社倫理綱領に基づいて本方針を定め、個人情報管理体制を確立し、企業として責任ある対応を実現するものとします。</p>

@@ -1,4 +1,4 @@
-h2{
+.blogContainer h2{
     word-wrap: break-word;
     background-color: #efefef;
     border: none;
@@ -10,7 +10,7 @@ h2{
     padding: 10px 6px;
 }
 
-.font{
+.blogContainer .font{
     word-wrap: break-word;
     color: #777;
     font-size: 1rem;
@@ -18,6 +18,6 @@ h2{
     margin-bottom: 20px;
 }
 
-.ul{
+.blogContainer .ul{
     color: #777;
 }
