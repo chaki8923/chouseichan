@@ -146,14 +146,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
   
-  // カテゴリーごとのブログ一覧ページをサイトマップに追加
-  const categoryBlogRoutes = categories.map((category: CategoryData) => ({
-    url: `${baseUrl}/blog/${category.id}`,
-    lastModified: new Date(category.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
+ 
   
   // 全てのルートを結合して返す
-  return [...routes, ...blogRoutes, ...categoryRoutes, ...categoryBlogRoutes];
+  return [...routes, ...blogRoutes, ...categoryRoutes];
 } 
