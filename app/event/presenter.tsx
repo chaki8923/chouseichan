@@ -334,15 +334,15 @@ const FloatingAnimation = ({ eventImage }: { eventImage?: string }) => {
       MAX_RANDOM_PARTICLES: 10, // 追加されるランダムなパーティクル数の最大値
       
       // パーティクルの種類の割合を制御
-      LOGO_CHANCE: 0.15,        // ロゴ画像の出現確率（0.15 = 15%）
-      EVENT_ICON_CHANCE: 0.15,  // イベントアイコンの出現確率（0.15 = 15%）
+      LOGO_CHANCE: 0.0,         // ロゴ画像の出現確率（0.0 = 使用しない）
+      EVENT_ICON_CHANCE: 0.3,   // イベントアイコンの出現確率（0.3 = 30%）
       
       // アニメーション速度を制御
       MIN_SPEED: 0.1,           // 最低落下速度
       MAX_SPEED: 0.4,           // 最大の追加落下速度
       
       // アニメーション持続時間（ミリ秒）
-      DURATION: 8000,          // アニメーションが続く時間（10秒）
+      DURATION: 8000,          // アニメーションが続く時間（8秒）
       
       // パーティクルのサイズを制御
       ICON_MIN_SIZE: 25,        // アイコンの最小サイズ（px）
@@ -362,15 +362,13 @@ const FloatingAnimation = ({ eventImage }: { eventImage?: string }) => {
     const newParticles = [];
 
     for (let i = 0; i < count; i++) {
-      // ランダムに確率でロゴ画像またはイベント画像を表示
+      // ランダムに確率でイベント画像を表示（ロゴは表示しない）
       const logoChance = Math.random();
       let particleType;
       let isLogo = false;
       
-      if (logoChance < ANIMATION_CONFIG.LOGO_CHANCE) {
-        particleType = 'logo';
-        isLogo = true;
-      } else if (logoChance < (ANIMATION_CONFIG.LOGO_CHANCE + ANIMATION_CONFIG.EVENT_ICON_CHANCE) && eventImage) {
+      // ロゴは使用しない（LOGO_CHANCEを0に設定）
+      if (logoChance < ANIMATION_CONFIG.EVENT_ICON_CHANCE && eventImage) {
         particleType = 'eventIcon';
         isLogo = true;
       } else {
@@ -501,16 +499,7 @@ const FloatingAnimation = ({ eventImage }: { eventImage?: string }) => {
             onClick={() => handleParticleClick(particle.id)}
             onMouseEnter={() => handleParticleClick(particle.id)}
           >
-            {particle.type === 'logo' ? (
-              <Image 
-                src="/logo.png" 
-                alt="Logo" 
-                width={particle.size} 
-                height={particle.size} 
-                className={styles.floatingLogo}
-                style={{ borderRadius: '50%', objectFit: 'cover' }} // 丸く表示するためのスタイルを追加
-              />
-            ) : particle.type === 'eventIcon' && eventImage ? (
+            {particle.type === 'eventIcon' && eventImage ? (
               <div style={{ 
                 width: `${particle.size}px`, 
                 height: `${particle.size}px`, 
