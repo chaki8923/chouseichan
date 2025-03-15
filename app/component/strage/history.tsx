@@ -1,200 +1,218 @@
 "use client";
 
+import React, { useState, useEffect, useRef } from 'react';
+import { FaTrash, FaCalendarAlt, FaClock, FaChevronLeft, FaChevronRight, FaHistory } from 'react-icons/fa';
 import styles from './index.module.scss';
-import Link from "next/link";
-import { FaRegTrashAlt } from "react-icons/fa";
-import { useEffect, useState, useCallback } from "react";
-import { getEventList, removeEvent } from "@/app/utils/strages";
+import Link from 'next/link';
+import { removeEvent, getEventList } from '@/app/utils/strages';
+// Swiperのインポート
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import type { Swiper as SwiperType } from 'swiper';
 
-interface HistoryProps {
-  onHistoryExists?: (exists: boolean) => void;
-}
+type Event = {
+  id: string;
+  title: string;
+  schedules: { date: string; time: string }[];
+};
 
-export default function History({ onHistoryExists }: HistoryProps) {
-    const [events, setEvents] = useState<{ eventId: string; eventName: string; schedules: { date: string; time: string }[] }[]>([]);
-    const [isClient, setIsClient] = useState(false);
-    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-    const [eventToDelete, setEventToDelete] = useState<string | null>(null);
-    
-    // クライアントサイドのみで実行されるようにする
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-    
-    // 初期ロード時とイベント削除時に履歴を更新する関数
-    const loadEventHistory = useCallback(() => {
-        if (typeof window === 'undefined') return;
+export const BrowsingHistory = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState('');
+  const prevRef = useRef<HTMLDivElement>(null);
+  const nextRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loadEvents = () => {
+      try {
+        // getEventList関数を使用してイベント履歴を取得
+        const eventData = getEventList();
         
-        try {
-            // getEventList関数を使用して履歴を取得
-            const eventsArray = getEventList();
-            
-            // 確実に配列であることを確認し、長さをチェック
-            const validEvents = Array.isArray(eventsArray) ? eventsArray : [];
-            
-            // 状態を更新
-            setEvents(validEvents);
-            
-            // 親コンポーネントに履歴の有無を通知 - 空配列でも [] でもないかを確認
-            const hasEvents = validEvents.length > 0;
+        // イベントデータを変換
+        const formattedEvents = eventData.map(event => ({
+          id: event.eventId,
+          title: event.eventName,
+          schedules: event.schedules
+        }));
         
-            
-            if (onHistoryExists) {
-                onHistoryExists(hasEvents);
-            } else {
-                // console.log("History component - onHistoryExists is not provided");
-            }
-        } catch (err) {
-            console.error("History component - Error in loadEventHistory:", err);
-            // エラー時は空の配列に設定
-            setEvents([]);
-            // 親コンポーネントにも通知
-            if (onHistoryExists) {
-                onHistoryExists(false);
-            }
-        }
-    }, [onHistoryExists]);
-
-    // 初回レンダリング時のみ実行
-    useEffect(() => {
-        if (isClient) {
-            loadEventHistory();
-        }
-    }, [isClient, loadEventHistory]);
-
-    // 削除確認モーダルを表示する
-    const showDeleteConfirmation = (eventId: string) => {
-        setEventToDelete(eventId);
-        setConfirmModalOpen(true);
+        // 最新のイベントが先頭に来るようにソート
+        setEvents(formattedEvents);
+      } catch (error) {
+        console.error('Error loading event history:', error);
+        setEvents([]);
+      }
     };
 
-    // モーダルを閉じる
-    const closeModal = () => {
-        setConfirmModalOpen(false);
-        setEventToDelete(null);
-    };
+    loadEvents();
+  }, []);
 
-    // イベント削除ハンドラー
-    const handleRemoveEvent = () => {
-        if (!eventToDelete) return;
-        
-        try {
-            // イベントを削除
-            removeEvent(eventToDelete);
-            
-            // 削除後に再度イベント一覧を取得
-            const updatedEvents = getEventList();
-            
-            // 更新された一覧で状態を更新
-            const validEvents = Array.isArray(updatedEvents) ? updatedEvents : [];
-            setEvents(validEvents);
-            
-            // 親コンポーネントに履歴の有無を通知
-            const hasEvents = validEvents.length > 0;
-            
-            if (onHistoryExists) {
-                onHistoryExists(hasEvents);
-            }
-        } catch (error) {
-            console.error("History component - Error in handleRemoveEvent:", error);
-        } finally {
-            // モーダルを閉じる
-            closeModal();
-        }
-    };
+  const handleDelete = (id: string) => {
+    setSelectedEventId(id);
+    setIsModalOpen(true);
+  };
 
-    const formatDate = (dateString: string) => {
-        if (!isClient) return dateString; // クライアントサイドでない場合は変換せずにそのまま返す
-        
-        try {
-            return new Date(dateString).toLocaleDateString('ja-JP', {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric'
-            });
-        } catch {
-            return dateString; // 変換できない場合は元の文字列を返す
-        }
-    };
+  const confirmDelete = () => {
+    if (selectedEventId) {
+      removeEvent(selectedEventId);
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== selectedEventId));
+      setIsModalOpen(false);
+    }
+  };
 
-    return (
-        <>
-            {/* eventsが空でない場合のみ履歴を表示 */}
-            {events.length > 0 ? (
-                <div className={styles.cookieContent}>
-                    <h2 className={styles.cookieTitle}>最近閲覧したイベント</h2>
-                    <div className={styles.cookieContainer}>
-                        {events.map((event) => (
-                            <div key={event.eventId} className={styles.cookieWrapper}>
-                                <Link
-                                    href={`/event?eventId=${event.eventId}`}
-                                    className={styles.cookieEvent}
-                                >
-                                    <div className={styles.cookieData}>
-                                        <span>{event.eventName}</span>
-                                        <FaRegTrashAlt 
-                                            className={styles.trash} 
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                showDeleteConfirmation(event.eventId);
-                                            }} 
-                                            title="削除"
-                                            aria-label="イベントを履歴から削除"
-                                            style={{ 
-                                                cursor: 'pointer',
-                                                color: '#777',
-                                                padding: '8px',
-                                                borderRadius: '50%',
-                                                display: 'inline-block'
-                                            }}
-                                        />
-                                    </div>
-                                    <ul className={styles.scheduleUl}>
-                                        {event.schedules?.length > 0 ? (
-                                            <>
-                                                {event.schedules.slice(0, 5).map((schedule, index) => (
-                                                    <li key={index} className={styles.schedule}>
-                                                        {formatDate(schedule.date)} - {schedule.time}
-                                                    </li>
-                                                ))}
-                                            </>
-                                        ) : (
-                                            <li className={styles.schedule}>日程情報はありません</li>
-                                        )}
-                                    </ul>
-                                </Link>
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'short'
+      });
+    } catch (error) {
+      return dateStr;
+    }
+  };
+
+  // Swiperの設定
+  const swiperSettings = {
+    modules: [Navigation, Pagination, Autoplay],
+    spaceBetween: 20,
+    slidesPerView: 1,
+    navigation: {
+      prevEl: prevRef.current,
+      nextEl: nextRef.current,
+    },
+    pagination: {
+      clickable: true,
+    },
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: true,
+    },
+    breakpoints: {
+      640: { slidesPerView: 1 },
+      768: { slidesPerView: 2 },
+      1024: { slidesPerView: 3 },
+      1280: { slidesPerView: 4 },
+    },
+    onBeforeInit: (swiper: SwiperType) => {
+      if (swiper && swiper.params) {
+        // @ts-ignore
+        swiper.params.navigation.prevEl = prevRef.current;
+        // @ts-ignore
+        swiper.params.navigation.nextEl = nextRef.current;
+        swiper.navigation.update();
+      }
+    },
+  };
+
+  return (
+    <section className={styles.historySection}>
+      <h2 className={styles.historyTitle}>閲覧履歴</h2>
+      
+      {events.length === 0 ? (
+        <div className={styles.emptyState}>
+          <FaHistory size={50} />
+          <h3>閲覧履歴がありません</h3>
+          <p>イベントを閲覧すると、ここに表示されます。</p>
+          <Link href="/event" className={styles.emptyStateButton}>
+            イベントを作成する
+          </Link>
+        </div>
+      ) : (
+        <div className={styles.swiperContainer}>
+          <div className={styles.swiperNavPrev} ref={prevRef}>
+            <FaChevronLeft />
+          </div>
+          
+          <Swiper
+            {...swiperSettings}
+            className={styles.eventSwiper}
+          >
+            {events.map((event) => (
+              <SwiperSlide key={event.id} className={styles.eventSlide}>
+                <div className={styles.eventCard}>
+                  <div className={styles.eventHeader}>
+                    <h3 className={styles.eventTitle}>{event.title}</h3>
+                    <button
+                      className={styles.trashButton}
+                      onClick={() => handleDelete(event.id)}
+                      aria-label="Delete event"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                  
+                  <div className={styles.scheduleList}>
+                    <div className={styles.scheduleWrapper}>
+                      {event.schedules.length === 0 ? (
+                        <p className={styles.noSchedules}>スケジュールはありません</p>
+                      ) : (
+                        <>
+                          {event.schedules.slice(0, 3).map((schedule, idx) => (
+                            <div key={idx} className={styles.scheduleItem}>
+                              <div className={styles.scheduleDate}>
+                                <FaCalendarAlt className={styles.scheduleIcon} />
+                                {formatDate(schedule.date)}
+                              </div>
+                              <div className={styles.scheduleTime}>
+                                <FaClock className={styles.scheduleIcon} />
+                                {schedule.time}
+                              </div>
                             </div>
-                        ))}
+                          ))}
+                          {event.schedules.length > 3 && (
+                            <p className={styles.moreSchedules}>他 {event.schedules.length - 3} 件のスケジュール</p>
+                          )}
+                        </>
+                      )}
                     </div>
+                  </div>
+                  
+                  <Link href={`/event/?eventId=${event.id}`} className={styles.viewEventButton}>
+                    イベント詳細を見る
+                  </Link>
                 </div>
-            ) : null}
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          
+          <div className={styles.swiperNavNext} ref={nextRef}>
+            <FaChevronRight />
+          </div>
+        </div>
+      )}
+      
+      {isModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h3 className={styles.modalTitle}>イベントの削除</h3>
+            <p className={styles.modalText}>
+              このイベントを閲覧履歴から削除しますか？
+            </p>
+            <div className={styles.modalButtons}>
+              <button
+                className={`${styles.modalButton} ${styles.cancelButton}`}
+                onClick={() => setIsModalOpen(false)}
+              >
+                キャンセル
+              </button>
+              <button
+                className={`${styles.modalButton} ${styles.deleteButton}`}
+                onClick={confirmDelete}
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
 
-            {/* 削除確認モーダル */}
-            {confirmModalOpen && (
-                <div className={styles.modalOverlay} onClick={closeModal}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <h3 className={styles.modalTitle}>イベント履歴の削除</h3>
-                        <p className={styles.modalText}>
-                            このイベントを閲覧履歴から削除してもよろしいですか？
-                        </p>
-                        <div className={styles.modalButtons}>
-                            <button 
-                                className={`${styles.modalButton} ${styles.cancelButton}`}
-                                onClick={closeModal}
-                            >
-                                キャンセル
-                            </button>
-                            <button 
-                                className={`${styles.modalButton} ${styles.deleteButton}`}
-                                onClick={handleRemoveEvent}
-                            >
-                                削除する
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
-    );
-}
+export default BrowsingHistory;

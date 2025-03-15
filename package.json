@@ -41,6 +41,7 @@
     "lucide-react": "^0.479.0",
     "microcms-js-sdk": "^3.1.2",
     "mime-types": "^2.1.35",
+    "moment": "^2.30.1",
     "next": "15.1.4",
     "next-auth": "^5.0.0-beta.25",
     "next-nprogress-bar": "^2.4.7",
