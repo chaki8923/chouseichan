@@ -244,7 +244,7 @@ const ImageUploadSection: React.FC<{ eventData: Event; onImageUploaded?: () => v
                             {errorMessage}
                             {errorMessage.includes('画像の合計サイズが2MBを超えています') && (
                                 <div className={styles.resizeToolWrapper}>
-                                    <Link href={`/image-resize?eventId=${eventData.id}`} className={styles.resizeToolLink}>
+                                    <Link href={`/image-resize?from_event=true&eventId=${eventData.id}`} className={styles.resizeToolLink}>
                                         <FiCrop className={styles.resizeToolIcon} />
                                         <span>大きな画像を縮小するツールを使う</span>
                                     </Link>

@@ -387,7 +387,7 @@ const ImageResizeContent = () => {
               className={styles.backButton}
             >
               <FiImage className={styles.backIcon} />
-              イベント編集に戻る
+              イベントに戻る
             </Link>
           )}
           
@@ -627,7 +627,7 @@ const ImageResizeContent = () => {
               className={styles.backButton}
             >
               <FiImage className={styles.backIcon} />
-              イベント編集に戻る
+              イベントに戻る
             </Link>
           )}
           

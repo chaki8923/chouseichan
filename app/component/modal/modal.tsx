@@ -15,19 +15,19 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, type = 'defaul
       case 'warning':
         return {
           backdrop: "fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50",
-          container: "bg-white p-8 rounded-xl shadow-lg w-96 relative border-l-4 border-yellow-500",
+          container: "bg-white p-8 rounded-xl shadow-lg w-98 relative border-l-4 border-yellow-500",
           closeButton: "absolute top-3 right-3 text-gray-500 hover:text-gray-900 transition-colors duration-200"
         };
       case 'info':
         return {
           backdrop: "fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50",
-          container: "bg-white p-8 rounded-xl shadow-lg w-96 relative border-l-4 border-blue-500",
+          container: "bg-white p-8 rounded-xl shadow-lg w-98 relative border-l-4 border-blue-500",
           closeButton: "absolute top-3 right-3 text-gray-500 hover:text-gray-900 transition-colors duration-200"
         };
       default:
         return {
           backdrop: "fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50",
-          container: "bg-white p-8 rounded-xl shadow-lg w-96 relative",
+          container: "bg-white p-8 rounded-xl shadow-lg w-98 relative",
           closeButton: "absolute top-3 right-3 text-gray-500 hover:text-gray-900 transition-colors duration-200"
         };
     }

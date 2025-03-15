@@ -46,6 +46,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RestaurantVoteLink from "../components/RestaurantVoteLink";
+import { setOwnerEvent } from "@/app/utils/strages";
+import moment from 'moment';
 
 type maxAttend = {
   id: number;
@@ -486,19 +488,28 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         setError("指定されたイベントが見つかりませんでした");
         setEventNotFound(true);
 
-        // localStorage からも該当のイベント情報を削除
+        // 該当のイベントに関連するlocalStorageのデータをすべて削除
         if (typeof window !== 'undefined' && eventId) {
           try {
-            // localStorageの「recent_events」キーから該当のイベントを削除
+            // 1. ユーティリティ関数を使ってイベント関連のデータを削除
+            removeEvent(eventId);
+            
+            // 2. recent_eventsからイベント情報を削除
             const recentEvents = JSON.parse(localStorage.getItem('recent_events') || '[]');
             const filteredEvents = recentEvents.filter((event: LocalStorageEvent) => event.id !== eventId);
             localStorage.setItem('recent_events', JSON.stringify(filteredEvents));
+            
+            // 3. イベント固有のアップロード情報を削除
+            localStorage.removeItem(`image_uploaded_${eventId}`);
+            localStorage.removeItem(`image_upload_time_${eventId}`);
+            
+            console.log(`イベントID ${eventId} に関連するローカルストレージデータを削除しました`);
           } catch (error) {
-            console.error('LocalStorageからの削除に失敗:', error);
+            console.error("localStorage操作中にエラーが発生しました:", error);
           }
         }
-
-        // 5秒後に自動的にトップページへリダイレクト
+        
+        // 元の動作を維持: 5秒後に自動的にトップページへリダイレクト
         redirectToHome();
         return;
       }
@@ -694,7 +705,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // イベントが見つからない場合のリダイレクト処理
   useEffect(() => {
     if (eventNotFound) {
-      console.log("eventNotFoundフラグがtrueです - カウントダウン開始");
       // countdownBarのアニメーションが終了する5秒後に自動的にトップページへリダイレクト
       const redirectTimer = setTimeout(() => {
         console.log("カウントダウン完了 - トップページへリダイレクト");
@@ -957,7 +967,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
         const uploadData = await uploadResponse.json();
         iconPath = uploadData.url;
-        console.log("新しい画像のURL:", iconPath);
       }
 
       // イベント情報の更新
@@ -1027,12 +1036,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       if (!eventUpdateResponse.ok) {
         throw new Error("イベント情報の更新に失敗しました");
       }
-      
-      console.log("イベント情報の更新に成功しました");
 
       // 更新されたイベントデータを取得して状態を更新
       const updatedEventData = await eventUpdateResponse.json();
-      console.log("更新されたイベントデータ:", updatedEventData);
 
       // スケジュールをdisplayOrderでソートする
       if (updatedEventData && updatedEventData.schedules) {
@@ -1064,7 +1070,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           // オーナー情報も更新
           setOwnerEvent(eventId, updatedEventData.name || "", formattedSchedules);
 
-          console.log("ローカルストレージのイベント情報を更新しました");
     } catch (error) {
           console.error("ローカルストレージの更新に失敗しました:", error);
         }
@@ -2649,7 +2654,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         (console.log("ImageSwiperに渡すデータ:", eventImages),
         <ImageSwiper 
             images={eventImages}
-            title={`${eventData.name}の画像`}
+            title={`${eventData.name}の思い出`}
             onClose={() => {
               // Swiperを閉じるときにローカルストレージのフラグをクリア
               localStorage.removeItem(`image_uploaded_${eventId}`);
