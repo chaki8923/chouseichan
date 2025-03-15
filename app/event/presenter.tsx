@@ -2647,7 +2647,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </div>
         </div>
       </div>
-      <div id="response_area" className="mt-12">
+      <div id="response_area" className={`mt-12 p-4 ${styles.responseArea}`}>
         <h2 className={styles.h2Title}>回答フォーム</h2>
         {isDeadlinePassed ? (
           <div className={styles.deadlinePassedMessage}>

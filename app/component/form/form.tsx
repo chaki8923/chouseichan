@@ -639,23 +639,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
             )}
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              メモ
-              <span className={styles.badgeOptional}>任意</span>
-            </label>
-            <textarea
-              className={styles.modernTextarea}
-              placeholder="参加者へ伝えたい事があれば入力してください"
-              {...register('memo')}
-              maxLength={300}
-            />
-            <div className={styles.textareaFooter}>
-              <span className={`${styles.charCount} ${memoValue && memoValue.length > 280 ? styles.charCountExceeded : ''}`}>
-                {memoValue ? memoValue.length : 0}/300文字
-              </span>
-            </div>
-          </div>
 
           <div className={styles.formStepDivider}></div>
 
@@ -702,6 +685,25 @@ export default function Form({ categoryName }: { categoryName: string }) {
           </div>
 
           <div className={styles.formStepDivider}></div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              メモ
+              <span className={styles.badgeOptional}>任意</span>
+            </label>
+            <textarea
+              className={styles.modernTextarea}
+              placeholder="参加者へ伝えたい事があれば入力してください"
+              {...register('memo')}
+              maxLength={300}
+            />
+            <div className={styles.textareaFooter}>
+              <span className={`${styles.charCount} ${memoValue && memoValue.length > 280 ? styles.charCountExceeded : ''}`}>
+                {memoValue ? memoValue.length : 0}/300文字
+              </span>
+            </div>
+          </div>
+
 
           <div className={styles.formStep}>
             <h2 className={styles.stepTitle}>回答期限</h2>

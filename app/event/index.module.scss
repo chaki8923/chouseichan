@@ -43,7 +43,7 @@
   color: #de3163;
   font-weight: bold;
   font-size: 26px;
-  margin: 0 0 0.5rem;
+  margin-bottom: 0!important;
   padding: 0;
   text-align: left;
   
@@ -878,7 +878,6 @@
     
     @media (max-width: 768px) {
       width: 100%;
-      margin-bottom: 1rem;
     }
   }
   
