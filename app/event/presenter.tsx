@@ -345,9 +345,9 @@ const FloatingAnimation = () => {
         x: Math.random() * 100, // 画面幅に対する割合（%）
         y: -10 - Math.random() * 20, // 画面外から開始
         size: isLogo ? (25 + Math.random() * 15) : (15 + Math.random() * 20), // サイズ調整
-        speed: 0.2 + Math.random() * 0.8, // より遅い落下速度 (0.2-1.0)
+        speed: 0.1 + Math.random() * 0.4, // より遅い落下速度 (0.1-0.5)
         rotation: Math.random() * 360, // 初期回転（度）
-        rotationSpeed: (Math.random() - 0.5) * 1.2, // 回転速度も遅く
+        rotationSpeed: (Math.random() - 0.5) * 0.8, // 回転速度も遅く
         type: isLogo ? 'logo' : types[Math.floor(Math.random() * types.length)], // パーティクルの種類
         color: colors[Math.floor(Math.random() * colors.length)], // 色
         opacity: 0.7 + Math.random() * 0.3, // 透明度（0.7-1.0）
@@ -361,7 +361,7 @@ const FloatingAnimation = () => {
     // 10秒後にアニメーションのフェードアウトを開始
     const timer = setTimeout(() => {
       setIsActive(false);
-    }, 6000);
+    }, 12000);
     
     return () => clearTimeout(timer);
   }, []);
@@ -394,7 +394,7 @@ const FloatingAnimation = () => {
             y: particle.y + particle.speed * deltaTime,
             rotation: (particle.rotation + particle.rotationSpeed * deltaTime) % 360,
             // 終了状態では徐々に透明に（より遅く）
-            opacity: !isActive ? Math.max(0, particle.opacity - 0.01 * deltaTime) : particle.opacity,
+            opacity: !isActive ? Math.max(0, particle.opacity - 0.005 * deltaTime) : particle.opacity,
             visible: !isActive ? particle.opacity > 0.05 : particle.visible
           };
         });
