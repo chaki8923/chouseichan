@@ -456,6 +456,7 @@ const FloatingAnimation = () => {
                 width={particle.size} 
                 height={particle.size} 
                 className={styles.floatingLogo}
+                style={{ borderRadius: '50%' }} // 丸く表示するためのスタイルを追加
               />
             ) : (
               particle.type
