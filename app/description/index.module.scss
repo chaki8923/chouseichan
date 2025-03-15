@@ -217,3 +217,117 @@
         font-size: 14px;
     }
 }
+
+/* クリック可能な画像 */
+.clickableImage {
+    border: 4px solid #e2b5b5;
+    display: block;
+    padding: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: scale(1.02);
+        border-color: #de3163;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* 画像オーバーレイ */
+.imageOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+}
+
+/* オーバーレイの内容 */
+.overlayContent {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    transform: scale(0.9);
+    opacity: 0;
+    animation: zoomIn 0.4s forwards;
+    animation-delay: 0.1s;
+}
+
+/* 拡大表示される画像 */
+.enlargedImage {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border: 4px solid white;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* 閉じるボタン */
+.closeButton {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: #de3163;
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1001;
+    
+    &:hover {
+        background: #e195ab;
+        transform: scale(1.1);
+    }
+}
+
+/* フェードインアニメーション */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ズームインアニメーション */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .overlayContent {
+        max-width: 95%;
+    }
+    
+    .closeButton {
+        top: -30px;
+        right: 0;
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+    }
+}
