@@ -149,7 +149,7 @@
     pointer-events: none;
   }
   
-
+  
   /* マウスホバー時のスタイル */
   &:hover::after {
     background-color: rgba(222, 49, 99, 0.4);
@@ -196,7 +196,7 @@
       }
     }
   }
-}
+  }
 .declineCount{
   width: 20px;
 }
@@ -799,23 +799,23 @@
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
     transition: transform 0.3s ease;
   }
-
+  
   &:hover {
     background: linear-gradient(135deg, #FF6B6B, #DE3163, #9F4576);
     box-shadow: 0 10px 20px rgba(222, 49, 99, 0.3);
     transform: translateY(-3px) scale(1.02);
-
+    
     &::before {
       transform: scale(1);
       opacity: 1;
       animation: pulse 2s infinite;
     }
-
+    
     svg {
       transform: rotate(-10deg) scale(1.2);
     }
   }
-
+  
   &:active {
     transform: translateY(1px);
     box-shadow: 0 3px 8px rgba(222, 49, 99, 0.3);
@@ -826,7 +826,7 @@
       opacity: 0.4;
     }
     50% {
-      opacity: 0.6;
+    opacity: 0.6;
     }
     100% {
       opacity: 0.4;
@@ -887,9 +887,9 @@
     gap: 0.5rem;
     
     @media (max-width: 768px) {
-      position: absolute;
+  position: absolute;
       top: -25px;
-      right: 0;
+  right: 0;
     }
   }
 }
@@ -1600,7 +1600,7 @@
   animation: fadeIn 0.3s ease-out;
   
   @media (max-width: 480px) {
-    font-size: 12px;
+  font-size: 12px;
     padding: 10px 12px;
     flex-direction: column;
     align-items: stretch;
@@ -1917,7 +1917,7 @@
 }
 
 .iconUploadLabel {
-  display: inline-block;
+    display: inline-block;
   padding: 0.5rem 1rem;
   background-color: #4a90e2;
   color: white;
@@ -2740,7 +2740,7 @@
 
 .decorationLine {
   width: 80px;
-  height: 10px;
+    height: 10px;
   display: flex;
   justify-content: space-between;
   margin-top: 1rem;
@@ -3133,8 +3133,8 @@
 
 // 確定された日付バナーのスタイル
 .confirmedDateBanner {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
   background-color: rgba(46, 204, 113, 0.1);
   border: 1px solid rgba(46, 204, 113, 0.5);
   border-radius: 6px;
@@ -3206,7 +3206,7 @@
   will-change: transform, top, left, opacity;
   animation: floatIn 1.2s ease-out;
   display: flex;
-  justify-content: center;
+    justify-content: center;
   align-items: center;
 }
 

@@ -25,6 +25,7 @@ export const BrowsingHistory = () => {
   const [selectedEventId, setSelectedEventId] = useState('');
   const prevRef = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLDivElement>(null);
+  const [swiper, setSwiper] = useState<SwiperType | null>(null);
 
   useEffect(() => {
     const loadEvents = () => {
@@ -90,39 +91,53 @@ export const BrowsingHistory = () => {
     modules: [Navigation, Pagination, Autoplay],
     spaceBetween: 20,
     slidesPerView: 1,
-    loop: true,
-    navigation: {
+    loop: events.length >= 5,
+    navigation: events.length >= 5 ? {
       prevEl: prevRef.current,
       nextEl: nextRef.current,
-    },
+    } : false,
     pagination: {
       clickable: true,
+      dynamicBullets: true,
+      dynamicMainBullets: 3,
     },
-    autoplay: {
+    autoplay: events.length >= 5 ? {
       delay: 5000,
       disableOnInteraction: true,
-    },
+    } : false,
     breakpoints: {
       480: { slidesPerView: 1, spaceBetween: 10 },
       640: { slidesPerView: 1, spaceBetween: 15 },
       768: { slidesPerView: 2, spaceBetween: 15 },
       1024: { slidesPerView: 3, spaceBetween: 20 },
-      1280: { slidesPerView: 4, spaceBetween: 20 },
+      1280: { slidesPerView: 3, spaceBetween: 20 },
     },
-    onBeforeInit: (swiper: SwiperType) => {
-      if (swiper && swiper.params) {
-        // @ts-ignore
-        swiper.params.navigation.prevEl = prevRef.current;
-        // @ts-ignore
-        swiper.params.navigation.nextEl = nextRef.current;
-        swiper.navigation.update();
-      }
+    slidesPerGroup: 1,
+    onSwiper: (swiperInstance: SwiperType) => {
+      setSwiper(swiperInstance);
     },
   };
 
+  useEffect(() => {
+    if (swiper && events.length >= 5) {
+      if (swiper.params && typeof swiper.params.navigation !== 'boolean') {
+        swiper.params.navigation = {
+          ...swiper.params.navigation,
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        };
+        swiper.navigation.init();
+        swiper.navigation.update();
+      }
+    }
+  }, [swiper, events.length]);
+
   return (
     <section className={styles.historySection}>
-      <h2 className={styles.historyTitle}>閲覧履歴</h2>
+      <h2 className={styles.historyTitle}>
+        閲覧履歴
+        {events.length > 0 && <span className={styles.totalCount}>({events.length}件)</span>}
+      </h2>
       
       {events.length === 0 ? (
         <div className={styles.emptyState}>
@@ -137,21 +152,16 @@ export const BrowsingHistory = () => {
           </button>
         </div>
       ) : (
+        <>
         <div className={styles.swiperContainer}>
-          <div className={styles.swiperNavPrev} ref={prevRef}>
-            <FaChevronLeft />
-          </div>
+          {events.length >= 5 && (
+            <div className={styles.swiperNavPrev} ref={prevRef}>
+              <FaChevronLeft />
+            </div>
+          )}
           
           <Swiper
-            modules={swiperSettings.modules}
-            spaceBetween={swiperSettings.spaceBetween}
-            slidesPerView={swiperSettings.slidesPerView}
-            loop={swiperSettings.loop}
-            navigation={swiperSettings.navigation}
-            pagination={swiperSettings.pagination}
-            autoplay={swiperSettings.autoplay}
-            breakpoints={swiperSettings.breakpoints}
-            onBeforeInit={swiperSettings.onBeforeInit}
+            {...swiperSettings}
             className={styles.eventSwiper}
           >
             {events.map((event) => (
@@ -202,10 +212,20 @@ export const BrowsingHistory = () => {
             ))}
           </Swiper>
           
-          <div className={styles.swiperNavNext} ref={nextRef}>
-            <FaChevronRight />
-          </div>
+          {events.length >= 5 && (
+            <div className={styles.swiperNavNext} ref={nextRef}>
+              <FaChevronRight />
+            </div>
+          )}
         </div>
+        <div className={styles.paginationHelper}>
+          {events.length > 3 && (
+            <div className={styles.paginationCount}>
+              スワイプで全{events.length}件を閲覧できます
+            </div>
+          )}
+        </div>
+        </>
       )}
       
       {isModalOpen && (

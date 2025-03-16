@@ -331,6 +331,11 @@
   margin: 1.5rem auto 3rem;
   font-weight: 600;
   padding-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   
   &::after {
     content: '';
@@ -343,6 +348,13 @@
     background: linear-gradient(to right, #de3163, #e195ab);
     border-radius: 3px;
   }
+}
+
+.totalCount {
+  font-size: 1rem;
+  font-weight: normal;
+  color: #777;
+  margin-left: 0.5rem;
 }
 
 /* Swiperコンテナのスタイル */
@@ -359,24 +371,41 @@
 /* Swiperのスタイル */
 .eventSwiper {
   overflow: visible !important;
-  padding: 2rem 1rem;
+  padding: 2rem 1rem 3rem;
   
   :global(.swiper-wrapper) {
     transition-timing-function: linear;
   }
   
   :global(.swiper-pagination) {
-    bottom: -5px !important;
+    bottom: 0 !important;
+    padding-top: 10px;
+    z-index: 10;
+    position: relative !important;
+    margin-top: 5px;
   }
   
   :global(.swiper-pagination-bullet) {
     background: #de3163;
     opacity: 0.5;
+    transition: all 0.3s ease;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
   }
   
   :global(.swiper-pagination-bullet-active) {
     background: #de3163;
     opacity: 1;
+    transform: scale(1.2);
+  }
+  
+  :global(.swiper-pagination-bullets-dynamic) {
+    overflow: visible;
+  }
+  
+  :global(.swiper-pagination-bullet-active-main) {
+    transform: scale(1.2);
   }
   
   :global(.swiper-slide-duplicate) {
@@ -593,6 +622,10 @@
     margin: 1rem auto 2rem;
   }
   
+  .totalCount {
+    font-size: 0.9rem;
+  }
+  
   .swiperContainer {
     padding: 0.5rem 2.5rem;
   }
@@ -622,6 +655,19 @@
   .viewEventButton {
     margin: 0.5rem 1rem 1rem;
     padding: 0.7rem;
+  }
+  
+  .eventSwiper {
+    padding: 1.5rem 1rem 3rem;
+    
+    :global(.swiper-pagination) {
+      bottom: 0 !important;
+    }
+  }
+  
+  .paginationCount {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
   }
 }
 
@@ -678,4 +724,36 @@
     margin: 0.5rem 0.8rem 0.8rem;
     font-size: 0.9rem;
   }
+  
+  .eventSwiper {
+    padding: 1.5rem 0.5rem 3rem;
+  }
+  
+  .totalCount {
+    font-size: 0.8rem;
+    margin-left: 0.3rem;
+  }
+  
+  .paginationCount {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    width: 80%;
+    margin: 0 auto;
+  }
+}
+
+/* ページネーションヘルパー */
+.paginationHelper {
+  text-align: center;
+  margin: 0.5rem auto 2rem;
+}
+
+.paginationCount {
+  font-size: 0.85rem;
+  color: #777;
+  padding: 0.5rem;
+  background-color: #f8f8f8;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 5px;
 }

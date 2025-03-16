@@ -742,11 +742,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const fetchSchedules = useCallback(async () => {
     try {
       const data = await fetchEventWithSchedules(eventId);
-
+      
       if (data) {
         addEvent({ eventId: eventId, eventName: data.name, schedules: data.schedules });
         setEventData(data);
-
+        
         // 画像データはイベントデータに含まれているので直接設定
         if (data && data.images) {
           setEventImages(Array.isArray(data.images) ? [...data.images] : []);
@@ -795,7 +795,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       // ローカルストレージからデータを取得
       const uploadFlag = localStorage.getItem(`image_uploaded_${eventId}`);
       const uploadTime = localStorage.getItem(`image_upload_time_${eventId}`);
-
+      
       // フラグが存在する場合の処理
       if (uploadFlag === 'true' && uploadTime) {
         // 最近アップロードされた場合（10分以内）
@@ -805,7 +805,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           // ローカルストレージをクリア
           localStorage.removeItem(`image_uploaded_${eventId}`);
           localStorage.removeItem(`image_upload_time_${eventId}`);
-
+          
           // スケジュール取得完了後に画像データを取得し、Swiperを表示
           // 少し待ってからSwiperを表示
           setTimeout(() => {
@@ -824,7 +824,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         setIsTableScrollable(isScrollable);
         if (isScrollable) {
           tableRef.current.classList.add('scrollable');
-
+          
         } else {
           tableRef.current.classList.remove('scrollable');
         }
@@ -835,19 +835,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     if (typeof window !== 'undefined') {
       // 初期読み込み時にチェック
       checkTableScrollable();
-
+      
       // DOM完全読み込み後に再チェック（より確実に）
       setTimeout(checkTableScrollable, 500);
       // setTimeout(checkTableScrollable, 1000);  // 念のためもう一度
 
       // ウィンドウサイズが変更されたときにチェック
       window.addEventListener('resize', checkTableScrollable);
-
+      
       // コンテンツが変わる可能性があるので、eventDataが変わったときもチェック
       if (eventData && eventData.schedules) {
         checkTableScrollable();
       }
-
+      
       return () => {
         window.removeEventListener('resize', checkTableScrollable);
       };
@@ -976,7 +976,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const highlightScheduleIds = schedulesWithAttendCount
     .filter((s: maxAttend) => s.attendCount === maxAttendCount && maxAttendCount != 0)
     .map((s: maxAttend) => s.id);
-
+  
 
   // イベント編集を開始する関数
   const handleStartEdit = () => {
@@ -1288,7 +1288,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       // 編集完了モーダルを表示
       setIsEditCompleteModalOpen(true);
-
+      
       // 1.5秒後にモーダルを閉じて編集モードを終了し、ページをリロード
       setTimeout(() => {
         setIsEditCompleteModalOpen(false);
@@ -1444,18 +1444,18 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // イベント開催日が確定していて、かつ現在の日付が開催日以降かどうかを確認
   const canUploadImages = () => {
     if (!eventData || !eventData.schedules) return false;
-
+    
     // 確定されたスケジュールを検索
     const confirmedSchedule = eventData.schedules.find(schedule => schedule.isConfirmed === true);
     if (!confirmedSchedule || !confirmedSchedule.date) return false;
-
+    
     // イベント開催日と現在の日付を比較
     const eventDate = new Date(confirmedSchedule.date);
     const today = new Date();
     // 日付のみを比較するため、時刻部分をリセット
     eventDate.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
-
+    
     // イベント開催日以降の場合にtrueを返す
     return eventDate <= today;
   };
@@ -1503,17 +1503,17 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const handleConfirmSchedule = (scheduleId: number) => {
     // scheduleId が 0 の場合は確定解除（キャンセル）
     const isCancel = scheduleId === 0;
-
+    
     setEventData((prev: Event | null) => {
       if (!prev) return prev; // prev が null の場合はそのまま返す
 
-      return {
-        ...prev,
-        schedules: prev.schedules.map((schedule) => ({
-          ...schedule,
+        return {
+          ...prev,
+          schedules: prev.schedules.map((schedule) => ({
+            ...schedule,
           isConfirmed: !isCancel && schedule.id === scheduleId,
-        })),
-      };
+          })),
+        };
     });
   };
 
@@ -1865,7 +1865,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             throw new Error('APIリクエストに失敗しました');
           }
 
-          const data = await response.json();
+        const data = await response.json();
 
           // 更新されたユーザー情報を直接反映
           if (data.user && eventData) {
@@ -1899,7 +1899,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           });
           setShowMainUserModal(true);
 
-        } catch (error) {
+    } catch (error) {
           console.error('APIエンドポイントエラー:', error);
           setModalText("主役の更新に失敗しました");
           setIsOpen(true);
@@ -1934,7 +1934,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       element.classList.add(styles.sparkling);
 
       // アニメーション完了後にクラスを削除（アニメーションは0.6秒）
-      setTimeout(() => {
+    setTimeout(() => {
         element.classList.remove(styles.sparkling);
       }, 600);
     }
@@ -2021,7 +2021,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       <div className={`${styles.eventContainer} ${eventNotFound ? styles.blurContainer : ''}`} ref={containerRef}>
         <div>
-
+          
           {isEditing ? (
             <div className={styles.editContainer}>
               <h2 className={styles.editTitle}>イベント情報の編集</h2>
@@ -2041,7 +2041,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   {/* 文字数カウンターを追加 */}
                   <div className={styles.charCount} style={{ textAlign: 'right', fontSize: '0.85rem', color: editedTitle.length > 30 ? '#dc3545' : '#6c757d' }}>
                     {editedTitle.length}/30文字
-                  </div>
+                </div>
                   {/* タイトルエラーメッセージ */}
                   {titleError && (
                     <div className={styles.errorMessage} style={{ color: '#dc3545', fontSize: '0.85rem', marginTop: '5px' }}>
@@ -2386,13 +2386,13 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
               </div>
               {isOrganizer && (
                 <div className={styles.actionButtons}>
-                  <button
-                    className={styles.editButton}
+                <button
+                  className={styles.editButton}
                     onClick={handleStartEdit}
                     title="イベントを編集"
-                  >
-                    <FaEdit />
-                  </button>
+                >
+                  <FaEdit />
+                </button>
 
                   <button
                     className={styles.deleteButton}
@@ -2442,8 +2442,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   >
                     コピー
                   </button>
-                </div>
-              )}
+              </div>
+            )}
             </div>
 
           </div>
@@ -2495,8 +2495,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   {eventData.schedules
                     .flatMap(schedule =>
                       schedule.responses.map(response => ({
-                        id: response.user.id,
-                        name: response.user.name,
+                            id: response.user.id,
+                            name: response.user.name,
                         main: response.user.main // mainプロパティを明示的に含める
                       }))
                     )
@@ -2543,7 +2543,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                               </button>
                             )}
                           </div>
-                        </th>
+                    </th>
                       );
                     })
                   }
@@ -2606,12 +2606,12 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                             ) : (
                               // 確定済みのスケジュールがある場合は、他の日程の「この日に開催」ボタンを非表示
                               !confirmedScheduleExists && (
-                                <ConfirmScheduleButton
+                              <ConfirmScheduleButton
                                   scheduleId={schedule.id}
-                                  eventId={eventData.id}
-                                  onConfirm={handleConfirmSchedule}
+                                eventId={eventData.id}
+                                onConfirm={handleConfirmSchedule}
                                   buttonText="この日に開催"
-                                />
+                              />
                               )
                             )
                           }
@@ -2637,7 +2637,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                             </div>
                           )}
                         </div>
-                      </td>
+                        </td>
                       <td className={styles.responseRateCell}>{attendCount}人</td>
                       <td className={styles.responseRateCell}>{undecidedCount}人</td>
                       <td className={styles.responseRateCell}>{declineCount}人</td>
@@ -2682,8 +2682,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   {eventData.schedules
                     .flatMap(schedule =>
                       schedule.responses.map(response => ({
-                        id: response.user.id,
-                        name: response.user.name,
+                            id: response.user.id,
+                            name: response.user.name,
                         comment: response.user.comment || ""
                       }))
                     )
@@ -2693,8 +2693,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     )
                     .map(user => (
                       <td key={`comment-${user.id}`} className={styles.userComment}>
-                        {user.comment}
-                      </td>
+                      {user.comment}
+                    </td>
                     ))
                   }
                 </tr>
@@ -2721,39 +2721,39 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </div>
         ) : (
           isCreateForm ? (
-            <Form
-              onSuccess={handleFormSuccess}
-              onCreate={handleCreate}
-              schedules={eventData.schedules.map((schedule) => ({
-                ...schedule,
-                responses: schedule.responses.map((response) => ({
-                  ...response,
-                  user: {
-                    ...response.user,
-                    comment: response.user.comment || "",
-                  },
-                })),
-              }))}
-              userId={userId}
-              userName={userName}
-            />
-          ) : (
-            <Form
-              onSuccess={handleFormSuccess}
-              onCreate={handleCreate}
-              schedules={eventData.schedules.map((schedule) => ({
-                ...schedule,
-                responses: schedule.responses.map((response) => ({
-                  ...response,
-                  user: {
-                    ...response.user,
-                    comment: response.user.comment || "",
-                  },
-                })),
-              }))}
-              userId={userId}
-              userName={userName}
-            />
+          <Form 
+            onSuccess={handleFormSuccess} 
+            onCreate={handleCreate} 
+            schedules={eventData.schedules.map((schedule) => ({
+              ...schedule,
+              responses: schedule.responses.map((response) => ({
+                ...response,
+                user: {
+                  ...response.user,
+                  comment: response.user.comment || "", 
+                },
+              })),
+            }))} 
+            userId={userId} 
+            userName={userName} 
+          />
+        ) : (
+          <Form 
+            onSuccess={handleFormSuccess} 
+            onCreate={handleCreate} 
+            schedules={eventData.schedules.map((schedule) => ({
+              ...schedule,
+              responses: schedule.responses.map((response) => ({
+                ...response,
+                user: {
+                  ...response.user,
+                  comment: response.user.comment || "", 
+                },
+              })),
+            }))} 
+            userId={userId} 
+            userName={userName} 
+          />
           )
         )}
       </div>
@@ -2763,7 +2763,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             <>
               <div className={styles.successIcon}>
                 <FiCheck className={styles.checkIcon} />
-              </div>
+          </div>
               <div className={styles.photoFrame}>
                 <div className={styles.photoFrameInner}>
                   <FiCamera className={styles.photoFrameIcon} />
@@ -2788,7 +2788,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           {formattedDate && <p className={styles.modalText}>{formattedDate}</p>}
         </div>
       </Modal>
-
+      
       {isCopyModal && (
         <div className={styles.copySuccess}>
           <svg width="18" height="18" viewBox="0 0 24 24">
@@ -2812,7 +2812,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           </div>
         </div>
       )}
-
+      
       {canUploadImages() ? (
         // 条件を満たす場合は通常のアップロードセクションを表示
         <ImageUploadSection eventData={eventData} onImageUploaded={handleImageUploaded} />
@@ -2822,23 +2822,20 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           開催日以降に皆んなで画像を共有できます
         </div>
       )}
-
+      
       {/* 画像がある場合のみボタンを表示 */}
       {eventData && (
         (eventData.images && eventData.images.length > 0) ||
         (eventImages && eventImages.length > 0)
       ) && (
-          <button
-            onClick={async () => {
-              if (eventData && eventData.id) {
-                try {
+        <button 
+          onClick={async () => {
+            if (eventData && eventData.id) {
+              try {
                   // イベント画像を取得 (キャッシュ回避のためにタイムスタンプを追加)
                   const timestamp = new Date().getTime();
                   const imagesResponse = await fetch(`/api/event/images?eventId=${eventData.id}&_t=${timestamp}`);
                   const imagesData = await imagesResponse.json();
-
-                  // 既存の処理を維持...
-                  console.log("取得した画像データ:", imagesData);
 
                   // API応答がそのままの配列の場合と、images配列にネストされている場合の両方に対応
                   if (Array.isArray(imagesData)) {
@@ -2869,22 +2866,22 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   }
 
                   setIsImageSwiperOpen(true);
-                } catch (error) {
-                  console.error("画像データの取得中にエラー発生:", error);
-                }
+              } catch (error) {
+                console.error("画像データの取得中にエラー発生:", error);
               }
-            }}
-            className={styles.viewImagesBtn}
-          >
+            }
+          }}
+          className={styles.viewImagesBtn}
+        >
             <FiCamera className={styles.cameraIcon} />
             <span>✨ 思い出アルバムを開く ✨</span>
-          </button>
-        )}
+        </button>
+      )}
 
       {isImageSwiperOpen && (
-        (console.log("ImageSwiperに渡すデータ:", eventImages),
-          <ImageSwiper
-            images={eventImages}
+        (
+        <ImageSwiper 
+          images={eventImages} 
             title={`${eventData.name}の思い出`}
             onClose={() => {
               // Swiperを閉じるときにローカルストレージのフラグをクリア
