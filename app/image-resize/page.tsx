@@ -4,6 +4,7 @@ import ImageResize from './ImageResize';
 export const metadata: Metadata = {
   title: '画像サイズ変更 | 調整ちゃん',
   description: '画像のサイズを簡単に変更できます。アップロードする画像が大きすぎる場合に、画質を保ちながら適切なサイズに変更することができます。JPEG、PNG、WebP形式に対応しています。',
+  keywords: ["画像サイズ変更", "画像変更", "画像サイズ変更ツール"],
   openGraph: {
     title: '画像サイズ変更 | 調整ちゃん',
     description: '画像のサイズを簡単に変更できます。アップロードする画像が大きすぎる場合に、画質を保ちながら適切なサイズに変更することができます。JPEG、PNG、WebP形式に対応しています。',
