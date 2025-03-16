@@ -1,3 +1,7 @@
+.blogContainer{
+    padding: 20px;
+}
+
 .blogContainer h2{
     word-wrap: break-word;
     background-color: #efefef;
