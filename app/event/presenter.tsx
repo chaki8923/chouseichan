@@ -46,9 +46,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RestaurantVoteLink from "../components/RestaurantVoteLink";
-import { setOwnerEvent } from "@/app/utils/strages";
-import moment from 'moment';
-import Head from 'next/head';
+
 
 type maxAttend = {
   id: number;
@@ -342,7 +340,7 @@ const FloatingAnimation = ({ eventImage }: { eventImage?: string }) => {
       MAX_SPEED: 0.4,           // 最大の追加落下速度
       
       // アニメーション持続時間（ミリ秒）
-      DURATION: 8000,          // アニメーションが続く時間（8秒）
+      DURATION: 5000,          // アニメーションが続く時間（8秒）
       
       // パーティクルのサイズを制御
       ICON_MIN_SIZE: 25,        // アイコンの最小サイズ（px）
@@ -619,20 +617,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       }
 
       const eventData = await response.json();
-      console.log('取得したイベントデータ:', eventData);
 
-      // ユーザー情報の詳細を確認
-      if (eventData.schedules && eventData.schedules.length > 0) {
-        const allUsers = eventData.schedules
-          .flatMap(s => s.responses)
-          .map(r => r.user)
-          .filter((user, index, self) =>
-            index === self.findIndex(u => u.id === user.id)
-          );
-
-        console.log('全ユーザー情報:', allUsers);
-        console.log('user.mainプロパティの有無を確認:', allUsers.map(u => ({ id: u.id, name: u.name, hasMain: 'main' in u, mainValue: u.main })));
-      }
 
       setEventData(eventData);
 
@@ -1196,13 +1181,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         iconPath = uploadData.url;
       }
 
-      // イベント情報の更新
-      console.log("イベント情報を更新します:", {
-        eventId,
-        name: editedTitle,
-        memo: editedMemo,
-        iconPath,
-      });
 
       const eventUpdateResponse = await fetch("/api/events", {
         method: "PATCH",
@@ -1906,10 +1884,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             });
 
             // 更新後の状態をログ出力
-            const updatedUserAfterChange = updatedEventData.schedules
-              .flatMap((s: any) => s.responses)
-              .find((r: any) => r.user.id === userId)?.user;
-            console.log('更新後のユーザー情報in state:', updatedUserAfterChange);
+            // const updatedUserAfterChange = updatedEventData.schedules
+            //   .flatMap((s: any) => s.responses)
+            //   .find((r: any) => r.user.id === userId)?.user;
 
             setEventData(updatedEventData as SetStateAction<Event | null>);
           }
@@ -1922,16 +1899,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           });
           setShowMainUserModal(true);
 
-          // イベントデータを強制的に再フェッチして最新の状態を取得
-          if (eventId) {
-            const freshData = await fetchEventWithSchedules(eventId);
-            if (freshData) {
-              console.log('再フェッチされたデータ:',
-                freshData.schedules.flatMap(s => s.responses)
-                  .find(r => r.user.id === userId)?.user
-              );
-            }
-          }
         } catch (error) {
           console.error('APIエンドポイントエラー:', error);
           setModalText("主役の更新に失敗しました");
@@ -2614,7 +2581,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                       (res.user as ExtendedUser).main && res.response === "ATTEND"
                     ).length : 0;
 
-                  console.log('mainUsersCount:', mainUsersCount);
                   // ハイライトクラスを設定
                   let highlightClass = ''
                   if (schedule.isConfirmed) {
