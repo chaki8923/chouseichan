@@ -242,7 +242,6 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
       }
 
       const data = await response.json();
-      console.log('アップロード成功:', data); // デバッグログ
       // アップロード成功時にURLを返す
       return data.url;
     } catch (error) {
@@ -363,7 +362,6 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
         }
         : { ...formData, imageUrl };
 
-      console.log('送信データ:', requestBody); // デバッグ用
 
       const response = await fetch(url, {
         method,
