@@ -4,7 +4,7 @@ import "./index.css"
 export const metadata: Metadata = {
     title: "利用規約 | 調整ちゃん",
     description: "利用規約",
-    keywords: ["イベント", "スケジュール", "調整", "日程調整"],
+    keywords: ["イベント", "幹事","スケジュール", "調整", "日程調整"],
     robots: "index, follow"
   };
 export default function rule() {

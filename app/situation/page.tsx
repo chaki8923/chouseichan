@@ -57,7 +57,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     return {
         title: `${categoryName} | 調整ちゃん`,
         description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！`,
-        keywords: [ `${categoryName}`,"イベント", "スケジュール", "調整", "日程調整"], 
+        keywords: [ `${categoryName}`,"イベント", "幹事","スケジュール", "調整", "日程調整"], 
         openGraph: {
             title: `${categoryName} | 調整ちゃん`,
             description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！`,

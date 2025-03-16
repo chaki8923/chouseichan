@@ -9,7 +9,7 @@ export default function Home() {
     '@type': 'WebApplication',
     name: '調整ちゃん',
     url: 'https://www.chouseichan.com',
-    description: 'たったの2ステップでイベント登録。Googleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。',
+    description: '「調整ちゃん」はたったの2ステップでイベント登録。Googleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。',
     applicationCategory: 'SchedulingApplication',
     operatingSystem: 'All',
     offers: {
@@ -24,7 +24,7 @@ export default function Home() {
       bestRating: '5',
       worstRating: '1'
     },
-    keywords: 'イベント,スケジュール,調整,日程調整,カレンダー,予定,出欠',
+    keywords: 'イベント,幹事,スケジュール,調整,日程調整,カレンダー,予定,出欠',
     potentialAction: {
       '@type': 'CreateAction',
       target: {

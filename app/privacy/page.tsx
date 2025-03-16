@@ -4,7 +4,7 @@ import "./index.css"
 export const metadata: Metadata = {
     title: "プライバシーポリシー | 調整ちゃん",
     description: "プライバシーポリシー",
-    keywords: ["イベント", "スケジュール", "調整", "日程調整"],
+    keywords: ["イベント", "幹事","スケジュール", "調整", "日程調整"],
     robots: "index, follow"
 };
 
