@@ -32,14 +32,14 @@ export const BrowsingHistory = () => {
       try {
         // getEventList関数を使用してイベント履歴を取得
         const eventData = getEventList();
-        
+
         // イベントデータを変換
         const formattedEvents = eventData.map(event => ({
           id: event.eventId,
           title: event.eventName,
           schedules: event.schedules
         }));
-        
+
         // 最新のイベントが先頭に来るようにソート
         setEvents(formattedEvents);
       } catch (error) {
@@ -138,14 +138,14 @@ export const BrowsingHistory = () => {
         閲覧履歴
         {events.length > 0 && <span className={styles.totalCount}>({events.length}件)</span>}
       </h2>
-      
+
       {events.length === 0 ? (
         <div className={styles.emptyState}>
           <FaHistory size={50} />
           <h3>閲覧履歴がありません</h3>
           <p>イベントを閲覧すると、ここに表示されます。</p>
-          <button 
-            onClick={scrollToTop} 
+          <button
+            onClick={scrollToTop}
             className={styles.emptyStateButton}
           >
             イベントを作成する
@@ -153,81 +153,80 @@ export const BrowsingHistory = () => {
         </div>
       ) : (
         <>
-        <div className={styles.swiperContainer}>
-          {events.length >= 5 && (
-            <div className={styles.swiperNavPrev} ref={prevRef}>
-              <FaChevronLeft />
-            </div>
-          )}
-          
-          <Swiper
-            {...swiperSettings}
-            className={styles.eventSwiper}
-          >
-            {events.map((event) => (
-              <SwiperSlide key={event.id} className={styles.eventSlide}>
-                <div className={styles.eventCard}>
-                  <div className={styles.eventHeader}>
-                    <h3 className={styles.eventTitle}>{event.title}</h3>
-                    <button
-                      className={styles.trashButton}
-                      onClick={() => handleDelete(event.id)}
-                      aria-label="Delete event"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                  
-                  <div className={styles.scheduleList}>
-                    <div className={styles.scheduleWrapper}>
-                      {event.schedules.length === 0 ? (
-                        <p className={styles.noSchedules}>スケジュールはありません</p>
-                      ) : (
-                        <>
-                          {event.schedules.slice(0, 3).map((schedule, idx) => (
-                            <div key={idx} className={styles.scheduleItem}>
-                              <div className={styles.scheduleDate}>
-                                <FaCalendarAlt className={styles.scheduleIcon} />
-                                {formatDate(schedule.date)}
-                              </div>
-                              <div className={styles.scheduleTime}>
-                                <FaClock className={styles.scheduleIcon} />
-                                {schedule.time}
-                              </div>
-                            </div>
-                          ))}
-                          {event.schedules.length > 3 && (
-                            <p className={styles.moreSchedules}>他 {event.schedules.length - 3} 件のスケジュール</p>
-                          )}
-                        </>
-                      )}
+          <div className={styles.swiperContainer}>
+            {events.length >= 5 && (
+              <div className={styles.swiperNavPrev} ref={prevRef}>
+                <FaChevronLeft />
+              </div>
+            )}
+
+            <Swiper
+              {...swiperSettings}
+              className={styles.eventSwiper}
+            >
+              {events.map((event) => (
+                <SwiperSlide key={event.id} className={styles.eventSlide}>
+                  <div className={styles.eventCard}>
+                    <div className={styles.eventHeader}>
+                      <h3 className={styles.eventTitle}>{event.title}</h3>
+                      <button
+                        className={styles.trashButton}
+                        onClick={() => handleDelete(event.id)}
+                        aria-label="Delete event"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
+                    <Link href={`/event?eventId=${event.id}`} className={styles.scheduleList}>
+                      <div className={styles.scheduleWrapper}>
+                        {event.schedules.length === 0 ? (
+                          <p className={styles.noSchedules}>スケジュールはありません</p>
+                        ) : (
+                          <>
+                            {event.schedules.slice(0, 3).map((schedule, idx) => (
+                              <div key={idx} className={styles.scheduleItem}>
+                                <div className={styles.scheduleDate}>
+                                  <FaCalendarAlt className={styles.scheduleIcon} />
+                                  {formatDate(schedule.date)}
+                                </div>
+                                <div className={styles.scheduleTime}>
+                                  <FaClock className={styles.scheduleIcon} />
+                                  {schedule.time}
+                                </div>
+                              </div>
+                            ))}
+                            {event.schedules.length > 3 && (
+                              <p className={styles.moreSchedules}>他 {event.schedules.length - 3} 件のスケジュール</p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </Link>
+
+                    <Link href={`/event?eventId=${event.id}`} className={styles.viewEventButton}>
+                      イベント詳細を見る
+                    </Link>
                   </div>
-                  
-                  <Link href={`/event?eventId=${event.id}`} className={styles.viewEventButton}>
-                    イベント詳細を見る
-                  </Link>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-          
-          {events.length >= 5 && (
-            <div className={styles.swiperNavNext} ref={nextRef}>
-              <FaChevronRight />
-            </div>
-          )}
-        </div>
-        <div className={styles.paginationHelper}>
-          {events.length > 3 && (
-            <div className={styles.paginationCount}>
-              スワイプで全{events.length}件を閲覧できます
-            </div>
-          )}
-        </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+
+            {events.length >= 5 && (
+              <div className={styles.swiperNavNext} ref={nextRef}>
+                <FaChevronRight />
+              </div>
+            )}
+          </div>
+          <div className={styles.paginationHelper}>
+            {events.length > 3 && (
+              <div className={styles.paginationCount}>
+                スワイプで全{events.length}件を閲覧できます
+              </div>
+            )}
+          </div>
         </>
       )}
-      
+
       {isModalOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>

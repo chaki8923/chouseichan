@@ -533,9 +533,20 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
         setEventId(newEventId);
         setLoading(false);
         setOwnerEvent(newEventId, result.name, result.schedules);
-
+        
         // 送信完了状態に移行
         setSubmissionSuccess(true);
+
+        // 振動フィードバック - デバイスが対応している場合のみ実行
+        try {
+          if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            // 200ミリ秒の振動を実行
+            navigator.vibrate(200);
+          }
+        } catch (error) {
+          // 振動APIが利用できない場合は静かに失敗
+          console.log('Vibration API is not supported');
+        }
       } else {
         setLoading(false);
         setIsSubmitting(false); // エラー時はオーバーレイを解除
