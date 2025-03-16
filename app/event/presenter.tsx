@@ -690,7 +690,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       if (!data) {
         // イベントが見つからない場合の処理
-        console.log("イベントデータがありません - モーダル表示準備");
         setError("指定されたイベントが見つかりませんでした");
         setEventNotFound(true);
 
@@ -709,7 +708,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             localStorage.removeItem(`image_uploaded_${eventId}`);
             localStorage.removeItem(`image_upload_time_${eventId}`);
 
-            console.log(`イベントID ${eventId} に関連するローカルストレージデータを削除しました`);
           } catch (error) {
             console.error("localStorage操作中にエラーが発生しました:", error);
           }
@@ -913,7 +911,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     if (eventNotFound) {
       // countdownBarのアニメーションが終了する5秒後に自動的にトップページへリダイレクト
       const redirectTimer = setTimeout(() => {
-        console.log("カウントダウン完了 - トップページへリダイレクト");
         window.location.href = '/';
       }, 5000);
 
@@ -1166,8 +1163,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         if (eventData.image) {
           formData.append("oldImageUrl", eventData.image);
         }
-
-        console.log("新しい画像をアップロードします");
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
           body: formData,
@@ -1369,8 +1364,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     }
     // 新規と既存の間での並び替え（複雑なケース）
     else {
-      console.log("activeId", activeId);
-      console.log("overId", overId);
 
       // activeが新規、overが既存の場合
       if (activeId.startsWith('new-') && !overId.startsWith('new-')) {
@@ -1408,11 +1401,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         const movedItem = editedSchedules.find(s => s.id.toString() === activeId);
         if (!movedItem) return;
 
-        console.log("movedItem.id", movedItem.id);
         // 既存リストから削除（削除予定に追加）
         if (movedItem.id > 0) { // -999などの一時IDは削除予定に追加しない
           setScheduleToDelete(prev => [...prev, movedItem.id]);
-          console.log("scheduleToDelete", scheduleToDelete);
         } else if (movedItem.id === -999) {
 
         }
@@ -1531,27 +1522,22 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
       if (imagesResponse.ok) {
         const imageData = await imagesResponse.json();
-        console.log("アップロード後のイメージAPI応答:", imageData);
 
         // 画像データを処理
         let imageArray = [];
 
         if (Array.isArray(imageData)) {
-          console.log("画像データは配列形式です:", imageData.length);
           imageArray = imageData;
         } else if (imageData.images && Array.isArray(imageData.images)) {
-          console.log("画像データはオブジェクトのimagesプロパティにあります:", imageData.images.length);
           imageArray = imageData.images;
         } else {
           // フォールバック: イベントAPI経由で取得を試みる
-          console.log("画像フォーマットが予期せぬ形式のため、イベントAPIから取得を試みます");
           const eventResponse = await fetch(`/api/events?eventId=${eventId}&_t=${timestamp}`);
 
           if (eventResponse.ok) {
             const eventDataFromApi = await eventResponse.json();
 
             if (eventDataFromApi && eventDataFromApi.images && Array.isArray(eventDataFromApi.images)) {
-              console.log("イベントデータから画像取得:", eventDataFromApi.images.length);
               imageArray = eventDataFromApi.images;
 
               // イベントデータ全体を更新
@@ -1571,7 +1557,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             return { ...prevData, images: imageArray };
           });
 
-          console.log("画像アップロード後、eventData.imagesを更新しました:", imageArray.length);
         }
 
         // アップロード完了のフィードバックを表示
@@ -1765,7 +1750,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
   // 既存の日程を削除する関数
   const handleMarkScheduleForDeletion = (id: number) => {
-    console.log("handleMarkScheduleForDeletion", id);
     setScheduleToDelete(prev => {
       if (prev.includes(id)) {
         return prev.filter(scheduleId => scheduleId !== id);
@@ -2851,10 +2835,8 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                     try {
                       const eventResponse = await fetch(`/api/events?eventId=${eventData.id}&_t=${timestamp}`);
                       const eventDataFromApi = await eventResponse.json();
-                      console.log("イベントデータAPIから取得:", eventDataFromApi);
 
                       if (eventDataFromApi && eventDataFromApi.images && Array.isArray(eventDataFromApi.images)) {
-                        console.log("イベントデータから画像取得成功:", eventDataFromApi.images.length);
                         setEventImages(eventDataFromApi.images);
                       } else {
                         setEventImages([]);

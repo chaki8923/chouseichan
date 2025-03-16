@@ -22,6 +22,7 @@ type Blog = {
         id: string;
         name: string;
         description: string;
+        defaultTime: number;
         eyecatch?: {
             url: string;
             height: number;
@@ -79,6 +80,7 @@ export default async function Page({ searchParams }: PageProps) {
     const posts = await getBlogPosts(categoryId);
 
     const categoryName = categoryData?.name || (posts.length > 0 ? posts[0].category?.name || "カテゴリなし" : "カテゴリなし");
+    const defaultTime = categoryData?.defaultTime || (posts.length > 0 ? posts[0].category?.defaultTime || 19 : 19);
     const description = categoryData?.description || (posts.length > 0 ? posts[0].category?.description || "カテゴリなし" : "カテゴリなし");
     const eyecatchUrl = categoryData?.eyecatch?.url || (posts.length > 0 && posts[0].category?.eyecatch?.url) || null;
 
@@ -104,7 +106,7 @@ export default async function Page({ searchParams }: PageProps) {
                 </div>
             )}
 
-            <Form categoryName={categoryName} />
+            <Form categoryName={categoryName} defaultTime={defaultTime} />
             
             {posts.length > 0 && (
                 <div className={styles.blogContainer}>

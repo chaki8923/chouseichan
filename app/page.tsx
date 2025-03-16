@@ -43,7 +43,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className={styles.container}>
-        <Form categoryName="イベント"/>
+        <Form categoryName="イベント" defaultTime={19}/>
       </div>
     </>
   );

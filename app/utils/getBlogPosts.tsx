@@ -7,6 +7,7 @@ type Blog = {
     id: string;
     name: string;
     description: string;
+    defaultTime: number;
     eyecatch?: {
       url: string;
       height: number;
@@ -25,6 +26,7 @@ export type Category = {
   id: string;
   name: string;
   description: string;
+  defaultTime: number;
   eyecatch?: {
     url: string;
     height: number;

@@ -314,15 +314,13 @@ export default function App(props: onDataChange) {
 
   // リサイズページへ移動する前にフォームデータを保存する関数
   const saveFormDataAndNavigate = (e: React.MouseEvent<HTMLAnchorElement> | React.SyntheticEvent) => {
-    console.log('saveFormDataAndNavigate関数が呼び出されました');
+
     
     try {
       // 優先順位1: 親コンポーネントが公開した関数を使用
       if (typeof window !== 'undefined' && (window as any).saveEventFormData) {
-        console.log('親コンポーネントの関数を使用してフォームデータを保存します');
         const saved = (window as any).saveEventFormData();
         if (saved) {
-          console.log('親関数でデータ保存に成功しました');
           setTimeout(() => {
             window.location.href = '/image-resize?from_form=true';
           }, 100);
@@ -330,8 +328,6 @@ export default function App(props: onDataChange) {
         }
       }
       
-      // 優先順位2: DOMからデータを取得するフォールバック
-      console.log('DOMからフォームデータを取得します');
       
       // 複数のセレクタを試してフォーム要素を取得
       let formElement = document.querySelector('form.modernForm');
@@ -339,7 +335,6 @@ export default function App(props: onDataChange) {
         formElement = document.querySelector('form');
       }
       
-      console.log('取得したフォーム要素:', formElement);
       
       if (formElement) {
         // フォームからデータを取得
@@ -366,7 +361,6 @@ export default function App(props: onDataChange) {
           schedules: schedules
         };
         
-        console.log('フォームデータを構築しました:', formData);
         localStorage.setItem('temp_form_data', JSON.stringify(formData));
       } else {
         console.warn('フォーム要素が見つかりません');
@@ -393,7 +387,6 @@ export default function App(props: onDataChange) {
           schedules: schedules
         };
         
-        console.log('個別要素からフォームデータを構築しました:', formData);
         localStorage.setItem('temp_form_data', JSON.stringify(formData));
       }
     } catch (error) {

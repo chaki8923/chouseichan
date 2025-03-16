@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './index.module.scss';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiTrash2, FiPlus, FiAlertCircle, FiSend, FiMove, FiCheckCircle } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiAlertCircle, FiSend } from 'react-icons/fi';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import History from '../strage/history';
@@ -31,7 +30,6 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { UseFormRegister } from 'react-hook-form';
-import {  FiCheck} from "react-icons/fi";
 import EventSuccessModal from "../modal/eventSuccessModal";
 
 
@@ -139,12 +137,11 @@ interface EventFormData {
   responseDeadline?: string;
 }
 
-export default function Form({ categoryName }: { categoryName: string }) {
+export default function Form({ categoryName, defaultTime }: { categoryName: string, defaultTime: number }) {
   const [schedules, setSchedules] = useState([
-    { id: Date.now(), date: '', time: '19:00' }, // 初期のスケジュールデータ
+    { id: Date.now(), date: '', time: `${defaultTime}:00` }, // 初期のスケジュールデータ
   ]);
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string | null | React.ReactNode>(null); // JSXも受け取れるように修正
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true); // 初期状態は無効
@@ -153,7 +150,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
   const [isClient, setIsClient] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
-  const [redirectCountdown, setRedirectCountdown] = useState(3);
   const [eventId, setEventId] = useState<string | null>(null);
 
   // DnD用のセンサーを設定
@@ -180,9 +176,17 @@ export default function Form({ categoryName }: { categoryName: string }) {
       event_name: '',
       memo: '',
       responseDeadline: '',
-      schedules: [{ date: '', time: '19:00' }],
+      schedules: [{ date: '', time: `${defaultTime}:00` }],
     },
   });
+
+  // defaultTimeが変更されたときにフォームの値を更新
+  useEffect(() => {
+    // 既存のスケジュールの時間を更新
+    schedules.forEach((_, index) => {
+      setValue(`schedules.${index}.time`, `${defaultTime}:00`);
+    });
+  }, [defaultTime, setValue, schedules]);
 
   // フォームの値をwatch
   const eventNameValue = watch('event_name');
@@ -212,7 +216,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
           
           // localStorageに保存
           localStorage.setItem('temp_form_data', JSON.stringify(formData));
-          console.log('グローバル関数: フォームデータを保存しました:', formData);
           return true;
         } catch (error) {
           console.error('グローバル関数: フォームデータの保存に失敗しました:', error);
@@ -262,7 +265,6 @@ export default function Form({ categoryName }: { categoryName: string }) {
       
       // localStorageに保存
       localStorage.setItem('temp_form_data', JSON.stringify(formData));
-      console.log('フォームデータをlocalStorageに保存しました:', formData);
       return true;
     } catch (error) {
       console.error('フォームデータの保存に失敗しました:', error);
@@ -330,14 +332,14 @@ export default function Form({ categoryName }: { categoryName: string }) {
 
   // 日程を追加するボタンクリック時の処理
   const AddSchedule = () => {
-    const newSchedule = { id: Date.now(), date: '', time: '19:00' };
+    const newSchedule = { id: Date.now(), date: '', time: `${defaultTime}:00` };
     setSchedules((prevSchedules) => [
       ...prevSchedules,
       newSchedule
     ]);
     
     // 追加した日程のfieldArrayへの追加
-    setValue(`schedules.${schedules.length}`, { date: '', time: '19:00' });
+    setValue(`schedules.${schedules.length}`, { date: '', time: `${defaultTime}:00` });
     
     // 日程が追加されたら、バリデーションを再評価する
     setTimeout(() => {
@@ -368,11 +370,11 @@ export default function Form({ categoryName }: { categoryName: string }) {
       trigger('schedules');
     } else {
       // 最後の1つは削除せず、値をリセットする
-      const resetSchedule = { id: Date.now(), date: '', time: '19:00' };
+      const resetSchedule = { id: Date.now(), date: '', time: `${defaultTime}:00` };
       setSchedules([resetSchedule]);
       
       // react-hook-formのフィールドもリセット
-      setValue('schedules', [{ date: '', time: '19:00' }]);
+      setValue('schedules', [{ date: '', time: `${defaultTime}:00` }]);
       trigger('schedules');
     }
   };
@@ -814,7 +816,7 @@ export default function Form({ categoryName }: { categoryName: string }) {
       {/* 履歴セクション - クライアントサイドのみ表示（表示・非表示はHistory内部で制御） */}
       {isClient && (
         <div className={`${styles.historySection} ${hasHistory ? styles.hasHistory : ''}`}>
-          <History onHistoryExists={handleHistoryExists} />
+          <History/>
         </div>
       )}
 
