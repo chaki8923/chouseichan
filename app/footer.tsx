@@ -21,6 +21,7 @@ const Footer: React.FC = () => {
           <nav className={styles.footerNav}>
             <Link href="/" className={styles.footerLink}>ホーム</Link>
             <Link href="/description" className={styles.footerLink}>使い方</Link>
+            <Link href="/events-calendar" className={styles.footerLink}>イベントカレンダー</Link>
             <Link href="/rule" className={styles.footerLink}>利用規約</Link>
             <Link href="/privacy" className={styles.footerLink}>プライバシーポリシー</Link>
             <Link href="/image-resize" className={styles.footerLink}>画像リサイズ</Link>
