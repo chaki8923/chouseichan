@@ -63,6 +63,14 @@ export const BrowsingHistory = () => {
     }
   };
 
+  // ページ上部へスクロールする関数
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
@@ -121,9 +129,12 @@ export const BrowsingHistory = () => {
           <FaHistory size={50} />
           <h3>閲覧履歴がありません</h3>
           <p>イベントを閲覧すると、ここに表示されます。</p>
-          <Link href="/event" className={styles.emptyStateButton}>
+          <button 
+            onClick={scrollToTop} 
+            className={styles.emptyStateButton}
+          >
             イベントを作成する
-          </Link>
+          </button>
         </div>
       ) : (
         <div className={styles.swiperContainer}>
