@@ -225,11 +225,14 @@
     padding: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
+    width: 60%;
     
     &:hover {
-        transform: scale(1.02);
         border-color: #de3163;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    @media (max-width: 768px) {
+        width: 100%;
     }
 }
 

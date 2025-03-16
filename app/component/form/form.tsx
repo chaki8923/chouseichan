@@ -108,7 +108,7 @@ const SortableScheduleItem: React.FC<SortableScheduleItemProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* 最初の日程項目（index === 0）では削除ボタンを非表示にする */}
       {index !== 0 && (
         <button
@@ -196,24 +196,24 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
   // クライアントサイドの処理を行うための処理
   useEffect(() => {
     setIsClient(true);
-    
+
     // グローバル関数として保存関数を公開
     if (typeof window !== 'undefined') {
-      (window as any).saveEventFormData = function() {
+      (window as any).saveEventFormData = function () {
         try {
           // 明示的に現在のスケジュールを取得
           const schedulesData = schedules.map(schedule => ({
             date: schedule.date,
             time: schedule.time
           }));
-          
+
           // フォームデータを手動で構築
           const formData = {
             event_name: eventNameValue || '',
             memo: memoValue || '',
             schedules: schedulesData
           };
-          
+
           // localStorageに保存
           localStorage.setItem('temp_form_data', JSON.stringify(formData));
           return true;
@@ -223,7 +223,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
         }
       };
     }
-    
+
     // コンポーネントのアンマウント時にグローバル関数を削除
     return () => {
       if (typeof window !== 'undefined') {
@@ -238,7 +238,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       // 日付フィールドの値を取得
       const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
       const dateValue = dateInput?.value;
-      
+
       // 日付が入力されている場合、時間のデフォルト値を17:00に設定
       if (dateValue) {
         const deadlineValue = `${dateValue}T17:00`;
@@ -255,14 +255,14 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
         date: schedule.date,
         time: schedule.time
       }));
-      
+
       // フォームデータを構築
       const formData = {
         event_name: eventNameValue || '',
         memo: memoValue || '',
         schedules: schedulesData
       };
-      
+
       // localStorageに保存
       localStorage.setItem('temp_form_data', JSON.stringify(formData));
       return true;
@@ -279,24 +279,24 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       // URLパラメータからfrom_resizeを取得
       const urlParams = new URLSearchParams(window.location.search);
       const fromResize = urlParams.get('from_resize') === 'true';
-      
+
       if (fromResize) {
         // localStorageからフォームデータを復元
         try {
           const savedFormData = localStorage.getItem('temp_form_data');
-          
+
           if (savedFormData) {
             const formData: EventFormData = JSON.parse(savedFormData);
-            
+
             // フォームの各フィールドを復元
             if (formData.event_name) {
               setValue('event_name', formData.event_name);
             }
-            
+
             if (formData.memo) {
               setValue('memo', formData.memo);
             }
-            
+
             if (formData.schedules && Array.isArray(formData.schedules)) {
               // スケジュールの数を合わせる
               const newSchedules = formData.schedules.map((schedule, index) => ({
@@ -304,9 +304,9 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
                 date: schedule.date || '',
                 time: schedule.time || '19:00'
               }));
-              
+
               setSchedules(newSchedules);
-              
+
               // react-hook-formにも値を設定
               formData.schedules.forEach((schedule, index) => {
                 setValue(`schedules.${index}`, {
@@ -315,10 +315,10 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
                 });
               });
             }
-            
+
             // フォームデータを利用後は削除
             localStorage.removeItem('temp_form_data');
-            
+
             // URLパラメータをクリア（履歴に残さず現在のURLを置き換え）
             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
@@ -337,10 +337,10 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       ...prevSchedules,
       newSchedule
     ]);
-    
+
     // 追加した日程のfieldArrayへの追加
     setValue(`schedules.${schedules.length}`, { date: '', time: `${defaultTime}:00` });
-    
+
     // 日程が追加されたら、バリデーションを再評価する
     setTimeout(() => {
       trigger('schedules');
@@ -355,24 +355,24 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       // スケジュールを更新
       const updatedSchedules = schedules.filter((s) => s.id !== id);
       setSchedules(updatedSchedules);
-      
+
       // react-hook-formのフィールドを更新
       // まず現在のschedules配列をリセット
       setValue('schedules', []);
-      
+
       // 更新後のスケジュールでschedulesフィールドを再構築
       updatedSchedules.forEach((schedule, index) => {
         setValue(`schedules.${index}.date`, schedule.date);
         setValue(`schedules.${index}.time`, schedule.time);
       });
-      
+
       // フォームのバリデーションを再評価
       trigger('schedules');
     } else {
       // 最後の1つは削除せず、値をリセットする
       const resetSchedule = { id: Date.now(), date: '', time: `${defaultTime}:00` };
       setSchedules([resetSchedule]);
-      
+
       // react-hook-formのフィールドもリセット
       setValue('schedules', [{ date: '', time: `${defaultTime}:00` }]);
       trigger('schedules');
@@ -439,7 +439,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
     }
 
     // 全ての日程に日付が指定されていることを確認
-    const hasEmptyScheduleDate = schedules.some(schedule => 
+    const hasEmptyScheduleDate = schedules.some(schedule =>
       !schedule.date || schedule.date.trim() === ''
     );
 
@@ -461,9 +461,9 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
     if (data.size > 1 * 1024 * 1024) {
       // フォームの現在の値をlocalStorageに保存
       saveFormDataToLocalStorage();
-      
+
       setFile(data); // ファイルは一旦セットしておく
-      
+
       // 大きいサイズのファイルを検出したときのエラーメッセージ
       // アイコン画像の下に表示されるよう修正
       setTimeout(() => {
@@ -478,7 +478,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       }, 10);
       return;
     }
-    
+
     setFile(data);
   };
 
@@ -495,7 +495,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
     formData.append("event_name", params.event_name);
     formData.append("schedules", JSON.stringify(params.schedules));
     formData.append("memo", params.memo);
-    
+
     // 回答期限があれば追加
     if (params.responseDeadline) {
       formData.append("responseDeadline", params.responseDeadline);
@@ -533,7 +533,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
         setEventId(newEventId);
         setLoading(false);
         setOwnerEvent(newEventId, result.name, result.schedules);
-        
+
         // 送信完了状態に移行
         setSubmissionSuccess(true);
       } else {
@@ -607,7 +607,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
                 <p className={styles.loadingText}>しばらくお待ちください</p>
               </>
             ) : (
-              <EventSuccessModal 
+              <EventSuccessModal
                 eventId={eventId || ''}
                 eventName={getValues('event_name')}
                 categoryName={categoryName}
@@ -670,9 +670,9 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
               </SortableContext>
             </DndContext>
 
-            <button 
-              type="button" 
-              onClick={AddSchedule} 
+            <button
+              type="button"
+              onClick={AddSchedule}
               className={styles.addScheduleBtn}
             >
               <FiPlus /> 日程を追加
@@ -680,8 +680,8 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
             {errors.schedules && (
               <span className={styles.errorMessage}>
-                {errors.schedules.message || 
-                 (schedules.some(s => !s.date) ? "すべての日程に日付を入力してください" : "")}
+                {errors.schedules.message ||
+                  (schedules.some(s => !s.date) ? "すべての日程に日付を入力してください" : "")}
               </span>
             )}
           </div>
@@ -705,6 +705,22 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
               </span>
             </div>
           </div>
+          {/* 画像アップロード - コメントが入力されている場合のみ表示 */}
+          {memoValue && memoValue.trim() !== '' && (
+            <>
+              <div className={styles.formStep}>
+                <h2 className={styles.stepTitle}>アイコン画像</h2>
+                <span className={styles.badgeOptional}>任意</span>
+              </div>
+
+              <div className={styles.formGroup}>
+                <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
+                {validationError && (
+                  <span className={styles.errorMessage}>{validationError}</span>
+                )}
+              </div>
+            </>
+          )}
 
 
           <div className={styles.formStep}>
@@ -713,9 +729,6 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              回答期限
-            </label>
             <div className={styles.dateTimeSelectContainer}>
               <div className={styles.dateSelectWrapper}>
                 <label className={styles.dateTimeLabel}>日付</label>
@@ -731,7 +744,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
                   onChange={(e) => {
                     const dateValue = e.target.value;
                     const timeValue = document.getElementById('deadline-time') as HTMLSelectElement;
-                    
+
                     if (dateValue && timeValue?.value) {
                       // 日付と時間を組み合わせてISO形式の文字列を作成
                       const deadlineValue = `${dateValue}T${timeValue.value}:00`;
@@ -753,7 +766,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
                     const timeValue = e.target.value;
                     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
                     const dateValue = dateInput?.value;
-                    
+
                     if (dateValue && timeValue) {
                       // 日付と時間を組み合わせてISO形式の文字列を作成
                       const deadlineValue = `${dateValue}T${timeValue}:00`;
@@ -780,22 +793,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
           <div className={styles.formStepDivider}></div>
 
-          {/* 画像アップロード - コメントが入力されている場合のみ表示 */}
-          {memoValue && memoValue.trim() !== '' && (
-            <>
-              <div className={styles.formStep}>
-                <h2 className={styles.stepTitle}>アイコン画像</h2>
-                <span className={styles.badgeOptional}>任意</span>
-              </div>
 
-              <div className={styles.formGroup}>
-                <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
-                {validationError && (
-                  <span className={styles.errorMessage}>{validationError}</span>
-                )}
-              </div>
-            </>
-          )}
         </div>
 
         <button
@@ -809,14 +807,14 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       </form>
 
       {/* デバッグ情報 - 開発時のみ表示 */}
-      {(() => { 
+      {(() => {
         return null;
       })()}
-      
+
       {/* 履歴セクション - クライアントサイドのみ表示（表示・非表示はHistory内部で制御） */}
       {isClient && (
         <div className={`${styles.historySection} ${hasHistory ? styles.hasHistory : ''}`}>
-          <History/>
+          <History />
         </div>
       )}
 
@@ -833,8 +831,8 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
           </div>
         </div>
       </Modal>
-      
-     
+
+
     </div>
   );
 }
