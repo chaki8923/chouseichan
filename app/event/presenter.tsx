@@ -984,20 +984,22 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
     // 回答期限の初期化（存在する場合はフォーマットして設定）
     if (eventData.responseDeadline) {
-      const deadline = new Date(eventData.responseDeadline);
+      const utcDeadline = new Date(eventData.responseDeadline);
+      // UTC時間からローカル時間に変換
+      const localDeadline = new Date(utcDeadline.getTime() + utcDeadline.getTimezoneOffset() * 60000);
       // ISO形式で取得
-      const isoString = deadline.toISOString();
+      const localIsoString = localDeadline.toISOString();
       // 日付部分 (YYYY-MM-DD)
-      const datePart = isoString.split('T')[0];
+      const datePart = localIsoString.split('T')[0];
       // 時間部分 (HH)
-      const timePart = deadline.getHours().toString().padStart(2, '0');
+      const timePart = localDeadline.getHours().toString().padStart(2, '0');
 
       // 個別のフィールドに設定
       setEditedResponseDeadlineDate(datePart);
       setEditedResponseDeadlineTime(timePart);
 
-      // 従来のフィールドにも設定（API互換性のため）
-      setEditedResponseDeadline(`${datePart}T${timePart}:00`);
+      // 完全なISO形式の文字列を設定（API用）
+      setEditedResponseDeadline(utcDeadline.toISOString());
     } else {
       setEditedResponseDeadlineDate("");
       setEditedResponseDeadlineTime("");
@@ -1801,7 +1803,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   // 回答期限のフォーマット関数
   const formatDeadline = (dateStr: string | Date) => {
     const date = new Date(dateStr);
-    return date.toLocaleString('ja-JP', {
+    // UTC時間をローカル時間に変換
+    const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    return localDate.toLocaleString('ja-JP', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
@@ -2284,7 +2288,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
                           if (dateValue && editedResponseDeadlineTime) {
                             // 日付と時間を組み合わせてISO形式の文字列を作成
-                            setEditedResponseDeadline(`${dateValue}T${editedResponseDeadlineTime}:00`);
+                            const localDate = new Date(`${dateValue}T${editedResponseDeadlineTime}:00`);
+                            const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+                            setEditedResponseDeadline(utcDate.toISOString());
                           } else if (!dateValue) {
                             setEditedResponseDeadline("");
                           }
@@ -2302,7 +2308,9 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
 
                           if (editedResponseDeadlineDate && timeValue) {
                             // 日付と時間を組み合わせてISO形式の文字列を作成
-                            setEditedResponseDeadline(`${editedResponseDeadlineDate}T${timeValue}:00`);
+                            const localDate = new Date(`${editedResponseDeadlineDate}T${timeValue}:00`);
+                            const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+                            setEditedResponseDeadline(utcDate.toISOString());
                           }
                         }}
                         className={styles.timeSelect}

@@ -758,7 +758,9 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
                     if (dateValue && timeValue?.value) {
                       // 日付と時間を組み合わせてISO形式の文字列を作成
-                      const deadlineValue = `${dateValue}T${timeValue.value}:00`;
+                      const localDate = new Date(`${dateValue}T${timeValue.value}:00`);
+                      const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+                      const deadlineValue = utcDate.toISOString();
                       setValue('responseDeadline', deadlineValue);
                     } else if (!dateValue) {
                       // 日付が空の場合は回答期限をクリア
@@ -780,7 +782,9 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
                     if (dateValue && timeValue) {
                       // 日付と時間を組み合わせてISO形式の文字列を作成
-                      const deadlineValue = `${dateValue}T${timeValue}:00`;
+                      const localDate = new Date(`${dateValue}T${timeValue}:00`);
+                      const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+                      const deadlineValue = utcDate.toISOString();
                       setValue('responseDeadline', deadlineValue);
                     }
                   }}
