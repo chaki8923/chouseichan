@@ -1,8 +1,28 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../libs/prisma';
+import nodemailer from 'nodemailer';
+
+// メール送信用のトランスポーター設定
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD
+    }
+  });
+};
 
 export async function GET(request: Request) {
   try {
+    // 認証キーの検証（セキュリティ対策）
+    const { searchParams } = new URL(request.url);
+    const authKey = searchParams.get('authKey');
+    
+    if (authKey !== process.env.CRON_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
     // 6ヶ月前の日付を計算
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
@@ -20,9 +40,19 @@ export async function GET(request: Request) {
       }
     });
 
+    // 削除結果を保存する配列
+    const deletedEvents = [];
+
     // 各イベントに対して削除処理を実行
     for (const event of oldEvents) {
       try {
+        // 削除結果に追加
+        deletedEvents.push({
+          id: event.id,
+          name: event.name,
+          createdAt: event.createdAt
+        });
+
         // 1. イベント画像を削除
         if (event.images && event.images.length > 0) {
           await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/event/images?eventId=${event.id}`, {
@@ -70,6 +100,45 @@ export async function GET(request: Request) {
         console.log(`Deleted event: ${event.id}`);
       } catch (error) {
         console.error(`Error deleting event ${event.id}:`, error);
+      }
+    }
+
+    // 削除したイベントがある場合はメールで通知
+    if (deletedEvents.length > 0) {
+      try {
+        // メール本文の作成
+        const currentDate = new Date().toLocaleDateString('ja-JP');
+        let emailContent = `
+          <h2>古いイベント削除レポート（${currentDate}）</h2>
+          <p>6ヶ月以上前に作成された${deletedEvents.length}件のイベントを削除しました。</p>
+          <hr />
+        `;
+
+        deletedEvents.forEach((event, index) => {
+          emailContent += `
+            <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
+              <h3>${index + 1}. ${event.name}</h3>
+              <p><strong>ID:</strong> ${event.id}</p>
+              <p><strong>作成日時:</strong> ${new Date(event.createdAt).toLocaleString('ja-JP')}</p>
+            </div>
+          `;
+        });
+
+        // メール送信
+        const transporter = createTransporter();
+        
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: process.env.REPORT_EMAIL_RECIPIENT,
+          subject: `[出欠くん] 古いイベント削除レポート（${currentDate}）`,
+          html: emailContent
+        };
+        
+        await transporter.sendMail(mailOptions);
+        console.log('Deletion report email sent successfully');
+
+      } catch (emailError) {
+        console.error('Error sending deletion report email:', emailError);
       }
     }
 
