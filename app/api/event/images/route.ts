@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/libs/prisma';
-import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 export async function GET(request: Request) {
   // URLからeventIdを取得
@@ -48,28 +48,19 @@ export async function DELETE(request: Request) {
       select: { id: true, imagePath: true },
     });
 
-    console.log(`削除対象画像数: ${images.length}`);
+    console.log(`削除対象イベント画像数: ${images.length}`);
     
-    if (images.length === 0) {
-      console.log(`削除する画像がありません: eventId=${eventId}`);
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: `イベント(${eventId})に削除すべき画像はありませんでした`, 
-          count: 0 
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-    }
+    // 削除カウンター
+    let deletedEventImageCount = 0;
+    let deletedRestaurantImageCount = 0;
 
-    // Cloudflare R2からの削除
-    const bucketName = process.env.BUCKET_NAME || null;
-    const r2Endpoint = process.env.R2_ENDPOINT;
-    const r2AccessKey = process.env.R2_ACCESS_KEY;
-    const r2SecretKey = process.env.R2_SECRET_KEY;
+    // R2の設定情報を取得
+    const bucketName = process.env.BUCKET_NAME || "";
+    const r2Endpoint = process.env.R2_ENDPOINT || "";
+    const r2AccessKey = process.env.R2_ACCESS_KEY || "";
+    const r2SecretKey = process.env.R2_SECRET_KEY || "";
+    
+    let s3Client = null;
     
     if (!r2Endpoint || !r2AccessKey || !r2SecretKey || !bucketName) {
       console.error('R2環境変数が設定されていません:', {
@@ -80,7 +71,7 @@ export async function DELETE(request: Request) {
       });
     } else {
       // S3クライアントを初期化（R2のS3互換APIを使用）
-      const s3Client = new S3Client({
+      s3Client = new S3Client({
         region: 'auto',
         endpoint: r2Endpoint,
         credentials: {
@@ -91,12 +82,12 @@ export async function DELETE(request: Request) {
       
       console.log('S3クライアント初期化完了');
       
-      // すべての画像に対してCloudflareの削除処理を実行
+      // 1. イベント画像の削除処理
       for (const image of images) {
         try {
           const objectKey = extractObjectKey(image.imagePath);
           if (objectKey) {
-            console.log(`R2オブジェクト削除処理: ${objectKey}`);
+            console.log(`イベント画像削除処理: ${objectKey}`);
             
             // DeleteObjectコマンドを作成
             const deleteCommand = new DeleteObjectCommand({
@@ -105,36 +96,100 @@ export async function DELETE(request: Request) {
             });
             
             // オブジェクトを削除
-            const deleteResult = await s3Client.send(deleteCommand);
-            console.log(`R2オブジェクト削除成功: ID=${image.id}, Path=${objectKey}`);
+            await s3Client.send(deleteCommand);
+            console.log(`イベント画像削除成功: ID=${image.id}, Path=${objectKey}`);
+            deletedEventImageCount++;
           } else {
             console.warn(`オブジェクトキーの抽出に失敗: ${image.imagePath}`);
           }
         } catch (cloudflareError) {
-          console.error(`R2オブジェクト削除エラー (ID=${image.id}):`, cloudflareError);
+          console.error(`イベント画像削除エラー (ID=${image.id}):`, cloudflareError);
         }
       }
-    }
-    
-    // イベントアイコンの削除処理
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { image: true }
-    });
-    
-    if (event?.image) {
-      console.log(`イベントアイコン削除処理: ${event.image}`);
+
+      // 2. レストラン画像の削除処理
       try {
-        if (bucketName && r2Endpoint && r2AccessKey && r2SecretKey) {
-          const s3Client = new S3Client({
-            region: 'auto',
-            endpoint: r2Endpoint,
-            credentials: {
-              accessKeyId: r2AccessKey,
-              secretAccessKey: r2SecretKey,
-            },
+        // イベントに関連するレストランを取得
+        const restaurants = await prisma.restaurant.findMany({
+          where: { eventId },
+          select: { id: true, imageUrl: true }
+        });
+
+        console.log(`削除対象レストラン数: ${restaurants.length}`);
+
+        // レストラン画像を削除
+        for (const restaurant of restaurants) {
+          if (restaurant.imageUrl) {
+            try {
+              const objectKey = extractObjectKey(restaurant.imageUrl);
+              if (objectKey) {
+                console.log(`レストラン画像削除処理: ${objectKey}`);
+                
+                const deleteCommand = new DeleteObjectCommand({
+                  Bucket: bucketName,
+                  Key: objectKey,
+                });
+                
+                await s3Client.send(deleteCommand);
+                console.log(`レストラン画像削除成功: RestaurantID=${restaurant.id}, Path=${objectKey}`);
+                deletedRestaurantImageCount++;
+              }
+            } catch (restaurantImageError) {
+              console.error(`レストラン画像削除エラー (RestaurantID=${restaurant.id}):`, restaurantImageError);
+            }
+          }
+        }
+
+        // 3. restaurant-images/[eventId] フォルダにある他の画像も削除
+        try {
+          // restaurant-images/[eventId] プレフィックスでオブジェクトを検索
+          const prefix = `restaurant-images/${eventId}/`;
+          const listCommand = new ListObjectsV2Command({
+            Bucket: bucketName,
+            Prefix: prefix
           });
           
+          console.log(`フォルダ内の画像を検索: ${prefix}`);
+          const listResult = await s3Client.send(listCommand);
+          
+          if (listResult.Contents && listResult.Contents.length > 0) {
+            console.log(`フォルダ内に${listResult.Contents.length}件の画像が見つかりました`);
+            
+            for (const object of listResult.Contents) {
+              if (object.Key) {
+                try {
+                  const deleteCommand = new DeleteObjectCommand({
+                    Bucket: bucketName,
+                    Key: object.Key
+                  });
+                  
+                  await s3Client.send(deleteCommand);
+                  console.log(`フォルダ内画像削除成功: ${object.Key}`);
+                  deletedRestaurantImageCount++;
+                } catch (folderImageError) {
+                  console.error(`フォルダ内画像削除エラー (${object.Key}):`, folderImageError);
+                }
+              }
+            }
+          } else {
+            console.log(`フォルダ内に削除すべき画像はありませんでした: ${prefix}`);
+          }
+        } catch (folderError) {
+          console.error(`フォルダ内画像検索/削除エラー:`, folderError);
+        }
+      } catch (restaurantError) {
+        console.error('レストラン画像削除処理エラー:', restaurantError);
+      }
+      
+      // 4. イベントアイコンの削除処理
+      const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: { image: true }
+      });
+      
+      if (event?.image) {
+        console.log(`イベントアイコン削除処理: ${event.image}`);
+        try {
           const objectKey = extractObjectKey(event.image);
           if (objectKey) {
             const deleteCommand = new DeleteObjectCommand({
@@ -145,9 +200,9 @@ export async function DELETE(request: Request) {
             await s3Client.send(deleteCommand);
             console.log(`イベントアイコン削除成功: ${objectKey}`);
           }
+        } catch (iconError) {
+          console.error('イベントアイコン削除エラー:', iconError);
         }
-      } catch (iconError) {
-        console.error('イベントアイコン削除エラー:', iconError);
       }
     }
     
@@ -156,13 +211,14 @@ export async function DELETE(request: Request) {
       where: { eventId },
     });
 
-    console.log(`画像削除完了: eventId=${eventId}, 削除数=${images.length}`);
+    console.log(`画像削除完了: eventId=${eventId}, イベント画像削除数=${deletedEventImageCount}, レストラン画像削除数=${deletedRestaurantImageCount}`);
     
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `イベント(${eventId})の画像がすべて削除されました`, 
-        count: images.length 
+        eventImageCount: deletedEventImageCount,
+        restaurantImageCount: deletedRestaurantImageCount
       }),
       {
         status: 200,
