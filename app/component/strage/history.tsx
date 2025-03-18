@@ -26,6 +26,39 @@ export const BrowsingHistory = () => {
   const prevRef = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLDivElement>(null);
   const [swiper, setSwiper] = useState<SwiperType | null>(null);
+  const [windowWidth, setWindowWidth] = useState<number>(
+    typeof window !== 'undefined' ? window.innerWidth : 0
+  );
+
+  // 画面幅を監視してレスポンシブ対応
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    // 初期化
+    if (typeof window !== 'undefined') {
+      setWindowWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
+    }
+
+    // クリーンアップ
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
+
+  // 矢印を表示する条件を計算
+  const shouldShowArrows = React.useMemo(() => {
+    // モバイル（768px以下）では2件以上で表示
+    if (windowWidth <= 768) {
+      return events.length >= 2;
+    }
+    // デスクトップでは5件以上で表示
+    return events.length >= 5;
+  }, [windowWidth, events.length]);
 
   useEffect(() => {
     const loadEvents = () => {
@@ -91,8 +124,8 @@ export const BrowsingHistory = () => {
     modules: [Navigation, Pagination, Autoplay],
     spaceBetween: 20,
     slidesPerView: 1,
-    loop: events.length >= 5,
-    navigation: events.length >= 5 ? {
+    loop: shouldShowArrows,
+    navigation: shouldShowArrows ? {
       prevEl: prevRef.current,
       nextEl: nextRef.current,
     } : false,
@@ -101,7 +134,7 @@ export const BrowsingHistory = () => {
       dynamicBullets: true,
       dynamicMainBullets: 3,
     },
-    autoplay: events.length >= 5 ? {
+    autoplay: shouldShowArrows ? {
       delay: 5000,
       disableOnInteraction: true,
     } : false,
@@ -119,7 +152,7 @@ export const BrowsingHistory = () => {
   };
 
   useEffect(() => {
-    if (swiper && events.length >= 5) {
+    if (swiper && shouldShowArrows) {
       if (swiper.params && typeof swiper.params.navigation !== 'boolean') {
         swiper.params.navigation = {
           ...swiper.params.navigation,
@@ -130,7 +163,7 @@ export const BrowsingHistory = () => {
         swiper.navigation.update();
       }
     }
-  }, [swiper, events.length]);
+  }, [swiper, shouldShowArrows]);
 
   return (
     <section className={styles.historySection}>
@@ -154,7 +187,7 @@ export const BrowsingHistory = () => {
       ) : (
         <>
           <div className={styles.swiperContainer}>
-            {events.length >= 5 && (
+            {shouldShowArrows && (
               <div className={styles.swiperNavPrev} ref={prevRef}>
                 <FaChevronLeft />
               </div>
@@ -211,7 +244,7 @@ export const BrowsingHistory = () => {
               ))}
             </Swiper>
 
-            {events.length >= 5 && (
+            {shouldShowArrows && (
               <div className={styles.swiperNavNext} ref={nextRef}>
                 <FaChevronRight />
               </div>
