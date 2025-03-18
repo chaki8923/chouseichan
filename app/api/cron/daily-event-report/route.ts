@@ -39,22 +39,11 @@ export async function GET(request: Request) {
           lt: today
         }
       },
-      select: {
-        id: true,
-        name: true,
-        memo: true,
-        createdAt: true,
-        userId: true,
-        schedules: {
+      include: {
+        schedules: true,
+        _count: {
           select: {
-            date: true,
-            time: true
-          }
-        },
-        responses: {
-          select: {
-            userId: true,
-            userName: true
+            schedules: true
           }
         }
       }
@@ -67,6 +56,28 @@ export async function GET(request: Request) {
       });
     }
     
+    // 各イベントの回答数をカウント
+    const eventsWithResponseCounts = await Promise.all(
+      events.map(async (event) => {
+        // このイベントのすべてのスケジュールIDを取得
+        const scheduleIds = event.schedules.map(schedule => schedule.id);
+        
+        // これらのスケジュールに対する回答数をカウント
+        const responsesCount = await prisma.response.count({
+          where: {
+            scheduleId: {
+              in: scheduleIds
+            }
+          }
+        });
+        
+        return {
+          ...event,
+          responsesCount
+        };
+      })
+    );
+    
     // メール本文の作成
     let emailContent = `
       <h2>昨日（${yesterday.toLocaleDateString('ja-JP')}）作成されたイベント一覧</h2>
@@ -74,15 +85,15 @@ export async function GET(request: Request) {
       <hr />
     `;
     
-    events.forEach((event, index) => {
+    eventsWithResponseCounts.forEach((event, index) => {
       emailContent += `
         <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
           <h3>${index + 1}. ${event.name}</h3>
           <p><strong>ID:</strong> ${event.id}</p>
           <p><strong>作成日時:</strong> ${new Date(event.createdAt).toLocaleString('ja-JP')}</p>
           <p><strong>メモ:</strong> ${event.memo || '(なし)'}</p>
-          <p><strong>スケジュール数:</strong> ${event.schedules.length}</p>
-          <p><strong>回答者数:</strong> ${event.responses.length}</p>
+          <p><strong>スケジュール数:</strong> ${event._count.schedules}</p>
+          <p><strong>回答者数:</strong> ${event.responsesCount}</p>
         </div>
       `;
     });
