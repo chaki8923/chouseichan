@@ -2776,7 +2776,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                 <FiCheck className={styles.checkIcon} />
               </div>
               <h2 className={styles.cuteModalTitle}>{modalText}</h2>
-              <p className={styles.cuteModalSubtitle}>URLを友達と共有しましょう！</p>
+              <p className={styles.cuteModalSubtitle}>URLを仲間と共有しましょう！</p>
               <div className={styles.decorationLine}>
                 <span className={styles.decorationDot}></span>
                 <span className={styles.decorationDot}></span>
