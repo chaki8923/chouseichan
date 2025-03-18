@@ -16,7 +16,6 @@ export async function GET(request: Request) {
       },
       include: {
         schedules: true,
-        responses: true,
         images: true
       }
     });
@@ -31,7 +30,37 @@ export async function GET(request: Request) {
           });
         }
 
-        // 2. イベント自体を削除（関連するスケジュール、レスポンス、画像も自動的に削除される）
+        // 2. 各スケジュールに対する回答を削除
+        for (const schedule of event.schedules) {
+          await prisma.response.deleteMany({
+            where: {
+              scheduleId: schedule.id
+            }
+          });
+        }
+
+        // 3. イベントのスケジュールを削除
+        await prisma.schedule.deleteMany({
+          where: {
+            eventId: event.id
+          }
+        });
+
+        // 4. イベントのレストラン候補を削除
+        await prisma.restaurant.deleteMany({
+          where: {
+            eventId: event.id
+          }
+        });
+
+        // 5. イベント画像データを削除
+        await prisma.eventImage.deleteMany({
+          where: {
+            eventId: event.id
+          }
+        });
+
+        // 6. イベント自体を削除
         await prisma.event.delete({
           where: {
             id: event.id

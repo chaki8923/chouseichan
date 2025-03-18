@@ -1134,7 +1134,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         }
 
         // 古い画像がある場合は削除
-        if (eventData.image && eventData.image !== '/default.png') {
+        if (eventData.image && eventData.image !== '/logo.png') {
           try {
             // 古い画像のURLからCloudflareのパスを抽出
             const oldImageUrl = eventData.image;
@@ -2401,7 +2401,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
           <section className={styles.eventTitleSection}>
             {!isEditing && eventData.memo && (
               <>
-                <Image src={eventData.image ? eventData.image : '/default.png'}
+                <Image src={eventData.image ? eventData.image : '/logo.png'}
                   width={50}
                   height={50}
                   alt="Event Crop Image"
