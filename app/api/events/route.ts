@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
                 // ここで user の createdAt を desc に指定
                 orderBy: {
                   user: {
-                    createdAt: 'desc',
+                    createdAt: 'asc',
                   },
                 },
               },

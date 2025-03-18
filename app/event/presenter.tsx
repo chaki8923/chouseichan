@@ -534,7 +534,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
   const [isCopyModal, setIsCopyModal] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [modalText, setModalText] = useState<string>('');
-  const [formattedDate, setFormattedDate] = useState<string>();
+  const [formattedDate, setFormattedDate] = useState<string | undefined>();
   const [isImageSwiperOpen, setIsImageSwiperOpen] = useState(false);
   const [isDeleteCompleteModal, setIsDeleteCompleteModal] = useState(false);
   const [eventImages, setEventImages] = useState<{ imagePath?: string; id?: string; url?: string }[]>([]);
@@ -1458,10 +1458,11 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     const url = `${process.env.NEXT_PUBLIC_BASE_URL}/event?eventId=${eventId}`;
     try {
       await navigator.clipboard.writeText(url);
-      setIsCopyModal(true);
-      setTimeout(function () {
-        setIsCopyModal(false);
-      }, 1500);
+      setModalText("イベントURLがコピーされました");
+      setIsOpen(true);
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 2000);
     } catch (err) {
       console.error("リンクのコピーに失敗しました", err);
     }
@@ -2418,7 +2419,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             <div className={styles.shareContainer}>
               <button
                 className={styles.eventShareButton}
-                onClick={toggleUrlDisplay}
+                onClick={() => handleCopyLink(eventData.id)}
                 aria-label="イベントURLを共有"
               >
                 <FaRegCopy className={styles.copyIcon} />
@@ -2623,11 +2624,6 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                               <span className={styles.mainUserCount}>{mainUsersCount > 1 ? `×${mainUsersCount}` : ''}</span>
                             </div>
                           )}
-                          {hasMainUserAttending && mainUserName && (
-                            <div className={styles.mainUserInfo}>
-                              <span>{mainUserName}{mainUsersCount > 1 ? ` 他${mainUsersCount - 1}名` : ''}</span>
-                            </div>
-                          )}
                         </div>
                         </td>
                       <td className={styles.responseRateCell}>{attendCount}人</td>
@@ -2755,7 +2751,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
             <>
               <div className={styles.successIcon}>
                 <FiCheck className={styles.checkIcon} />
-          </div>
+              </div>
               <div className={styles.photoFrame}>
                 <div className={styles.photoFrameInner}>
                   <FiCamera className={styles.photoFrameIcon} />
@@ -2768,6 +2764,19 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
               </div>
               <h2 className={styles.cuteModalTitle}>{modalText}</h2>
               <p className={styles.cuteModalSubtitle}>思い出の共有ありがとう♪</p>
+              <div className={styles.decorationLine}>
+                <span className={styles.decorationDot}></span>
+                <span className={styles.decorationDot}></span>
+                <span className={styles.decorationDot}></span>
+              </div>
+            </>
+          ) : modalText.includes('コピー') ? (
+            <>
+              <div className={styles.successIcon}>
+                <FiCheck className={styles.checkIcon} />
+              </div>
+              <h2 className={styles.cuteModalTitle}>{modalText}</h2>
+              <p className={styles.cuteModalSubtitle}>URLを友達と共有しましょう！</p>
               <div className={styles.decorationLine}>
                 <span className={styles.decorationDot}></span>
                 <span className={styles.decorationDot}></span>
