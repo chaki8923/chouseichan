@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/delete-old-events",
-      "schedule": "0 8 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/daily-event-report?authKey=$CRON_SECRET",
-      "schedule": "0 9 * * *"
+      "schedule": "20 6 * * *"
     }
   ]
 } 
