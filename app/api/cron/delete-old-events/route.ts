@@ -125,6 +125,46 @@ export async function GET(request: Request) {
           }
         }
         
+        // event_images/[eventId]フォルダ内の残りの画像も削除
+        try {
+          // event_images/[eventId]フォルダをリストアップ
+          const prefix = `event_images/${event.id}/`;
+          console.log(`イベント画像フォルダを検索: ${prefix}`);
+          
+          const listCommand = new ListObjectsV2Command({
+            Bucket: process.env.BUCKET_NAME,
+            Prefix: prefix
+          });
+          
+          const listResult = await s3Client.send(listCommand);
+          
+          if (listResult.Contents && listResult.Contents.length > 0) {
+            console.log(`イベント画像フォルダ内に ${listResult.Contents.length}件 の画像が見つかりました`);
+            
+            for (const object of listResult.Contents) {
+              if (object.Key) {
+                try {
+                  console.log(`イベント画像フォルダ内画像を削除: ${object.Key}`);
+                  const deleteCommand = new DeleteObjectCommand({
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: object.Key
+                  });
+                  await s3Client.send(deleteCommand);
+                  console.log(`イベント画像フォルダ内画像削除完了: ${object.Key}`);
+                } catch (error) {
+                  console.error(`イベント画像フォルダ内画像削除エラー: ${object.Key}`, error);
+                  // エラーがあっても処理を継続
+                }
+              }
+            }
+          } else {
+            console.log(`イベント画像フォルダ内に削除すべき画像はありませんでした: ${prefix}`);
+          }
+        } catch (error) {
+          console.error(`イベント画像フォルダ検索エラー (eventId: ${event.id}):`, error);
+          // エラーがあっても処理を継続
+        }
+        
         // 1b. イベントアイコンを削除
         if (event.image && event.image !== '/logo.png') {
           try {
