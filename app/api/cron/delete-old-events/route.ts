@@ -19,8 +19,8 @@ const s3Client = new S3Client({
   region: 'auto',
   endpoint: process.env.R2_ENDPOINT,
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+    accessKeyId: process.env.R2_ACCESS_KEY || '',
+    secretAccessKey: process.env.R2_SECRET_KEY || '',
   },
 });
 
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
               if (objectKey) {
                 console.log(`R2オブジェクトキー: ${objectKey} を削除します`);
                 const command = new DeleteObjectCommand({
-                  Bucket: process.env.R2_PUBLIC_BUCKET_NAME,
+                  Bucket: process.env.BUCKET_NAME,
                   Key: objectKey
                 });
                 await s3Client.send(command);
@@ -133,7 +133,7 @@ export async function GET(request: Request) {
             if (objectKey) {
               console.log(`イベントアイコンのオブジェクトキー: ${objectKey} を削除します`);
               const command = new DeleteObjectCommand({
-                Bucket: process.env.R2_PUBLIC_BUCKET_NAME,
+                Bucket: process.env.BUCKET_NAME,
                 Key: objectKey
               });
               await s3Client.send(command);
@@ -163,7 +163,7 @@ export async function GET(request: Request) {
                   if (objectKey) {
                     console.log(`レストラン画像のオブジェクトキー: ${objectKey} を削除します`);
                     const command = new DeleteObjectCommand({
-                      Bucket: process.env.R2_PUBLIC_BUCKET_NAME,
+                      Bucket: process.env.BUCKET_NAME,
                       Key: objectKey
                     });
                     await s3Client.send(command);
@@ -183,7 +183,7 @@ export async function GET(request: Request) {
               console.log(`レストラン画像フォルダを検索: ${prefix}`);
               
               const listCommand = new ListObjectsV2Command({
-                Bucket: process.env.R2_PUBLIC_BUCKET_NAME,
+                Bucket: process.env.BUCKET_NAME,
                 Prefix: prefix
               });
               
@@ -197,7 +197,7 @@ export async function GET(request: Request) {
                     try {
                       console.log(`フォルダ内画像を削除: ${object.Key}`);
                       const deleteCommand = new DeleteObjectCommand({
-                        Bucket: process.env.R2_PUBLIC_BUCKET_NAME,
+                        Bucket: process.env.BUCKET_NAME,
                         Key: object.Key
                       });
                       await s3Client.send(deleteCommand);
