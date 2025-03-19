@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/libs/prisma';
 import { S3Client, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { NextRequest } from 'next/server';
+import { validateRequest } from '@/libs/security';
 
 export async function GET(request: Request) {
+  // リクエスト元の検証（NextRequestの型に変換）
+  const nextRequest = request as unknown as NextRequest;
+  // GET操作はデータ取得のみなので、リファラーチェックはコメントアウト（任意で有効化可能）
+  // const validationError = validateRequest(nextRequest);
+  // if (validationError) {
+  //   return validationError;
+  // }
+  
   // URLからeventIdを取得
   const url = new URL(request.url);
   const eventId = url.searchParams.get('eventId');
@@ -25,6 +35,13 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  // リクエスト元の検証（NextRequestの型に変換）
+  const nextRequest = request as unknown as NextRequest;
+  const validationError = validateRequest(nextRequest);
+  if (validationError) {
+    return validationError;
+  }
+  
   // URLからeventIdを取得
   const url = new URL(request.url);
   const eventId = url.searchParams.get('eventId');

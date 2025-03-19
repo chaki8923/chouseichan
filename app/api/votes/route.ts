@@ -1,9 +1,16 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/libs/prisma';
+import { validateRequest } from '@/libs/security';
 
 // POST: 新しい投票を登録
 export async function POST(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const body = await request.json();
     const { eventId, restaurantId, voterToken } = body;
 
@@ -70,6 +77,12 @@ export async function POST(request: NextRequest) {
 // GET: 投票情報を取得
 export async function GET(request: NextRequest) {
   try {
+    // リクエスト元の検証 - GETリクエストも検証する場合は以下を有効化
+    // const validationError = validateRequest(request);
+    // if (validationError) {
+    //   return validationError;
+    // }
+    
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('eventId');
     const voterToken = searchParams.get('voterToken');
@@ -121,6 +134,12 @@ export async function GET(request: NextRequest) {
 // DELETE: 投票を取り消し
 export async function DELETE(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('eventId');
     const voterToken = searchParams.get('voterToken');

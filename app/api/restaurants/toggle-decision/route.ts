@@ -1,9 +1,16 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/libs/prisma';
+import { validateRequest } from '@/libs/security';
 
 // PATCH: レストランの確定フラグを切り替えるAPI
 export async function PATCH(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const body = await request.json();
     const { id, decisionFlag, eventId } = body;
 

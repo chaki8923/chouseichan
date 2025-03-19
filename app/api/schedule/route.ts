@@ -1,9 +1,16 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/libs/prisma";
+import { validateRequest } from "@/libs/security";
 
 export async function POST(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
       return NextResponse.json(
         { error: "Content-Type must be multipart/form-data" },
@@ -101,6 +108,13 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(req: Request) {
   try {
+    // リクエスト元の検証（NextRequestの型に変換）
+    const request = req as unknown as NextRequest;
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const { scheduleId, eventId } = await req.json();
 
     if (scheduleId === undefined || scheduleId === null || !eventId) {

@@ -2,9 +2,18 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/libs/prisma';
 // AWS S3 SDK実装を追加
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { NextRequest } from 'next/server';
+import { validateRequest } from '@/libs/security';
 
 export async function DELETE(request: Request) {
   try {
+    // リクエスト元の検証（NextRequestの型に変換）
+    const nextRequest = request as unknown as NextRequest;
+    const validationError = validateRequest(nextRequest);
+    if (validationError) {
+      return validationError;
+    }
+    
     // リクエストボディからデータを取得
     const body = await request.json();
     const { eventId, imageId } = body;

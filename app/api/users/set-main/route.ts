@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/libs/prisma';
+import { validateRequest } from '@/libs/security';
 
 export async function POST(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const { userId, eventId } = await request.json();
 
     if (!userId) {

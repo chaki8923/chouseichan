@@ -1,9 +1,16 @@
 import { prisma } from "@/libs/prisma"; // Prisma クライアントをインポート
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest } from "@/libs/security";
 
 export async function POST(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const { user_name, schedules, comment } = await request.json();
     // バリデーション
     if (!user_name || !schedules || schedules.length === 0) {
@@ -47,7 +54,13 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { userId, schedules, user_name, comment } = await request.json();
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
+    const { userId, schedules, comment } = await request.json();
 
     if (!userId || !schedules || schedules.length === 0) {
       return NextResponse.json(

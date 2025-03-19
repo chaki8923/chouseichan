@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@/libs/prisma";
+import { validateRequest } from "@/libs/security";
 
 // 2MBのサイズ制限（バイト単位）
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -51,6 +52,12 @@ async function deleteImage(imageUrl: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
       return NextResponse.json(
         { error: "Content-Type must be multipart/form-data" },
@@ -182,6 +189,14 @@ export async function POST(request: NextRequest) {
 // 画像削除エンドポイント
 export async function DELETE(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
+    const body = await request.json();
+    
     const { searchParams } = new URL(request.url);
     const imageUrl = searchParams.get('url');
     

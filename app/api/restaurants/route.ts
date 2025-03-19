@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/libs/prisma';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { validateRequest } from '@/libs/security';
 
 // 画像URLからオブジェクトキーを抽出する関数
 function extractObjectKey(url: string): string | null {
@@ -160,6 +161,12 @@ export async function GET(request: NextRequest) {
 // POST: 新しいレストランを登録
 export async function POST(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const body = await request.json();
     const { name, imageUrl, websiteUrl, description, eventId } = body;
 
@@ -176,7 +183,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         imageUrl,
-        websiteUrl,
+        websiteUrl: url,
         description,
         eventId
       }
@@ -198,6 +205,12 @@ export async function POST(request: NextRequest) {
 // PATCH: レストラン情報を更新
 export async function PATCH(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const body = await request.json();
     const { id, name, imageUrl, websiteUrl, description, oldImageUrl } = body;
 
@@ -265,6 +278,12 @@ export async function PATCH(request: NextRequest) {
 // DELETE: レストランを削除
 export async function DELETE(request: NextRequest) {
   try {
+    // リクエスト元の検証
+    const validationError = validateRequest(request);
+    if (validationError) {
+      return validationError;
+    }
+    
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
