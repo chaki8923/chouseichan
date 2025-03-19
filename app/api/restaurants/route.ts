@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         imageUrl,
-        websiteUrl: url,
+        websiteUrl: websiteUrl,
         description,
         eventId
       }
