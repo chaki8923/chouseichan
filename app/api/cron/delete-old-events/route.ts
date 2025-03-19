@@ -16,10 +16,20 @@ const createTransporter = () => {
 export async function GET(request: Request) {
   try {
     // 認証キーの検証（セキュリティ対策）
+    // 1. クエリパラメータから認証キーを取得
     const { searchParams } = new URL(request.url);
     const authKey = searchParams.get('authKey');
     
-    if (authKey !== process.env.CRON_SECRET) {
+    // 2. Authorizationヘッダーから認証キーを取得（Vercel cronジョブ用）
+    const authHeader = request.headers.get('authorization');
+    const headerToken = authHeader ? authHeader.replace('Bearer ', '') : null;
+    
+    // いずれかの方法で認証が成功すればOK
+    const isAuthorized = 
+      authKey === process.env.CRON_SECRET || 
+      headerToken === process.env.CRON_SECRET;
+    
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
