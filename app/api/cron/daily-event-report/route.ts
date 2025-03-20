@@ -36,32 +36,15 @@ export async function GET(request: Request) {
     // 前日の日付範囲を計算（日本時間基準）
     const now = new Date();
     
-    // JSTでの昨日の0時0分0秒を取得
-    const yesterday = new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate() - 1,
-        -9, // JST = UTC+9 なので、UTC時間では-9時がJSTの0時
-        0,
-        0,
-        0
-      )
-    );
+    // JSTでの昨日の0時0分0秒を取得（UTC+9時間）
+    const yesterday = new Date();
+    yesterday.setUTCHours(15, 0, 0, 0); // UTC 15:00 = JST 0:00
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1); // 昨日の日付
     
-    // JSTでの今日の0時0分0秒を取得
-    const today = new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-        -9, // JST = UTC+9 なので、UTC時間では-9時がJSTの0時
-        0, 
-        0,
-        0
-      )
-    );
-
+    // JSTでの今日の0時0分0秒を取得（UTC+9時間）
+    const today = new Date();
+    today.setUTCHours(15, 0, 0, 0); // UTC 15:00 = JST 0:00
+    
     console.log("今日のJST午前0時（UTC基準）:", today.toISOString());
     console.log("昨日のJST午前0時（UTC基準）:", yesterday.toISOString());
     
