@@ -33,13 +33,38 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // 前日の日付範囲を計算
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+    // 前日の日付範囲を計算（日本時間基準）
+    const now = new Date();
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // JSTでの昨日の0時0分0秒を取得
+    const yesterday = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() - 1,
+        -9, // JST = UTC+9 なので、UTC時間では-9時がJSTの0時
+        0,
+        0,
+        0
+      )
+    );
+    
+    // JSTでの今日の0時0分0秒を取得
+    const today = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        -9, // JST = UTC+9 なので、UTC時間では-9時がJSTの0時
+        0, 
+        0,
+        0
+      )
+    );
+
+    console.log("今日のJST午前0時（UTC基準）:", today.toISOString());
+    console.log("昨日のJST午前0時（UTC基準）:", yesterday.toISOString());
+    
     
     // 前日作成されたイベントを取得
     const events = await prisma.event.findMany({
@@ -58,6 +83,9 @@ export async function GET(request: Request) {
         }
       }
     });
+
+    console.log("昨日のイベント>>>>>>>>>>>>>>>>>>>>>", events);
+    
     
     if (events.length === 0) {
       return NextResponse.json({ 
