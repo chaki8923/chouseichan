@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/daily-event-report",
       "schedule": "30 8 * * *"
+    },
+    {
+      "path": "/api/cron/satisfaction-survey-report",
+      "schedule": "15 9 * * *"
     }
   ]
 } 
