@@ -46,6 +46,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RestaurantVoteLink from "../components/RestaurantVoteLink";
+import SatisfactionSurveyModal from "../components/SatisfactionSurveyModal";
 
 
 type maxAttend = {
@@ -580,6 +581,10 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     message: ''
   });
 
+  // 満足度アンケート用の状態変数
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [surveyCompleted, setSurveyCompleted] = useState(false);
+
   // DnDkit用のセンサーをコンポーネントのトップレベルで定義
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -604,6 +609,35 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
       setIsOrganizer(isEventOwner(eventId)); // ✅ クライアントサイドで実行
     }
   }, [eventId]);
+
+  // イベント後のアンケート表示判定
+  useEffect(() => {
+    if (eventData && typeof window !== 'undefined') {
+      // ローカルストレージからアンケート完了状態を確認
+      const isSurveyCompleted = localStorage.getItem(`satisfaction_survey_${eventId}`) === 'completed';
+      setSurveyCompleted(isSurveyCompleted);
+      
+      // イベント日付の取得（確定スケジュールの日付を使用）
+      const confirmedSchedule = eventData.schedules.find(s => s.isConfirmed);
+      
+      if (confirmedSchedule) {
+        // 日付と時間を正しく組み合わせて設定
+        const eventDate = new Date(confirmedSchedule.date);
+        const [hours, minutes] = confirmedSchedule.time.split(':').map(Number);
+        
+        // 時刻を設定
+        eventDate.setHours(hours, minutes, 0, 0);
+        
+        const currentDate = new Date();
+        
+        // イベント日が過去の日付で、まだアンケートに回答していない場合
+        if (eventDate < currentDate && !isSurveyCompleted) {
+          // アンケートモーダルを表示
+          setShowSurveyModal(true);
+        }
+      }
+    }
+  }, [eventData, eventId]);
 
   async function fetchEventWithSchedules(eventId: string) {
     setLoading(true);
@@ -2975,6 +3009,14 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
         message={mainUserModalData.message}
         userName={mainUserModalData.userName}
         isSettingMain={mainUserModalData.isSettingMain}
+      />
+      
+      {/* 満足度調査モーダル */}
+      <SatisfactionSurveyModal
+        isOpen={showSurveyModal}
+        onClose={() => setShowSurveyModal(false)}
+        eventId={eventId}
+        eventName={eventData?.name || 'イベント'}
       />
     </>
   );

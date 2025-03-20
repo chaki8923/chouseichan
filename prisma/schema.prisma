@@ -11,7 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  //directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 
@@ -156,5 +156,17 @@ model Vote {
 
   @@unique([eventId, voterToken]) // 1イベントにつき1ユーザー1票の制限
   @@index([restaurantId])
+  @@index([eventId])
+}
+
+// 満足度アンケートモデル
+model SatisfactionTable {
+  id           String     @id @default(cuid())
+  eventId      String     // 関連するイベントID
+  rating       Int        // 5段階評価 (1-5)
+  comment      String?    // 追加コメント（任意）
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
   @@index([eventId])
 }
