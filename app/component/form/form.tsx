@@ -644,7 +644,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
             <input
               type="text"
               className={styles.modernInput}
-              placeholder={`${categoryName}の名前を入力してください`}
+              placeholder='イベントの名前を入力してください'
               {...register('event_name')}
             />
             {errors.event_name && (
