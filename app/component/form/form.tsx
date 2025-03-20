@@ -151,6 +151,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
+  const [showDetailSettings, setShowDetailSettings] = useState(false); // 詳細設定の表示状態
 
   // DnD用のセンサーを設定
   const sensors = useSensors(
@@ -594,6 +595,11 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
     }, 0);
   }, []);
 
+  // 詳細設定の表示・非表示を切り替える関数
+  const toggleDetailSettings = () => {
+    setShowDetailSettings(!showDetailSettings);
+  };
+
   if (loading) {
     return <SpinLoader></SpinLoader>;
   }
@@ -699,116 +705,128 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
           <div className={styles.formStepDivider}></div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              メモ
-              <span className={styles.badgeOptional}>任意</span>
-            </label>
-            <textarea
-              className={styles.modernTextarea}
-              placeholder="参加者へ伝えたい事があれば入力してください"
-              {...register('memo')}
-              maxLength={300}
-            />
-            <div className={styles.textareaFooter}>
-              <span className={`${styles.charCount} ${memoValue && memoValue.length > 280 ? styles.charCountExceeded : ''}`}>
-                {memoValue ? memoValue.length : 0}/300文字
-              </span>
-            </div>
-          </div>
-          {/* 画像アップロード - コメントが入力されている場合のみ表示 */}
-          {memoValue && memoValue.trim() !== '' && (
+          {/* 詳細設定トグルボタン */}
+          <button
+            type="button"
+            onClick={toggleDetailSettings}
+            className={styles.detailSettingsToggle}
+          >
+            {showDetailSettings ? '詳細設定を閉じる' : '詳細を入力する（任意）'}
+          </button>
+
+          {/* 詳細設定部分 - showDetailSettingsがtrueの場合のみ表示 */}
+          {showDetailSettings && (
             <>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  メモ
+                  <span className={styles.badgeOptional}>任意</span>
+                </label>
+                <textarea
+                  className={styles.modernTextarea}
+                  placeholder="参加者へ伝えたい事があれば入力してください"
+                  {...register('memo')}
+                  maxLength={300}
+                />
+                <div className={styles.textareaFooter}>
+                  <span className={`${styles.charCount} ${memoValue && memoValue.length > 280 ? styles.charCountExceeded : ''}`}>
+                    {memoValue ? memoValue.length : 0}/300文字
+                  </span>
+                </div>
+              </div>
+              {/* 画像アップロード - コメントが入力されている場合のみ表示 */}
+              {memoValue && memoValue.trim() !== '' && (
+                <>
+                  <div className={styles.formStep}>
+                    <h2 className={styles.stepTitle}>アイコン画像</h2>
+                    <span className={styles.badgeOptional}>任意</span>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
+                    {validationError && (
+                      <span className={styles.errorMessage}>{validationError}</span>
+                    )}
+                  </div>
+                </>
+              )}
+
+
               <div className={styles.formStep}>
-                <h2 className={styles.stepTitle}>アイコン画像</h2>
+                <h2 className={styles.stepTitle}>回答期限</h2>
                 <span className={styles.badgeOptional}>任意</span>
               </div>
 
               <div className={styles.formGroup}>
-                <CropImg onDataChange={handleChildData} setValidationError={handleValidationError} />
-                {validationError && (
-                  <span className={styles.errorMessage}>{validationError}</span>
+                <div className={styles.dateTimeSelectContainer}>
+                  <div className={styles.dateSelectWrapper}>
+                    <label className={styles.dateTimeLabel}>日付</label>
+                    <input
+                      type="date"
+                      className={`${styles.modernInput} ${styles.dateInput}`}
+                      min={new Date().toISOString().split('T')[0]}
+                      onClick={(e) => {
+                        // 日付フィールドをクリックしたらカレンダーを表示
+                        const input = e.target as HTMLInputElement;
+                        input.showPicker();
+                      }}
+                      onChange={(e) => {
+                        const dateValue = e.target.value;
+                        const timeValue = document.getElementById('deadline-time') as HTMLSelectElement;
+
+                        if (dateValue && timeValue?.value) {
+                          // 日付と時間を組み合わせてISO形式の文字列を作成
+                          const localDate = new Date(`${dateValue}T${timeValue.value}:00`);
+                          const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+                          const deadlineValue = utcDate.toISOString();
+                          setValue('responseDeadline', deadlineValue);
+                        } else if (!dateValue) {
+                          // 日付が空の場合は回答期限をクリア
+                          setValue('responseDeadline', '');
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className={styles.timeSelectWrapper}>
+                    <label className={styles.dateTimeLabel}>時間</label>
+                    <select
+                      id="deadline-time"
+                      className={`${styles.modernInput} ${styles.timeSelect}`}
+                      defaultValue="17"
+                      onChange={(e) => {
+                        const timeValue = e.target.value;
+                        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+                        const dateValue = dateInput?.value;
+
+                        if (dateValue && timeValue) {
+                          // 日付と時間を組み合わせてISO形式の文字列を作成
+                          const localDate = new Date(`${dateValue}T${timeValue}:00`);
+                          const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+                          const deadlineValue = utcDate.toISOString();
+                          setValue('responseDeadline', deadlineValue);
+                        }
+                      }}
+                    >
+                      <option value="">--</option>
+                      {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                        <option key={hour} value={`${hour.toString().padStart(2, '0')}`}>
+                          {hour.toString().padStart(2, '0')}時
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className={styles.inputHelper}>
+                  期限を過ぎると参加者は回答できなくなります
+                </div>
+                {errors.responseDeadline && (
+                  <span className={styles.errorMessage}>{errors.responseDeadline.message}</span>
                 )}
               </div>
             </>
           )}
 
-
-          <div className={styles.formStep}>
-            <h2 className={styles.stepTitle}>回答期限</h2>
-            <span className={styles.badgeOptional}>任意</span>
-          </div>
-
-          <div className={styles.formGroup}>
-            <div className={styles.dateTimeSelectContainer}>
-              <div className={styles.dateSelectWrapper}>
-                <label className={styles.dateTimeLabel}>日付</label>
-                <input
-                  type="date"
-                  className={`${styles.modernInput} ${styles.dateInput}`}
-                  min={new Date().toISOString().split('T')[0]}
-                  onClick={(e) => {
-                    // 日付フィールドをクリックしたらカレンダーを表示
-                    const input = e.target as HTMLInputElement;
-                    input.showPicker();
-                  }}
-                  onChange={(e) => {
-                    const dateValue = e.target.value;
-                    const timeValue = document.getElementById('deadline-time') as HTMLSelectElement;
-
-                    if (dateValue && timeValue?.value) {
-                      // 日付と時間を組み合わせてISO形式の文字列を作成
-                      const localDate = new Date(`${dateValue}T${timeValue.value}:00`);
-                      const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
-                      const deadlineValue = utcDate.toISOString();
-                      setValue('responseDeadline', deadlineValue);
-                    } else if (!dateValue) {
-                      // 日付が空の場合は回答期限をクリア
-                      setValue('responseDeadline', '');
-                    }
-                  }}
-                />
-              </div>
-              <div className={styles.timeSelectWrapper}>
-                <label className={styles.dateTimeLabel}>時間</label>
-                <select
-                  id="deadline-time"
-                  className={`${styles.modernInput} ${styles.timeSelect}`}
-                  defaultValue="17"
-                  onChange={(e) => {
-                    const timeValue = e.target.value;
-                    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
-                    const dateValue = dateInput?.value;
-
-                    if (dateValue && timeValue) {
-                      // 日付と時間を組み合わせてISO形式の文字列を作成
-                      const localDate = new Date(`${dateValue}T${timeValue}:00`);
-                      const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
-                      const deadlineValue = utcDate.toISOString();
-                      setValue('responseDeadline', deadlineValue);
-                    }
-                  }}
-                >
-                  <option value="">--</option>
-                  {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
-                    <option key={hour} value={`${hour.toString().padStart(2, '0')}`}>
-                      {hour.toString().padStart(2, '0')}時
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className={styles.inputHelper}>
-              期限を過ぎると参加者は回答できなくなります
-            </div>
-            {errors.responseDeadline && (
-              <span className={styles.errorMessage}>{errors.responseDeadline.message}</span>
-            )}
-          </div>
-
           <div className={styles.formStepDivider}></div>
-
-
         </div>
 
         <button

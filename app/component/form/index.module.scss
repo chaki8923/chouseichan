@@ -3062,3 +3062,41 @@
     transform: scale(1);
   }
 }
+
+.detailSettingsToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 20px;
+  margin: 15px 0;
+  background-color: #f5f7fa;
+  border: 1px dashed #d1d9e6;
+  border-radius: 8px;
+  color: #de3163;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: "▼";
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+  
+  &:hover {
+    background-color: #eef2ff;
+    border-color: #b1c5e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(74, 134, 232, 0.1);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 3px rgba(74, 134, 232, 0.1);
+  }
+}
