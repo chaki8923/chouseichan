@@ -847,12 +847,8 @@
   color: #666;
   font-size: 16px;
   text-align: center;
-  cursor: pointer;
   transition: background-color 0.3s ease;
-  
-  &:hover {
-    background-color: #e0e0e0;
-  }
+
 }
 
 // イベントタイトルコンテナ（タイトルと編集ボタンを横に並べる）
