@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import History from '../strage/history';
 import CropImg from './cropper';
 import { ScheduleSchema, ScheduleSchemaType } from '@/schemas/FormSchema';
-import { setOwnerEvent } from "@/app/utils/strages";
+import { setOwnerEvent, saveUserId } from "@/app/utils/strages";
 import Modal from "../modal/modal";
 import SpinLoader from "../loader/spin";
 import {
@@ -31,6 +31,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { UseFormRegister } from 'react-hook-form';
 import EventSuccessModal from "../modal/eventSuccessModal";
+import AIRecommendation from '../../components/AIRecommendation';
 
 
 // ドラッグ可能な日程項目のコンポーネント
@@ -152,6 +153,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [showDetailSettings, setShowDetailSettings] = useState(false); // 詳細設定の表示状態
+  const [userId, setUserId] = useState<string | null>(null);
 
   // DnD用のセンサーを設定
   const sensors = useSensors(
@@ -183,11 +185,23 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
   // defaultTimeが変更されたときにフォームの値を更新
   useEffect(() => {
-    // 既存のスケジュールの時間を更新
-    schedules.forEach((_, index) => {
-      setValue(`schedules.${index}.time`, `${defaultTime}:00`);
+    // 初回のみ、または空の日程に対してのみデフォルト時間を設定
+    schedules.forEach((schedule, index) => {
+      // 空のスケジュールや新しく追加されたスケジュールにのみデフォルト値を設定
+      if (!schedule.time || schedule.time === '') {
+        setValue(`schedules.${index}.time`, `${defaultTime}:00`);
+
+        // stateも更新（ただし依存配列にschedulesを含めないため、関数形式で更新）
+        setSchedules(prev => {
+          const updated = [...prev];
+          if (updated[index]) {
+            updated[index].time = `${defaultTime}:00`;
+          }
+          return updated;
+        });
+      }
     });
-  }, [defaultTime, setValue, schedules]);
+  }, [defaultTime, setValue]); // schedulesを依存配列から除外
 
   // フォームの値をwatch
   const eventNameValue = watch('event_name');
@@ -333,14 +347,23 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
   // 日程を追加するボタンクリック時の処理
   const AddSchedule = () => {
-    const newSchedule = { id: Date.now(), date: '', time: `${defaultTime}:00` };
+    // 新しい日程をスケジュールに追加
+    const newTime = `${defaultTime}:00`;
+    const newSchedule = { id: Date.now(), date: '', time: newTime };
     setSchedules((prevSchedules) => [
       ...prevSchedules,
       newSchedule
     ]);
 
-    // 追加した日程のfieldArrayへの追加
-    setValue(`schedules.${schedules.length}`, { date: '', time: `${defaultTime}:00` });
+    // フォームに追加した日程を追加
+    const currentSchedules = getValues('schedules') || [];
+    setValue('schedules', [
+      ...currentSchedules,
+      { date: '', time: newTime }
+    ], { shouldValidate: true });
+
+    // デバッグログ
+    console.log('新しい日程を追加:', newSchedule);
 
     // 日程が追加されたら、バリデーションを再評価する
     setTimeout(() => {
@@ -409,8 +432,11 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
     setSchedules(updatedSchedules);
 
     // react-hook-form に値をセットし、バリデーションをトリガー
-    setValue(`schedules.${index}.time`, value);
-    trigger(`schedules.${index}.time`);
+    setValue(`schedules.${index}.time`, value, { shouldValidate: true });
+    trigger(`schedules.${index}.time`);  // 強制的にバリデーションを再評価
+
+    // デバッグのためにコンソールに出力（本番環境では削除可能）
+    console.log(`日程${index + 1}の時間を${value}に更新しました`);
   };
 
   // 時間のオプションを生成する関数
@@ -492,9 +518,15 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
   };
 
   const onSubmit = async (params: EventFormData) => {
+    // フォーム送信前に現在のスケジュールの値をパラメータに明示的に反映
+    const currentSchedulesWithCorrectTime = schedules.map((schedule, index) => ({
+      date: schedule.date,
+      time: schedule.time
+    }));
+
     const formData = new FormData();
     formData.append("event_name", params.event_name);
-    formData.append("schedules", JSON.stringify(params.schedules));
+    formData.append("schedules", JSON.stringify(currentSchedulesWithCorrectTime)); // 修正: stateから取得した値を使用
     formData.append("memo", params.memo);
 
     // 回答期限があれば追加
@@ -534,7 +566,13 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
         setEventId(newEventId);
         setLoading(false);
         setOwnerEvent(newEventId, result.name, result.schedules);
-        
+
+        // userIdがレスポンスに含まれている場合、local storageに保存
+        if (result.createdUserId) {
+          saveUserId(result.createdUserId);
+          setUserId(result.createdUserId); // ステートにも保存
+        }
+
         // 送信完了状態に移行
         setSubmissionSuccess(true);
 
@@ -598,6 +636,38 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
   // 詳細設定の表示・非表示を切り替える関数
   const toggleDetailSettings = () => {
     setShowDetailSettings(!showDetailSettings);
+  };
+
+  // AIレコメンデーションで選択された日程を追加
+  const handleSelectRecommendedDate = (date: string, time: string) => {
+    // 既存の日程と重複しないか確認
+    const isDuplicate = schedules.some(
+      schedule => schedule.date === date && schedule.time === time
+    );
+
+    if (isDuplicate) {
+      // 重複している場合は警告を表示
+      setValidationError("選択された日程は既に追加されています");
+      setTimeout(() => setValidationError(null), 3000); // 3秒後に警告を消す
+      return;
+    }
+
+    // 新しい日程をスケジュールに追加
+    const newSchedule = {
+      id: Date.now(),
+      date,
+      time,
+    };
+
+    // スケジュールステートを更新
+    setSchedules(prev => [...prev, newSchedule]);
+
+    // フォームの値も更新
+    const currentSchedules = getValues('schedules') || [];
+    setValue('schedules', [...currentSchedules, { date, time }]);
+
+    // バリデーション実行
+    trigger('schedules');
   };
 
   if (loading) {
@@ -670,7 +740,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
           <div className={styles.formGroup}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={schedules.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                <div className={styles.scheduleList}>
+                <div className={styles.scheduleList} id="schedule-section">
                   {schedules.map((schedule, index) => (
                     <SortableScheduleItem
                       key={schedule.id}
@@ -839,6 +909,14 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
         </button>
       </form>
 
+      {/* イベント名と詳細フィールドの後にAIレコメンデーションを追加 */}
+      <div className={styles.formSection}>
+        <div className={styles.formHeader}>
+          <h2>日程入力のヒント</h2>
+          <AIRecommendation onSelectDate={handleSelectRecommendedDate} />
+        </div>
+      </div>
+
       {/* デバッグ情報 - 開発時のみ表示 */}
       {(() => {
         return null;
@@ -864,7 +942,6 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
           </div>
         </div>
       </Modal>
-
 
     </div>
   );

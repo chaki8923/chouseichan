@@ -51,6 +51,72 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   };
 }
 
+// イベントスキーママークアップを生成する関数
+function generateEventSchema(eventData: any) {
+  if (!eventData) return null;
+  
+  // イベントステータスの対応付け
+  const getEventStatus = () => {
+    if (!eventData.schedules || eventData.schedules.length === 0) return "EventScheduled";
+    
+    // いずれかの日程が確定されている場合
+    const hasConfirmedSchedule = eventData.schedules.some((s: any) => s.isConfirmed);
+    if (hasConfirmedSchedule) return "EventScheduled";
+    
+    return "EventScheduled"; // デフォルトは予定通り
+  };
+  
+  // イベント開催場所の生成（仮）
+  const location = {
+    "@type": "Place",
+    "name": "未定",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "未定"
+    }
+  };
+  
+  // 確定済みの日程があればその日時を使用、なければ最初の日程を使用
+  const confirmedSchedule = eventData.schedules?.find((s: any) => s.isConfirmed);
+  const schedule = confirmedSchedule || eventData.schedules?.[0];
+  
+  if (!schedule) return null;
+  
+  // 日時のフォーマット
+  const scheduleDate = new Date(schedule.date);
+  const [hours, minutes] = schedule.time.split(':').map(Number);
+  
+  const startDate = new Date(scheduleDate);
+  startDate.setHours(hours, minutes, 0);
+  
+  // イベント終了は2時間後と仮定
+  const endDate = new Date(startDate);
+  endDate.setHours(endDate.getHours() + 2);
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": eventData.name,
+    "description": eventData.memo || `${eventData.name}の詳細ページです。`,
+    "startDate": startDate.toISOString(),
+    "endDate": endDate.toISOString(),
+    "eventStatus": `https://schema.org/${getEventStatus()}`,
+    "location": location,
+    "image": eventData.image || "https://www.chouseichan.com/default-event-image.jpg",
+    "organizer": {
+      "@type": "Person",
+      "name": eventData.user?.name || "主催者"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "JPY",
+      "availability": "https://schema.org/InStock",
+      "validFrom": new Date().toISOString()
+    },
+  };
+}
+
 export default async function EventPage({ searchParams }: PageProps) {
   const session = await auth();
   const params = await searchParams;
@@ -63,87 +129,16 @@ export default async function EventPage({ searchParams }: PageProps) {
   // イベントデータの取得
   const eventData = await fetchEventWithSchedules(eventId);
   
-  // JSONLDデータの構築
-  let jsonLd = null;
+  // JSONLDデータを生成
+  const eventSchemaData = generateEventSchema(eventData);
   
-  if (eventData) {
-    // 日付がある場合はISOString形式に変換
-    const formatScheduleDate = (schedule: { date?: string; time?: string }) => {
-      if (!schedule || !schedule.date) return new Date().toISOString();
-      
-      try {
-        // 日付がYYYY-MM-DDの形式かチェック
-        const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-        const dateStr = schedule.date;
-        
-        if (!datePattern.test(dateStr)) {
-          // フォーマットが異なる場合はフォールバックとして現在の日付を使用
-          console.warn(`Invalid date format: ${dateStr}`);
-          return new Date().toISOString();
-        }
-        
-        // 時間が有効な形式かチェック
-        let timeStr = schedule.time || '00:00:00';
-        if (!/^\d{2}:\d{2}(:\d{2})?$/.test(timeStr)) {
-          // 無効な時間形式の場合はデフォルト値を使用
-          timeStr = '00:00:00';
-        }
-        
-        const dateObj = new Date(`${dateStr}T${timeStr}`);
-        
-        // Dateオブジェクトが有効かチェック
-        if (isNaN(dateObj.getTime())) {
-          console.warn('Created invalid date object', dateStr, timeStr);
-          return new Date().toISOString();
-        }
-        
-        return dateObj.toISOString();
-      } catch (error) {
-        console.error('Error formatting date:', error);
-        return new Date().toISOString();
-      }
-    };
-    
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chouseichan.com';
-    const eventUrl = `${baseUrl}/event?eventId=${eventId}`;
-    
-    jsonLd = {
-      '@context': 'https://schema.org',
-      '@type': 'Event',
-      name: eventData.name,
-      description: eventData.memo || eventData.name,
-      url: eventUrl,
-      image: eventData.image || `${baseUrl}/logo.png`,
-      eventStatus: 'https://schema.org/EventScheduled',
-      organizer: {
-        '@type': 'Person',
-        name: eventData.organizer?.name || '主催者',
-      },
-      location: {
-        '@type': 'VirtualLocation',
-        url: eventUrl
-      },
-      startDate: eventData.schedules && eventData.schedules.length > 0 ? 
-        formatScheduleDate(eventData.schedules.find((s: { isConfirmed?: boolean }) => s.isConfirmed) || eventData.schedules[0]) : 
-        new Date().toISOString(),
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'JPY',
-        availability: 'https://schema.org/InStock',
-        url: eventUrl,
-        validFrom: new Date().toISOString()
-      }
-    };
-  }
-
   return (
     <>
-      {jsonLd && (
-        <Script
-          id="event-jsonld"
+      {/* JSON-LDスキーママークアップを追加 */}
+      {eventSchemaData && (
+        <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchemaData) }}
         />
       )}
       <EventDetails eventId={eventId} session={session} />

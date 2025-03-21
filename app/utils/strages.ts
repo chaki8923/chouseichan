@@ -12,6 +12,18 @@ type EventWithExpiry = {
   expiry: number; // 期限（UNIXタイムスタンプ）
 };
 
+// ユーザーIDをlocal storageに保存する関数
+export function saveUserId(userId: string) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem("userId", userId);
+}
+
+// ユーザーIDをlocal storageから取得する関数
+export function getUserId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem("userId");
+}
+
 export function setOwnerEvent(eventId: string, eventName: string, schedules: { date: string; time: string }[]) {
   const eventListString = localStorage.getItem("ownerEvents") ?? "[]";
   let eventList: EventWithExpiry[] = [];

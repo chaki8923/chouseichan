@@ -68,8 +68,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ユーザーIDの生成（イベント作成者として扱う）
+    let createdUser;
+
     // トランザクションで処理を一括管理
     const result = await prisma.$transaction(async (prisma) => {
+      // イベント作成者となるユーザーを作成
+      createdUser = await prisma.user.create({
+        data: {
+          name: "イベント作成者",
+          main: true, // メイン担当者フラグをtrueに設定
+        }
+      });
+      
       // イベントを作成（既に保存した画像URLを使用）
       const newEvent = await prisma.event.create({
         data: {
@@ -77,6 +88,7 @@ export async function POST(request: NextRequest) {
           image: uploadedUrl, // 先に保存した画像のURLを使用
           memo: memo,
           responseDeadline: responseDeadline ? new Date(responseDeadline) : null, // 回答期限があれば追加
+          userId: createdUser.id, // 作成したユーザーIDを関連付け
         },
       });
 
@@ -92,11 +104,18 @@ export async function POST(request: NextRequest) {
 
       return await prisma.event.findUnique({
         where: { id: newEvent.id },
-        include: { schedules: true },
+        include: { 
+          schedules: true,
+          user: true, // ユーザー情報も含める
+        },
       });
     });
 
-    return NextResponse.json(result, { status: 201 });
+    // userIdをレスポンスに含める
+    return NextResponse.json({
+      ...result,
+      createdUserId: createdUser?.id // フロントエンドでlocal storageに保存するためにuserIdを返す
+    }, { status: 201 });
   } catch (error) {
     console.error("Error creating event and schedules:", error);
     return NextResponse.json(
