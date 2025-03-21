@@ -40,7 +40,7 @@ export const metadata: Metadata = {
       'ja': '/',
     },
   },
-  authors: [{ name: '調整ちゃん運営チーム' }],
+  authors: [{ name: '調整ちゃん' }],
   creator: '調整ちゃん',
   publisher: '調整ちゃん',
   openGraph: {
