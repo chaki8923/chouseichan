@@ -80,7 +80,7 @@ export async function GET(request: Request) {
     // 集計データの準備
     const totalSurveys = satisfactionSurveys.length;
     let averageRating = 0;
-    const ratingDistribution = {
+    const ratingDistribution: Record<string, number> = {
       '5': 0,
       '4': 0,
       '3': 0,
@@ -95,7 +95,8 @@ export async function GET(request: Request) {
       
       // 評価分布を計算
       satisfactionSurveys.forEach(survey => {
-        ratingDistribution[survey.rating.toString()] += 1;
+        const key = survey.rating.toString() as keyof typeof ratingDistribution;
+        ratingDistribution[key] += 1;
       });
     }
     
@@ -126,7 +127,8 @@ export async function GET(request: Request) {
       
       // 評価ごとの分布を表示
       for (let rating = 5; rating >= 1; rating--) {
-        const count = ratingDistribution[rating.toString()];
+        const key = rating.toString() as keyof typeof ratingDistribution;
+        const count = ratingDistribution[key];
         const percentage = (count / totalSurveys * 100).toFixed(1);
         
         emailContent += `

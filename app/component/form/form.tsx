@@ -912,7 +912,6 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       {/* イベント名と詳細フィールドの後にAIレコメンデーションを追加 */}
       <div className={styles.formSection}>
         <div className={styles.formHeader}>
-          <h2>日程入力のヒント</h2>
           <AIRecommendation onSelectDate={handleSelectRecommendedDate} />
         </div>
       </div>

@@ -86,82 +86,86 @@ const AIRecommendation: React.FC<AIRecommendationProps> = ({ userId: propsUserId
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h3>AI推薦の日程</h3>
-        <p className={styles.subtext}>
-          {isDefault 
-            ? '一般的に人気の高い日程を提案しています' 
-            : 'あなたの過去の予定と参加状況から導き出した最適な日程です'}
-        </p>
-      </div>
-      
-      <div className={styles.recommendationsContainer}>
-        {recommendedDates.length > 0 ? (
-          recommendedDates.map((recommendation, index) => (
-            <div 
-              key={`${recommendation.date}-${recommendation.time}-${index}`}
-              className={styles.recommendationCard}
-              onClick={() => onSelectDate(recommendation.date, recommendation.time)}
-            >
-              <div className={styles.recommendationInfo}>
-                <div className={styles.dateInfo}>
-                  <FiCalendar className={styles.icon} />
-                  <span>{formatDate(recommendation.date)}</span>
-                </div>
-                <div className={styles.timeInfo}>
-                  <FiClock className={styles.icon} />
-                  <span>{recommendation.time}</span>
-                </div>
-              </div>
-              
-              <div className={styles.confidenceContainer}>
-                <div className={styles.confidenceWrapper}>
-                  <div 
-                    className={styles.confidenceBar} 
-                    style={{ width: `${Math.round(recommendation.confidence * 100)}%` }}
-                  ></div>
-                </div>
-                <div className={styles.confidenceValue}>
-                  <FiThumbsUp className={styles.thumbsIcon} />
-                  <span>推薦度: {formatConfidence(recommendation.confidence)}</span>
-                </div>
-              </div>
-              
-              <button 
-                className={styles.addButton}
-                onClick={(e) => {
-                  e.stopPropagation(); // 親要素のクリックイベントが発火するのを防止
-                  onSelectDate(recommendation.date, recommendation.time);
-                  
-                  // 日程入力セクションまでスクロール
-                  setTimeout(() => {
-                    // まず特定のIDを持つセクションを探す
-                    const scheduleSection = document.getElementById('schedule-section');
-                    
-                    if (scheduleSection) {
-                      // セクションが見つかった場合、その位置までスクロール
-                      scheduleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    } else {
-                      // セクションが見つからない場合、ページ上部にスクロール
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                  }, 100); // 少し遅延させてDOMの更新を待つ
-                }}
+    !isDefault && (
+
+      <div className={styles.container}>
+        
+        <div className={styles.header}>
+          <h3>AI推薦の日程</h3>
+          <p className={styles.subtext}>
+            {isDefault 
+              ? '一般的に人気の高い日程を提案しています' 
+              : 'あなたの過去の予定と参加状況から導き出した最適な日程です'}
+          </p>
+        </div>
+        
+        <div className={styles.recommendationsContainer}>
+          {recommendedDates.length > 0 ? (
+            recommendedDates.map((recommendation, index) => (
+              <div 
+                key={`${recommendation.date}-${recommendation.time}-${index}`}
+                className={styles.recommendationCard}
+                onClick={() => onSelectDate(recommendation.date, recommendation.time)}
               >
-                <FiPlus className={styles.addIcon} />
-                追加する
-              </button>
+                <div className={styles.recommendationInfo}>
+                  <div className={styles.dateInfo}>
+                    <FiCalendar className={styles.icon} />
+                    <span>{formatDate(recommendation.date)}</span>
+                  </div>
+                  <div className={styles.timeInfo}>
+                    <FiClock className={styles.icon} />
+                    <span>{recommendation.time}</span>
+                  </div>
+                </div>
+                
+                <div className={styles.confidenceContainer}>
+                  <div className={styles.confidenceWrapper}>
+                    <div 
+                      className={styles.confidenceBar} 
+                      style={{ width: `${Math.round(recommendation.confidence * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className={styles.confidenceValue}>
+                    <FiThumbsUp className={styles.thumbsIcon} />
+                    <span>推薦度: {formatConfidence(recommendation.confidence)}</span>
+                  </div>
+                </div>
+                
+                <button 
+                  className={styles.addButton}
+                  onClick={(e) => {
+                    e.stopPropagation(); // 親要素のクリックイベントが発火するのを防止
+                    onSelectDate(recommendation.date, recommendation.time);
+                    
+                    // 日程入力セクションまでスクロール
+                    setTimeout(() => {
+                      // まず特定のIDを持つセクションを探す
+                      const scheduleSection = document.getElementById('schedule-section');
+                      
+                      if (scheduleSection) {
+                        // セクションが見つかった場合、その位置までスクロール
+                        scheduleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      } else {
+                        // セクションが見つからない場合、ページ上部にスクロール
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }, 100); // 少し遅延させてDOMの更新を待つ
+                  }}
+                >
+                  <FiPlus className={styles.addIcon} />
+                  追加する
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className={styles.noRecommendations}>
+              <p>推薦可能な日程がありません</p>
             </div>
-          ))
-        ) : (
-          <div className={styles.noRecommendations}>
-            <p>推薦可能な日程がありません</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
+    )
+    );
 };
 
 export default AIRecommendation; 
