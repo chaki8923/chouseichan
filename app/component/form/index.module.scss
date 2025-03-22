@@ -3080,11 +3080,6 @@
   position: relative;
   overflow: hidden;
   
-  &::before {
-    content: "▼";
-    margin-right: 8px;
-    font-size: 1.1rem;
-  }
   
   &:hover {
     background-color: #eef2ff;

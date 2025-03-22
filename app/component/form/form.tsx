@@ -781,7 +781,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
             onClick={toggleDetailSettings}
             className={styles.detailSettingsToggle}
           >
-            {showDetailSettings ? '詳細設定を閉じる' : '詳細を入力する（任意）'}
+            {showDetailSettings ? '▲ 詳細設定を閉じる' : '▼ 詳細を入力する（任意）'}
           </button>
 
           {/* 詳細設定部分 - showDetailSettingsがtrueの場合のみ表示 */}

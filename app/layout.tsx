@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Noto_Sans_JP } from "next/font/google";
 import NextTopLoader from 'nextjs-toploader';
@@ -28,9 +28,13 @@ const notoSansJP = Noto_Sans_JP({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: '#000000',
+};
+
 export const metadata: Metadata = {
   title: "調整ちゃん | 簡単日程調整 ",
-  description: "「調整ちゃん」はたったの2ステップでイベント登録。調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。",
+  description: "「調整ちゃん」はたったの2ステップでイベント登録。出欠管理が簡単！調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるようにするサービスですGoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。",
   keywords: ["イベント","簡単", "幹事","スケジュール", "調整", "日程調整", "スケジュール調整","カレンダー", "予定", "出欠", "グループ", "チーム", "オンライン"],
   robots: "index, follow",
   metadataBase: new URL('https://www.chouseichan.com'),
@@ -58,6 +62,12 @@ export const metadata: Metadata = {
       },
     ],
     locale: 'ja_JP',
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: '調整ちゃん',
   },
   twitter: {
     card: "summary_large_image",
