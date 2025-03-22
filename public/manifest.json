@@ -1,6 +1,6 @@
 {
-  "name": "出欠くん",
-  "short_name": "出欠くん",
+  "name": "調整ちゃん",
+  "short_name": "調整ちゃん",
   "description": "出欠管理アプリ",
   "start_url": "/",
   "display": "standalone",
