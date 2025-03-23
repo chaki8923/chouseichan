@@ -37,8 +37,6 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     const params = await searchParams;
     const categoryId = typeof params.categoryId === 'string' ? params.categoryId : undefined;
 
-    console.log("categoryId", params.categoryId);
-
     if (!categoryId) {
         return {
             title: "イベントが見つかりません",
@@ -65,6 +63,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
             title: `${categoryName} | 調整ちゃん`,
             description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。GoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。`,
         },
+        alternates: {
+            canonical: `/situation?categoryId=${categoryId}`,
+          },
     };
 }
 

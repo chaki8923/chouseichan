@@ -44,6 +44,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: `${blogData.title} | 調整ちゃん`,
       description: `${blogData.title}に関する記事です。`,
     },
+    alternates: {
+      canonical: `/blog/${id}`,
+    },
   };
 }
 
