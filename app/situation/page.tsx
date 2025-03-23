@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getBlogPosts, getCategoryById } from '@/app/utils/getBlogPosts';
 import Form from '../component/form/form';
 import styles from "./index.module.scss";
+import { getWebPageStructuredData } from '../lib/structured-data';
 
 
 interface PageProps {
@@ -34,7 +35,9 @@ type Blog = {
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
     const params = await searchParams;
-    const categoryId = typeof params.categoryId === "string" ? params.categoryId : undefined;
+    const categoryId = typeof params.categoryId === 'string' ? params.categoryId : undefined;
+
+    console.log("categoryId", params.categoryId);
 
     if (!categoryId) {
         return {
@@ -43,31 +46,42 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
         };
     }
 
-    const posts = await getBlogPosts(categoryId);
-
-    if (!posts.length) {
+    const categoryData = await getCategoryById(categoryId);
+    
+    if (!categoryData) {
         return {
-            title: "ブログが見つかりません",
-            description: "指定されたイベントが存在しません。",
+            title: "カテゴリーが見つかりません",
+            description: "指定されたカテゴリーが存在しません。",
         };
     }
 
-    const categoryName = posts[0].category?.name || "カテゴリなし";
+    const categoryName = categoryData?.name || '全カテゴリー';
 
     return {
         title: `${categoryName} | 調整ちゃん`,
-        description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！`,
-        keywords: [ `${categoryName}`,"イベント", "幹事","スケジュール", "調整", "日程調整"], 
+        description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。GoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。`,
+        keywords: [ `${categoryName}`,"イベント", "幹事","スケジュール", "調整", "日程調整", "出欠管理", "AI", "日程提案"], 
         openGraph: {
             title: `${categoryName} | 調整ちゃん`,
-            description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！`,
+            description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。GoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。`,
         },
     };
 }
 
+// 構造化データを生成する関数
+function generateStructuredData(categoryName: string) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chouseichan.com';
+    
+    return getWebPageStructuredData({
+        title: `${categoryName} | 調整ちゃん`,
+        description: `${categoryName}のイベント作成と予定調整ができます。`,
+        url: `${baseUrl}/situation`
+    });
+}
+
 export default async function Page({ searchParams }: PageProps) {
     const params = await searchParams;
-    const categoryId = typeof params.categoryId === "string" ? params.categoryId : undefined;
+    const categoryId = typeof params.categoryId === 'string' ? params.categoryId : undefined;
 
     if (!categoryId) {
         return <p>カテゴリーIDが指定されていません</p>;
@@ -83,9 +97,18 @@ export default async function Page({ searchParams }: PageProps) {
     const defaultTime = categoryData?.defaultTime || (posts.length > 0 ? posts[0].category?.defaultTime || 19 : 19);
     const description = categoryData?.description || (posts.length > 0 ? posts[0].category?.description || "カテゴリなし" : "カテゴリなし");
     const eyecatchUrl = categoryData?.eyecatch?.url || (posts.length > 0 && posts[0].category?.eyecatch?.url) || null;
+    
+    // 構造化データを生成
+    const structuredData = generateStructuredData(categoryName);
 
     return (
         <>
+            {/* 構造化データを追加 */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+            />
+            
             {/* カテゴリーのアイキャッチヘッダー */}
             {eyecatchUrl && (
                 <div className={styles.categoryHeader}>

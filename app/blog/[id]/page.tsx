@@ -4,6 +4,7 @@ import { client } from '@/libs/microcms';
 import dayjs from 'dayjs';
 import { getBlogPosts } from '@/app/utils/getBlogPosts';
 import styles from "./index.module.scss"
+import { getBlogStructuredData } from '@/app/lib/structured-data';
 
 
 // ブログ記事の型定義
@@ -46,6 +47,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
+// ブログ記事用の構造化データを準備
+function prepareBlogStructuredData(post: Props) {
+  return {
+    title: post.title,
+    description: `${post.title}に関する記事です。`,
+    image: post.eyecatch?.url,
+    publishedAt: post.publishedAt,
+    author: '調整ちゃん',
+  };
+}
+
 // 記事詳細ページの生成
 export default async function BlogPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params; // IDを取得
@@ -57,39 +69,48 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
   //現在表示中の記事は除外する
   const filteredRelatedPosts = relatedPosts.filter((relatedPost) => relatedPost.id !== id);
 
-
-
   // dayjsを使ってpublishedAtをYY.MM.DD形式に変換
   const formattedDate = dayjs(post.publishedAt).format('YY.MM.DD');
 
+  // 構造化データを生成
+  const blogData = prepareBlogStructuredData(post);
+  const blogJsonLd = getBlogStructuredData(blogData);
+
   return (
-    <main className={styles.container}>
-      <article className={styles.article}>
-        <h1>{post.title}</h1> {/* タイトルを表示 */}
-        <img src={post.eyecatch.url} alt="" className={styles.eyecatch} />
-        <p>作成日:{formattedDate}</p> {/* 日付を表示 */}
-        <div dangerouslySetInnerHTML={{ __html: post.body }} /> {/* 記事本文を表示 */}
-      </article>
-      <div className={styles.sidebar}>
-        <h2 className={styles.relateTitle}>関連記事</h2>
-        <ul className={styles.relatedPosts}>
-          {relatedPosts.length > 0 && filteredRelatedPosts.length === 0 && (
-            <p>関連記事はありません</p>
-          )}
-          {filteredRelatedPosts.map((relatedPost) => (
-            <Link key={relatedPost.id} href={`/blog/${relatedPost.id}`}>
-            <li className={styles.relatedPost}>
-              <div className={styles.blogCard}>
-                <img src={relatedPost.eyecatch!.url} alt="" />
-                <h3 className={styles.blogCardTitle}>{relatedPost.title}</h3>
-              </div>
-              <span className={styles.tags}>{relatedPost.category!.name}</span>
-            </li>
-            </Link>
-          ))}
-        </ul>
-      </div>
-    </main>
+    <>
+      {/* 構造化データを追加 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+      />
+      <main className={styles.container}>
+        <article className={styles.article}>
+          <h1>{post.title}</h1> {/* タイトルを表示 */}
+          <img src={post.eyecatch.url} alt="" className={styles.eyecatch} />
+          <p>作成日:{formattedDate}</p> {/* 日付を表示 */}
+          <div dangerouslySetInnerHTML={{ __html: post.body }} /> {/* 記事本文を表示 */}
+        </article>
+        <div className={styles.sidebar}>
+          <h2 className={styles.relateTitle}>関連記事</h2>
+          <ul className={styles.relatedPosts}>
+            {relatedPosts.length > 0 && filteredRelatedPosts.length === 0 && (
+              <p>関連記事はありません</p>
+            )}
+            {filteredRelatedPosts.map((relatedPost) => (
+              <Link key={relatedPost.id} href={`/blog/${relatedPost.id}`}>
+              <li className={styles.relatedPost}>
+                <div className={styles.blogCard}>
+                  <img src={relatedPost.eyecatch!.url} alt="" />
+                  <h3 className={styles.blogCardTitle}>{relatedPost.title}</h3>
+                </div>
+                <span className={styles.tags}>{relatedPost.category!.name}</span>
+              </li>
+              </Link>
+            ))}
+          </ul>
+        </div>
+      </main>
+    </>
   );
 }
 

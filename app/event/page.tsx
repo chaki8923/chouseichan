@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { Metadata } from "next";
 import { fetchEventWithSchedules } from "@/app/utils/fetchEventData";
 import EventDetails from "@/app/event/presenter";
-import Script from 'next/script';
+import { getEventStructuredData } from "@/app/lib/structured-data";
 
 interface SearchParams {
   eventId?: string;
@@ -51,30 +51,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   };
 }
 
-// イベントスキーママークアップを生成する関数
-function generateEventSchema(eventData: any) {
+// イベントスキーママークアップ用のデータを準備する関数
+function prepareEventStructuredData(eventData: any) {
   if (!eventData) return null;
-  
-  // イベントステータスの対応付け
-  const getEventStatus = () => {
-    if (!eventData.schedules || eventData.schedules.length === 0) return "EventScheduled";
-    
-    // いずれかの日程が確定されている場合
-    const hasConfirmedSchedule = eventData.schedules.some((s: any) => s.isConfirmed);
-    if (hasConfirmedSchedule) return "EventScheduled";
-    
-    return "EventScheduled"; // デフォルトは予定通り
-  };
-  
-  // イベント開催場所の生成（仮）
-  const location = {
-    "@type": "Place",
-    "name": "未定",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "未定"
-    }
-  };
   
   // 確定済みの日程があればその日時を使用、なければ最初の日程を使用
   const confirmedSchedule = eventData.schedules?.find((s: any) => s.isConfirmed);
@@ -93,28 +72,21 @@ function generateEventSchema(eventData: any) {
   const endDate = new Date(startDate);
   endDate.setHours(endDate.getHours() + 2);
   
-  return {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    "name": eventData.name,
-    "description": eventData.memo || `${eventData.name}の詳細ページです。`,
-    "startDate": startDate.toISOString(),
-    "endDate": endDate.toISOString(),
-    "eventStatus": `https://schema.org/${getEventStatus()}`,
-    "location": location,
-    "image": eventData.image || "https://www.chouseichan.com/default-event-image.jpg",
-    "organizer": {
-      "@type": "Person",
-      "name": eventData.user?.name || "主催者"
+  // 構造化データ用のイベントオブジェクトを作成
+  const structuredEvent = {
+    title: eventData.name,
+    description: eventData.memo || `${eventData.name}の詳細ページです。`,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    location: "未定",
+    address: {
+      addressLocality: "未定"
     },
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "JPY",
-      "availability": "https://schema.org/InStock",
-      "validFrom": new Date().toISOString()
-    },
+    organizer: eventData.user?.name || "主催者",
+    id: eventData.id
   };
+  
+  return structuredEvent;
 }
 
 export default async function EventPage({ searchParams }: PageProps) {
@@ -129,8 +101,11 @@ export default async function EventPage({ searchParams }: PageProps) {
   // イベントデータの取得
   const eventData = await fetchEventWithSchedules(eventId);
   
-  // JSONLDデータを生成
-  const eventSchemaData = generateEventSchema(eventData);
+  // 構造化データ用のイベント情報を準備
+  const preparedEventData = prepareEventStructuredData(eventData);
+  
+  // ヘルパー関数を使用して構造化データを生成
+  const eventSchemaData = preparedEventData ? getEventStructuredData(preparedEventData) : null;
   
   return (
     <>

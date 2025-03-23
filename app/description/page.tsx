@@ -1,5 +1,18 @@
 import { Metadata } from 'next';
 import Description from './Description';
+import { getWebPageStructuredData } from "../lib/structured-data";
+
+// 構造化データを生成する関数
+function generateStructuredData() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chouseichan.com';
+  
+  return getWebPageStructuredData({
+      title: "使い方 | 調整ちゃん",
+      description: "調整ちゃんの使い方を説明するページです。",
+      url: `${baseUrl}/description`
+  });
+}
+
 
 export const metadata: Metadata = {
   title: '使い方 | 調整ちゃん',
@@ -19,5 +32,14 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <Description />;
+  const structuredData = generateStructuredData();
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <Description />
+    </>
+  );
 } 

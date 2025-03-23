@@ -5,7 +5,10 @@ export const metadata: Metadata = {
     title: "プライバシーポリシー | 調整ちゃん",
     description: "プライバシーポリシー",
     keywords: ["イベント", "幹事","スケジュール", "調整", "日程調整"],
-    robots: "index, follow"
+    robots: "index, follow",
+    twitter: {
+        title: "プライバシーポリシー | 調整ちゃん",
+      },
 };
 
 export default function rule() {
