@@ -162,6 +162,10 @@ export default function Form(props: SchedulesProp) {
       return; // フォーム送信を中止
     }
 
+    console.log("user_name", params.user_name);
+    console.log("userId", userId);
+    
+
     // APIに送信するデータ
     const data = userId ? {
       userId,

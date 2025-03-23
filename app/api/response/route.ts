@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest) {
       return validationError;
     }
     
-    const { userId, schedules, comment } = await request.json();
+    const { userId, user_name, schedules, comment } = await request.json();
 
     if (!userId || !schedules || schedules.length === 0) {
       return NextResponse.json(
