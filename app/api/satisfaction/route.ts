@@ -7,6 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     const { eventId, rating, comment } = data;
+    
 
     // 入力検証
     if (!eventId) {
