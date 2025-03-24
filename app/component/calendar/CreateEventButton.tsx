@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Schedule } from "@/types/schedule";
 import { Event } from "@/types/event";
 import { FcGoogle } from "react-icons/fc";
-import {  FiCheck } from "react-icons/fi";
+import { FiCheck } from "react-icons/fi";
 // import { signOut } from "next-auth/react";
 import Modal from "../modal/modal";
 import styles from "./index.module.scss"
@@ -14,8 +14,13 @@ export function CreateEventButton({ accessToken, refreshToken, confirmedSchedule
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!confirmedSchedule) return null;
-  
+  if (!confirmedSchedule) return (
+    <div className={styles.syncInfoText}>
+        <FcGoogle className={styles.google} />
+      <span className={styles.addEvent}>日程確定後にGoogleカレンダーと連携できます</span>
+    </div>
+  )
+
   const handleCreateEvent = async () => {
     setLoading(true);
     // 日付を UTC 文字列から `YYYY-MM-DD` に変換
