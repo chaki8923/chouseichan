@@ -584,7 +584,6 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
           }
         } catch (error) {
           // 振動APIが利用できない場合は静かに失敗
-          console.log('Vibration API is not supported');
         }
       } else {
         setLoading(false);
@@ -624,15 +623,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
     return () => clearTimeout(timeoutId);
   }, [eventNameValue, schedules, memoValue, validationError, checkFormValidity, trigger]);
 
-  const handleHistoryExists = useCallback((exists: boolean) => {
-    // 確実に状態を更新するために一度古い値をリセット
-    setHasHistory(false);
-    // 非同期で状態を更新（確実に更新を反映するため）
-    setTimeout(() => {
-      setHasHistory(exists);
-    }, 0);
-  }, []);
-
+ 
   // 詳細設定の表示・非表示を切り替える関数
   const toggleDetailSettings = () => {
     setShowDetailSettings(!showDetailSettings);
