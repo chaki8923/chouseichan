@@ -185,23 +185,23 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
   // defaultTimeが変更されたときにフォームの値を更新
   useEffect(() => {
-    // 初回のみ、または空の日程に対してのみデフォルト時間を設定
-    schedules.forEach((schedule, index) => {
-      // 空のスケジュールや新しく追加されたスケジュールにのみデフォルト値を設定
-      if (!schedule.time || schedule.time === '') {
-        setValue(`schedules.${index}.time`, `${defaultTime}:00`);
-
-        // stateも更新（ただし依存配列にschedulesを含めないため、関数形式で更新）
-        setSchedules(prev => {
-          const updated = [...prev];
-          if (updated[index]) {
-            updated[index].time = `${defaultTime}:00`;
-          }
-          return updated;
-        });
-      }
+    console.log(`defaultTime変更を検知: ${defaultTime}`);
+    
+    // すべてのスケジュールの時間をデフォルト時間に更新
+    const updatedSchedules = schedules.map(schedule => ({
+      ...schedule,
+      time: `${defaultTime}:00`
+    }));
+    
+    // スケジュールのステートを更新
+    setSchedules(updatedSchedules);
+    
+    // フォーム値も同期して更新
+    updatedSchedules.forEach((schedule, index) => {
+      setValue(`schedules.${index}.time`, `${defaultTime}:00`);
     });
-  }, [defaultTime, setValue]); // schedulesを依存配列から除外
+    
+  }, [defaultTime, setValue, schedules.length]); // schedules.lengthのみを依存配列に追加（無限ループ防止）
 
   // フォームの値をwatch
   const eventNameValue = watch('event_name');
