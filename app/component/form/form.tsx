@@ -206,7 +206,6 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
   // フォームの値をwatch
   const eventNameValue = watch('event_name');
   const memoValue = watch('memo');
-  const responseDeadlineValue = watch('responseDeadline');
 
   // クライアントサイドの処理を行うための処理
   useEffect(() => {

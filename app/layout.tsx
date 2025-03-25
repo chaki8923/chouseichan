@@ -108,8 +108,8 @@ export default function RootLayout({
         <NextTopLoader color="#E195AB" showSpinner={false} />
         <Header />
         <main className="main">{children}</main>
-        <Footer /> 
         <Situation />
+        <Footer /> 
         <ScrollToTopButton />
         <div id="portal-root" style={{ position: 'fixed', top: 0, left: 0, zIndex: 999999 }}></div>
       </body>
