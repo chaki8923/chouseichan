@@ -40,10 +40,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   return {
     title: `${blogData.title} | 調整ちゃん`,
-    description: `${blogData.title}に関する記事です。`,
+    description: `${blogData.meta}`,
     openGraph: {
       title: `${blogData.title} | 調整ちゃん`,
-      description: `${blogData.title}に関する記事です。`,
+      description: `${blogData.meta}に関する記事です。`,
     },
     alternates: {
       canonical: `/blog/${id}`,
@@ -53,6 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 // ブログ記事用の構造化データを準備
 function prepareBlogStructuredData(post: Props) {
+  
   return {
     title: post.title,
     description: `${post.meta}`,
