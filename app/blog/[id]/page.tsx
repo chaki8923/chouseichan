@@ -12,6 +12,7 @@ type Props = {
   id: string;
   title: string;
   body: string;
+  meta: string;
   publishedAt: string;
   category: { id: string; name: string };
   eyecatch: { url: string };
@@ -54,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 function prepareBlogStructuredData(post: Props) {
   return {
     title: post.title,
-    description: `${post.title}に関する記事です。`,
+    description: `${post.meta}`,
     image: post.eyecatch?.url,
     publishedAt: post.publishedAt,
     author: '調整ちゃん',
