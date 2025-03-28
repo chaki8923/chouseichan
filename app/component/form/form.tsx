@@ -201,7 +201,7 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       setValue(`schedules.${index}.time`, `${defaultTime}:00`);
     });
     
-  }, [defaultTime, setValue, schedules.length]); // schedules.lengthのみを依存配列に追加（無限ループ防止）
+  }, [defaultTime, setValue]); // カテゴリ変更時のみ実行するように修正
 
   // フォームの値をwatch
   const eventNameValue = watch('event_name');
@@ -361,8 +361,6 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
       { date: '', time: newTime }
     ], { shouldValidate: true });
 
-    // デバッグログ
-    console.log('新しい日程を追加:', newSchedule);
 
     // 日程が追加されたら、バリデーションを再評価する
     setTimeout(() => {
