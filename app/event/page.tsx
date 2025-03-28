@@ -41,7 +41,14 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     openGraph: {
       title: `${eventData.name} | 調整ちゃん`,
       description: eventData.memo || `${eventData.name}`,
-      images: eventData.image ? [eventData.image] : [],
+      images: [
+        {
+          url: "/logo.png", // `public` フォルダの画像を使用
+          width: 1200,
+          height: 630,
+          alt: "調整ちゃんロゴ",
+        },
+      ],
       url: `${baseUrl}/event?eventId=${eventId}`,
       type: 'article',
     },
