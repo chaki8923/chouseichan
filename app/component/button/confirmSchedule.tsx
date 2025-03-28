@@ -46,8 +46,8 @@ export function ConfirmScheduleButton({ scheduleId, eventId, buttonText, onConfi
     
     // 確定と解除のメッセージを修正
     const title = actionType === 'confirm' 
-      ? '出欠確定を解除しました' 
-      : '出欠を確定しました';
+      ? '日程確定を解除しました' 
+      : '日程を確定しました';
     
     const content = actionType === 'confirm'
       ? 'スケジュールの出欠確定を解除しました。'
