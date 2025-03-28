@@ -4,7 +4,9 @@ import { client } from '@/libs/microcms';
 import dayjs from 'dayjs';
 import { getBlogPosts } from '@/app/utils/getBlogPosts';
 import styles from "./index.module.scss"
+import "./index.css"
 import { getBlogStructuredData } from '@/app/lib/structured-data';
+import Script from 'next/script';
 
 
 // ブログ記事の型定義
@@ -88,6 +90,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
+      
+      {/* 吹き出しスタイル適用のためのフォールバックスクリプト */}
+      <Script src="/blog/scripts/fukidasi.js" strategy="afterInteractive" />
+      
       <main className={styles.container}>
         <article className={styles.article}>
           <h1>{post.title}</h1> {/* タイトルを表示 */}

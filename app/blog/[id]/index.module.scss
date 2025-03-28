@@ -276,4 +276,22 @@
         height: 150px;
         margin-bottom: 0.75rem;
     }
+    
+    /* 吹き出しのレスポンシブ対応 */
+    .fukidasi_man, .fukidasi_femail {
+        margin-left: 55px;
+        padding: 1rem 1.2rem;
+    }
+    
+    .fukidasi_man::after, .fukidasi_femail::after {
+        width: 40px;
+        height: 40px;
+        left: -50px;
+    }
+    
+    .fukidasi_man::before, .fukidasi_femail::before {
+        top: 15px;
+        left: -12px;
+        border-width: 6px;
+    }
 }

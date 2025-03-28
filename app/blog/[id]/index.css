@@ -1,0 +1,182 @@
+/* 男性用吹き出し - 親要素のpタグにスタイルを適用 */
+p:has(.fukidasi_man) {
+    position: relative;
+    margin: 2rem 0 2rem 70px;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    line-height: 1.8;
+    color: var(--neutral, #333);
+    background-color: #E7F1FE;
+    border: 2px solid #C6E2FF;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+p:has(.fukidasi_man)::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: -15px;
+    border: 8px solid transparent;
+    border-right-color: #C6E2FF;
+    z-index: 2;
+}
+
+p:has(.fukidasi_man)::after {
+    content: '';
+    position: absolute;
+    left: -60px;
+    top: 0;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-image: url('/icon_male.jpg');
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid white;
+}
+
+/* 女性用吹き出し - 親要素のpタグにスタイルを適用 */
+p:has(.fukidasi_female) {
+    position: relative;
+    margin: 2rem 0 2rem 70px;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    line-height: 1.8;
+    color: var(--neutral, #333);
+    background-color: #FFF0F5;
+    border: 2px solid #FFD6E7;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+p:has(.fukidasi_female)::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: -15px;
+    border: 8px solid transparent;
+    border-right-color: #FFD6E7;
+    z-index: 2;
+}
+
+p:has(.fukidasi_female)::after {
+    content: '';
+    position: absolute;
+    left: -60px;
+    top: 0;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-image: url('/icon_female.jpg');
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid white;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    p:has(.fukidasi_man), p:has(.fukidasi_female) {
+        margin-left: 55px;
+        padding: 1rem 1.2rem;
+    }
+    
+    p:has(.fukidasi_man)::after, p:has(.fukidasi_female)::after {
+        width: 40px;
+        height: 40px;
+        left: -50px;
+    }
+    
+    p:has(.fukidasi_man)::before, p:has(.fukidasi_female)::before {
+        top: 15px;
+        left: -12px;
+        border-width: 6px;
+    }
+}
+
+/* IE11などの古いブラウザ向けフォールバック - JavaScript必須 */
+.fukidasi_parent_man {
+    position: relative;
+    margin: 2rem 0 2rem 70px;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    line-height: 1.8;
+    color: var(--neutral, #333);
+    background-color: #E7F1FE;
+    border: 2px solid #C6E2FF;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.fukidasi_parent_man::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: -15px;
+    border: 8px solid transparent;
+    border-right-color: #C6E2FF;
+    z-index: 2;
+}
+
+.fukidasi_parent_man::after {
+    content: '';
+    position: absolute;
+    left: -60px;
+    top: 0;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-image: url('/icon_male.jpg');
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid white;
+}
+
+.fukidasi_parent_femail {
+    position: relative;
+    margin: 2rem 0 2rem 70px;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    line-height: 1.8;
+    color: var(--neutral, #333);
+    background-color: #FFF0F5;
+    border: 2px solid #FFD6E7;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.fukidasi_parent_femail::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: -15px;
+    border: 8px solid transparent;
+    border-right-color: #FFD6E7;
+    z-index: 2;
+}
+
+.fukidasi_parent_femail::after {
+    content: '';
+    position: absolute;
+    left: -60px;
+    top: 0;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-image: url('/icon_female.jpg');
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid white;
+}
