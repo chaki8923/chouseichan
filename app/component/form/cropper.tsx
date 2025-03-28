@@ -255,6 +255,8 @@ export default function App(props: onDataChange) {
 
     // ここでファイルサイズをチェック
     const maxSize = 1024 * 1024 * 1; // 1MB
+    console.log("file.size", file.size);
+    
     if (file.size > maxSize) {
       const errorMsg = 'クロップ後の画像が1MBを超えています。より小さく切り取るか、別の画像を選択してください。';
       setFileError(errorMsg);
