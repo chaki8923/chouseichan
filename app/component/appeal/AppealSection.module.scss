@@ -1,0 +1,156 @@
+.appealContainer {
+  width: 100%;
+  background-color: #f8f9fa;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
+}
+
+.appealTitle {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #DE3163;
+  margin-bottom: 2.5rem;
+  position: relative;
+  
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: -0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #DE3163, #e195ab);
+    border-radius: 4px;
+  }
+}
+
+.stepsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  margin-bottom: 2rem;
+  
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stepNumber {
+  display: inline-block;
+  background-color: #DE3163;
+  color: white;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  font-size: 1rem;
+  margin-right: 1rem;
+  box-shadow: 0 4px 8px rgba(222, 49, 99, 0.25);
+}
+
+.stepTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.stepDescription {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.stepImageWrapper {
+  margin-top: auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 768px) {
+    margin-top: 1.5rem;
+  }
+}
+
+.stepImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.appealFooter {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.appealFooterText {
+  display: inline-block;
+  background-color: #f0f4f8;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  color: #555;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+  .appealContainer {
+    padding: 2rem 1.5rem;
+  }
+  
+  .appealTitle {
+    font-size: 1.8rem;
+  }
+  
+  .stepTitle {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .appealContainer {
+    padding: 1.5rem 1rem;
+  }
+  
+  .appealTitle {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stepsContainer {
+    gap: 2rem;
+  }
+} 

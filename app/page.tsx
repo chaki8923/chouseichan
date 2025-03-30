@@ -2,6 +2,7 @@ import Form from "./component/form/form";
 import styles from "./index.module.scss"
 import { getDefaultWebsiteStructuredData } from "./lib/structured-data";
 import type { Metadata } from "next";
+import AppealSection from "./component/appeal/AppealSection";
 
 // メインページ用のメタデータを静的に定義
 export const generateMetadata = (): Metadata => {
@@ -28,8 +29,11 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className={styles.container}>
-        <Form categoryName="イベント" defaultTime={19}/>
+      <div className={styles.mainContent}>
+        <AppealSection />
+        <div className={styles.formContainer}>
+          <Form categoryName="イベント" defaultTime={19}/>
+        </div>
       </div>
     </>
   );
