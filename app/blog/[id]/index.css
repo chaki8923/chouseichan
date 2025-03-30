@@ -180,3 +180,12 @@ p:has(.fukidasi_female)::after {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 2px solid white;
 }
+
+
+ul {
+    list-style-type: disc;
+}
+
+ol {
+    list-style-type: decimal;
+}
