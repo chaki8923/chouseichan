@@ -7,7 +7,7 @@ import styles from './AppealSection.module.scss';
 export default function AppealSection() {
   return (
     <div className={styles.appealContainer}>
-      <h2 className={styles.appealTitle}>たった2ステップで簡単日程調整</h2>
+      <h2 className={styles.appealTitle}>ログイン不要で簡単日程調整</h2>
       
       <div className={styles.stepsContainer}>
         <div className={styles.step}>
@@ -34,7 +34,7 @@ export default function AppealSection() {
         <div className={styles.step}>
           <div className={styles.stepHeader}>
             <div className={styles.stepNumber}>STEP 2</div>
-            <h3 className={styles.stepTitle}>URLを共有して仲間を招待</h3>
+            <h3 className={styles.stepTitle}>URLを仲間に共有</h3>
           </div>
           <p className={styles.stepDescription}>
             生成されたURLを友達や仲間に共有するだけ。<br />
