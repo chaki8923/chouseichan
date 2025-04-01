@@ -2038,6 +2038,34 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
     validateEventTitle(newTitle);
   };
 
+  // メモ文字列を加工して改行とリンクを処理する関数
+  const formatMemoWithLinks = (text: string) => {
+    if (!text) return '';
+    
+    // HTMLエスケープ処理
+    const escapeHtml = (str: string) => {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+    
+    // まずHTMLエスケープ
+    let escapedText = escapeHtml(text);
+    
+    // URLをリンクに変換 (HTTPとHTTPSのみ対応)
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    escapedText = escapedText.replace(urlRegex, (url) => {
+      // target="_blank"で新しいタブで開く、rel="noopener noreferrer"でセキュリティ対策
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${styles.memoLink}">${url}</a>`;
+    });
+    
+    // 改行を<br>に変換
+    return escapedText.replace(/\n/g, '<br>');
+  };
+
   return (
     <>
       {/* フローティングアニメーションを追加 */}
@@ -2443,7 +2471,7 @@ export default function EventDetails({ eventId, session }: { eventId: string, se
                   alt="Event Crop Image"
                   onClick={handleEventImageClick}
                   className={styles.eventImage} />
-                <h2 className={styles.memo}>{eventData.memo}</h2>
+                <h2 className={styles.memo} dangerouslySetInnerHTML={{ __html: formatMemoWithLinks(eventData.memo) }}></h2>
               </>
             )}
           </section>
