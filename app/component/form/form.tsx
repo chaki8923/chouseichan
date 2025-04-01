@@ -346,21 +346,39 @@ export default function Form({ categoryName, defaultTime }: { categoryName: stri
 
   // 日程を追加するボタンクリック時の処理
   const AddSchedule = () => {
+    // 現在の日程リストを取得
+    const currentSchedules = getValues('schedules') || [];
+    
+    // 一つ前の日程の時間と日付を取得（ない場合はデフォルト値を使用）
+    let newTime = `${defaultTime}:00`; // デフォルト値
+    let newDate = ''; // デフォルト値は空（日付未選択）
+    
+    if (currentSchedules.length > 0) {
+      const prevSchedule = currentSchedules[currentSchedules.length - 1];
+      
+      // 一つ前の日程の時間があれば、それを使用
+      if (prevSchedule.time) {
+        newTime = prevSchedule.time;
+      }
+      
+      // 一つ前の日程の日付があれば、それを使用
+      if (prevSchedule.date) {
+        newDate = prevSchedule.date;
+      }
+    }
+
     // 新しい日程をスケジュールに追加
-    const newTime = `${defaultTime}:00`;
-    const newSchedule = { id: Date.now(), date: '', time: newTime };
+    const newSchedule = { id: Date.now(), date: newDate, time: newTime };
     setSchedules((prevSchedules) => [
       ...prevSchedules,
       newSchedule
     ]);
 
     // フォームに追加した日程を追加
-    const currentSchedules = getValues('schedules') || [];
     setValue('schedules', [
       ...currentSchedules,
-      { date: '', time: newTime }
+      { date: newDate, time: newTime }
     ], { shouldValidate: true });
-
 
     // 日程が追加されたら、バリデーションを再評価する
     setTimeout(() => {
