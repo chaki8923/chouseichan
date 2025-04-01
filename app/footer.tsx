@@ -39,6 +39,9 @@ const Footer: React.FC = () => {
             <a href="https://x.com/choseichan2025" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
               <FaSquareXTwitter size={24} />
             </a>
+            <a href="https://line.me/S/sticker/30285837" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+              <FaLine size={24} />
+            </a>
           </div>
         </div>
       </div>
