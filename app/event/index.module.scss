@@ -374,7 +374,10 @@
   font-weight: normal;
   flex: 1;
   text-align: left;
-  
+  position: relative;
+  border: 2px solid #de3163;
+  padding: 6px;
+  border-radius: 8px;
   @media (max-width: 768px) {
     font-size: 14px;
     text-align: center;
