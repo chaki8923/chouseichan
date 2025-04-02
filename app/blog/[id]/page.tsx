@@ -94,6 +94,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
       {/* 吹き出しスタイル適用のためのフォールバックスクリプト */}
       <Script src="/blog/scripts/fukidasi.js" strategy="afterInteractive" />
       
+      {/* FAQ用のフォールバックスクリプト */}
+      <Script src="/blog/scripts/faq.js" strategy="afterInteractive" />
+      
       <main className={styles.container}>
         <article className={styles.article}>
           <h1>{post.title}</h1> {/* タイトルを表示 */}
