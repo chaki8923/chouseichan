@@ -91,6 +91,7 @@ model Event {
   schedules Schedule[]
   images    EventImage[]
   restaurants Restaurant[]
+  restaurantVoteLimit RestaurantVoteLimit?
 }
 
 model Schedule {
@@ -169,4 +170,14 @@ model SatisfactionTable {
   updatedAt    DateTime   @updatedAt
 
   @@index([eventId])
+}
+
+// 投票期限モデル
+model RestaurantVoteLimit {
+  id           String     @id @default(cuid())
+  eventId      String     @unique // 関連するイベントID
+  deadline     DateTime   // 投票期限日時
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  event        Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }

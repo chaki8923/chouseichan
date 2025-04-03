@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink, ThumbsUp, AlertCircle, X, Check, Loader2, Utensils, Upload } from 'lucide-react';
-import { FiTrash2, FiCheck, FiX } from 'react-icons/fi';
+import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink, ThumbsUp, AlertCircle, X, Check, Loader2, Utensils, Upload, Clock, Calendar } from 'lucide-react';
+import { FiTrash2, FiCheck, FiX, FiClock } from 'react-icons/fi';
 import styles from './page.module.css';
 import { isEventOwner } from "@/app/utils/strages";
-import { Restaurant, RestaurantFormData } from '@/types/restaurant';
+import { Restaurant, RestaurantFormData, RestaurantVoteLimit } from '@/types/restaurant';
 import {
   getAnonymousId,
   hasVoted,
@@ -52,6 +52,13 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     message: ''
   });
   const [hasConfirmedStore, setHasConfirmedStore] = useState<boolean>(false);
+  const [voteLimit, setVoteLimit] = useState<RestaurantVoteLimit | null>(null);
+  const [voteLimitLoading, setVoteLimitLoading] = useState(false);
+  const [showVoteLimitForm, setShowVoteLimitForm] = useState(false);
+  const [voteLimitDate, setVoteLimitDate] = useState<string>('');
+  const [voteLimitTime, setVoteLimitTime] = useState<string>('09:00');
+  const [voteLimitError, setVoteLimitError] = useState<string | null>(null);
+  const [isVoteLimitExpired, setIsVoteLimitExpired] = useState(false);
 
   // フォーム状態
   const [formData, setFormData] = useState<RestaurantFormData>({
@@ -61,6 +68,19 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     description: '',
     eventId: eventId
   });
+
+  // デフォルトで時間の選択肢を生成
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let hour = 0; hour < 24; hour++) {
+      const hourStr = hour.toString().padStart(2, '0');
+      options.push(`${hourStr}:00`);
+    }
+    return options;
+  };
+
+  // 時間の選択肢
+  const timeOptions = generateTimeOptions();
 
   // フィールド変更時のバリデーション
   const validateField = (name: string, value: string) => {
@@ -256,6 +276,124 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     }
   }, [eventId]);
 
+  // 投票期限が過ぎているかどうかをチェック
+  const checkVoteLimitExpired = (deadline: Date) => {
+    const now = new Date();
+    return now > deadline;
+  };
+
+  // 投票期限を取得
+  const fetchVoteLimit = async () => {
+    try {
+      setVoteLimitLoading(true);
+      const response = await fetch(`/api/restaurants/vote-limit?eventId=${eventId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setVoteLimit(data);
+        
+        // 日付と時間を設定（フォーム用）
+        const deadline = new Date(data.deadline);
+        setVoteLimitDate(deadline.toISOString().split('T')[0]);
+        
+        // 時間を最も近い時間枠に丸める
+        const hours = deadline.getHours().toString().padStart(2, '0');
+        setVoteLimitTime(`${hours}:00`);
+        
+        // 期限切れかどうかをチェック
+        setIsVoteLimitExpired(checkVoteLimitExpired(deadline));
+      } else if (response.status === 404) {
+        // 投票期限が設定されていない場合
+        setVoteLimit(null);
+        setIsVoteLimitExpired(false);
+      } else {
+        console.error('投票期限取得エラー:', await response.json());
+      }
+    } catch (err) {
+      console.error('投票期限取得エラー:', err);
+    } finally {
+      setVoteLimitLoading(false);
+    }
+  };
+
+  // 投票期限を保存
+  const saveVoteLimit = async () => {
+    try {
+      setVoteLimitLoading(true);
+      setVoteLimitError(null);
+      
+      // 入力値のバリデーション
+      if (!voteLimitDate || !voteLimitTime) {
+        setVoteLimitError('日付と時間は必須です');
+        return;
+      }
+      
+      // 日付と時間を組み合わせる
+      const deadlineStr = `${voteLimitDate}T${voteLimitTime}:00`;
+      const deadline = new Date(deadlineStr);
+      
+      // 過去の日付かどうかチェック
+      if (checkVoteLimitExpired(deadline)) {
+        setVoteLimitError('過去の日時は設定できません');
+        return;
+      }
+      
+      // APIリクエスト
+      const response = await fetch('/api/restaurants/vote-limit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId,
+          deadline: deadline.toISOString()
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '投票期限の設定に失敗しました');
+      }
+      
+      const data = await response.json();
+      setVoteLimit(data);
+      setIsVoteLimitExpired(checkVoteLimitExpired(new Date(data.deadline)));
+      setShowVoteLimitForm(false);
+      
+    } catch (err: any) {
+      console.error('投票期限設定エラー:', err);
+      setVoteLimitError(err.message);
+    } finally {
+      setVoteLimitLoading(false);
+    }
+  };
+
+  // 投票期限を削除
+  const deleteVoteLimit = async () => {
+    try {
+      setVoteLimitLoading(true);
+      
+      const response = await fetch(`/api/restaurants/vote-limit?eventId=${eventId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '投票期限の削除に失敗しました');
+      }
+      
+      setVoteLimit(null);
+      setIsVoteLimitExpired(false);
+      setShowVoteLimitForm(false);
+      
+    } catch (err: any) {
+      console.error('投票期限削除エラー:', err);
+      setVoteLimitError(err.message);
+    } finally {
+      setVoteLimitLoading(false);
+    }
+  };
+
   // イベント情報と店舗一覧を取得
   useEffect(() => {
     const fetchData = async () => {
@@ -296,6 +434,9 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
         const votedId = getEventVote(eventId);
         setVotedRestaurantId(votedId);
 
+        // 投票期限を取得
+        await fetchVoteLimit();
+
       } catch (err: any) {
         console.error('データ取得エラー:', err);
         setError(err.message);
@@ -312,6 +453,9 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         resetForm();
+        // 投票期限設定フォームも閉じる
+        setShowVoteLimitForm(false);
+        setVoteLimitError(null);
       }
     };
 
@@ -672,6 +816,35 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
     };
   }, [decisionStatusModal.show]);
 
+  // 投票期限の表示を整形
+  const formatDeadline = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+  };
+
+  // 投票ボタンの表示可否
+  const canVote = () => {
+    // 確定済み店舗がある場合は投票不可
+    if (hasConfirmedStore) return false;
+    
+    // 投票期限が設定されていなければ投票可能
+    if (!voteLimit) return true;
+    
+    // 投票期限が過ぎていなければ投票可能
+    return !isVoteLimitExpired;
+  };
+
+  // 投票期限設定フォームを閉じる
+  const closeVoteLimitForm = () => {
+    setShowVoteLimitForm(false);
+    setVoteLimitError(null);
+  };
+
   // 一般的なローディング表示
   if (loading) {
     return (
@@ -713,6 +886,17 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
           <p className={styles.eventTitle}>
             {event?.title || event?.name || 'イベント名不明'}
           </p>
+          
+          {/* 投票期限表示 */}
+          {voteLimit && (
+            <div className={`${styles.voteLimitBadge} ${isVoteLimitExpired ? styles.expired : ''}`}>
+              <FiClock size={18} />
+              <span>
+                <strong>投票期限:</strong> {formatDeadline(new Date(voteLimit.deadline))}
+                {isVoteLimitExpired ? ' (終了しました)' : ''}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className={styles.buttonContainer}>
@@ -724,14 +908,24 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
             戻る
           </button>
 
-          {isOrganizer && (
-            <button
-              className={styles.addButton}
-              onClick={() => setShowForm(true)}
-            >
-              <Plus size={16} />
-              店舗追加
-            </button>
+          {(isOrganizer && process.env.NEXT_PUBLIC_FEATURE_FLAG === 'true' ) && (
+            <>
+              <button
+                className={styles.voteLimitButton}
+                onClick={() => setShowVoteLimitForm(true)}
+              >
+                <Clock size={16} />
+                {voteLimit ? '投票期限を変更' : '投票期限を設定'}
+              </button>
+              
+              <button
+                className={styles.addButton}
+                onClick={() => setShowForm(true)}
+              >
+                <Plus size={16} />
+                店舗追加
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -897,8 +1091,8 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                     </>
                   )}
 
-                  {/* 投票ボタン - 確定済み店舗がある場合は非表示 */}
-                  {!hasConfirmedStore && (
+                  {/* 投票ボタン */}
+                  {canVote() && (
                     <button
                       className={`${styles.voteButton} ${votedRestaurantId === restaurant.id ? styles.voted : styles.notVoted}`}
                       onClick={() => handleVote(restaurant.id)}
@@ -912,14 +1106,21 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
                       {votedRestaurantId === restaurant.id ? '投票済み' : '投票する'}
                     </button>
                   )}
-                </div>
 
-                {/* 確定済み店舗がある場合のメッセージ */}
-                {hasConfirmedStore && restaurant.decisionFlag && (
-                  <div className={styles.confirmedMessage}>
-                    <FiCheck size={16} /> この店舗に決定しました
-                  </div>
-                )}
+                  {/* 投票できない理由のメッセージ */}
+                  {!canVote() && !hasConfirmedStore && isVoteLimitExpired && (
+                    <div className={styles.voteLimitMessage}>
+                      <FiClock size={18} /> <strong>投票期限が終了しました</strong>
+                    </div>
+                  )}
+
+                  {/* 確定済み店舗がある場合のメッセージ */}
+                  {hasConfirmedStore && restaurant.decisionFlag && (
+                    <div className={styles.confirmedMessage}>
+                      <FiCheck size={16} /> この店舗に決定しました
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -1161,6 +1362,120 @@ export default function RestaurantVotePage({ params }: { params: { eventId: stri
             >
               閉じる
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 投票期限設定フォーム */}
+      {showVoteLimitForm && (
+        <div 
+          className={styles.modalOverlay}
+          onClick={closeVoteLimitForm}
+        >
+          <div 
+            className={styles.voteLimitFormContainer}
+            onClick={(e) => e.stopPropagation()} // 内側をクリックしても閉じないようにする
+          >
+            <div className={styles.formHeader}>
+              <h2 className={styles.formTitle}>
+                {voteLimit ? '投票期限を変更' : '投票期限を設定'}
+              </h2>
+              <button
+                className={styles.closeFormButton}
+                onClick={closeVoteLimitForm}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className={styles.voteLimitForm}>
+              {voteLimitError && (
+                <div className={styles.voteLimitError}>
+                  <AlertCircle size={16} />
+                  <span>{voteLimitError}</span>
+                </div>
+              )}
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  日付 <span className={styles.requiredBadge}>必須</span>
+                </label>
+                <div 
+                  className={styles.inputWithIcon} 
+                  onClick={() => {
+                    const dateInput = document.getElementById('datePicker') as HTMLInputElement;
+                    if (dateInput) {
+                      dateInput.focus();
+                      dateInput.showPicker && dateInput.showPicker();
+                    }
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Calendar size={18} className={styles.inputIcon} />
+                  <input
+                    id="datePicker"
+                    type="date"
+                    className={styles.formInput}
+                    value={voteLimitDate}
+                    onChange={(e) => setVoteLimitDate(e.target.value)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  時間 <span className={styles.requiredBadge}>必須</span>
+                </label>
+                <div className={styles.inputWithIcon} style={{ cursor: 'pointer' }}>
+                  <Clock size={18} className={styles.inputIcon} />
+                  <select
+                    className={`${styles.formInput}`}
+                    value={voteLimitTime}
+                    onChange={(e) => setVoteLimitTime(e.target.value)}
+                    style={{ cursor: 'pointer', paddingLeft: '35px' }}
+                  >
+                    {timeOptions.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.voteLimitActions}>
+                {voteLimit && (
+                  <button
+                    type="button"
+                    className={styles.deleteVoteLimitButton}
+                    onClick={deleteVoteLimit}
+                    disabled={voteLimitLoading}
+                  >
+                    {voteLimitLoading ? (
+                      <Loader2 className={styles.loadingIcon} size={16} />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                    期限を削除
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className={styles.saveVoteLimitButton}
+                  onClick={saveVoteLimit}
+                  disabled={voteLimitLoading}
+                >
+                  {voteLimitLoading ? (
+                    <Loader2 className={styles.loadingIcon} size={16} />
+                  ) : (
+                    <Check size={16} />
+                  )}
+                  {voteLimit ? '変更する' : '設定する'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

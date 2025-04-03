@@ -144,6 +144,10 @@
   margin-bottom: 30px;
 }
 
+.formTime{
+  padding-left: 25px!important;
+}
+
 .restaurantCard {
   background-color: white;
   border-radius: 10px;
@@ -649,6 +653,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  padding: 0!important;
   transition: background-color 0.2s ease;
 }
 
@@ -928,4 +933,149 @@
   border-width: 5px;
   border-style: solid;
   border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
+
+/* 投票期限バッジ */
+.voteLimitBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  background-color: #f0f7ff;
+  padding: 8px 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid #4a90e2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.voteLimitBadge.expired {
+  background-color: #fff0f0;
+  color: #cc0000;
+  border-color: #cc0000;
+  font-weight: 600;
+}
+
+/* 投票期限ボタン */
+.voteLimitButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voteLimitButton:hover {
+  background-color: #3a7bc8;
+}
+
+/* 投票期限フォーム */
+.voteLimitFormContainer {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 95%;
+  max-width: 500px;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.voteLimitForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.voteLimitError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background-color: #fff0f0;
+  color: #cc0000;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 10px;
+  color: #666;
+}
+
+.inputWithIcon input {
+  padding-left: 35px;
+}
+
+.voteLimitActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.deleteVoteLimitButton, .saveVoteLimitButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteVoteLimitButton {
+  background-color: #f0f0f0;
+  color: #cc0000;
+}
+
+.saveVoteLimitButton {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.deleteVoteLimitButton:hover:not(:disabled) {
+  background-color: #ffdddd;
+}
+
+.saveVoteLimitButton:hover:not(:disabled) {
+  background-color: #3a7bc8;
+}
+
+.deleteVoteLimitButton:disabled, .saveVoteLimitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 投票期限メッセージ */
+.voteLimitMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cc0000;
+  font-size: 0.95rem;
+  margin-top: 10px;
+  background-color: #fff0f0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ffcccc;
 } 

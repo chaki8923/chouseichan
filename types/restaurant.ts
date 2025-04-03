@@ -32,4 +32,13 @@ export type RestaurantFormData = {
   websiteUrl?: string;
   description?: string;
   eventId: string;
+};
+
+// 投票期限情報の型
+export type RestaurantVoteLimit = {
+  id: string;
+  eventId: string;
+  deadline: string | Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }; 
