@@ -160,7 +160,7 @@ export async function GET(request: Request) {
           <tr>
             <td style="padding: 8px; border: 1px solid #ddd;">${survey.id}</td>
             <td style="padding: 8px; border: 1px solid #ddd;">
-              <a href="https://www.chouseichan.com/event?eventId=${survey.eventId}" target="_blank">
+              <a href="https://www.atumaruchan.com/event?eventId=${survey.eventId}" target="_blank">
                 ${survey.eventId}
               </a>
             </td>
@@ -186,7 +186,7 @@ export async function GET(request: Request) {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.REPORT_EMAIL_RECIPIENT,
-      subject: `[調整ちゃん] 昨日の満足度調査結果（${yesterday.toLocaleDateString('ja-JP')}）`,
+      subject: `[あつ丸ちゃん] 昨日の満足度調査結果（${yesterday.toLocaleDateString('ja-JP')}）`,
       html: emailContent
     };
     

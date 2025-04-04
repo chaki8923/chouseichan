@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     select: { name: true }
   });
 
-  const title = event ? `${event.name}のお店投票 | 調整ちゃん` : 'お店投票 | 調整ちゃん';
+  const title = event ? `${event.name}のお店投票 | あつ丸ちゃん` : 'お店投票 | あつ丸ちゃん';
   const description = 'お店投票ページです。候補のお店に投票したり、新しいお店を提案したりできます。';
 
   return {
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: '/logo.png',
           width: 1200,
           height: 630,
-          alt: '調整ちゃん - お店投票',
+          alt: 'あつ丸ちゃん - お店投票',
         },
       ],
     },

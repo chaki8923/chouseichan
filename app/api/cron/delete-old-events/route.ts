@@ -320,7 +320,7 @@ export async function GET(request: Request) {
               <h3>${index + 1}. ${event.name}</h3>
               <p><strong>ID:</strong> ${event.id}</p>
               <p><strong>作成日時:</strong> ${new Date(event.createdAt).toLocaleString('ja-JP')}</p>
-               <p><strong>リンク:</strong> https://www.chouseichan.com/event?eventId=${event.id}</p>
+               <p><strong>リンク:</strong> https://www.atumaruchan.com/event?eventId=${event.id}</p>
             </div>
           `;
         });
@@ -331,7 +331,7 @@ export async function GET(request: Request) {
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: process.env.REPORT_EMAIL_RECIPIENT,
-          subject: `[調整ちゃん] 古いイベント削除レポート（${currentDate}）`,
+          subject: `[あつ丸ちゃん] 古いイベント削除レポート（${currentDate}）`,
           html: emailContent
         };
         

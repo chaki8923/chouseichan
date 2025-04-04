@@ -3,18 +3,18 @@ import ImageResize from './ImageResize';
 import { getWebPageStructuredData } from '../lib/structured-data';
 
 export const metadata: Metadata = {
-  title: '画像サイズ変更 | 調整ちゃん',
+  title: '画像サイズ変更 | あつ丸ちゃん',
   description: '画像のサイズを簡単に変更できます。アップロードする画像が大きすぎる場合に、画質を保ちながら適切なサイズに変更することができます。JPEG、PNG、WebP形式に対応しています。',
   keywords: ["画像サイズ変更", "画像変更", "画像サイズ変更ツール"],
   openGraph: {
-    title: '画像サイズ変更 | 調整ちゃん',
+    title: '画像サイズ変更 | あつ丸ちゃん',
     description: '画像のサイズを簡単に変更できます。アップロードする画像が大きすぎる場合に、画質を保ちながら適切なサイズに変更することができます。JPEG、PNG、WebP形式に対応しています。',
     images: [
       {
         url: '/logo.png',
         width: 1200,
         height: 630,
-        alt: '調整ちゃん - 画像サイズ変更',
+        alt: 'あつ丸ちゃん - 画像サイズ変更',
       },
     ],
   },
@@ -22,10 +22,10 @@ export const metadata: Metadata = {
 
 // 構造化データを生成する関数
 function generateStructuredData() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chouseichan.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.atumaruchan.com';
   
   return getWebPageStructuredData({
-    title: '画像サイズ変更 | 調整ちゃん',
+    title: '画像サイズ変更 | あつ丸ちゃん',
     description: '画像のサイズを簡単に変更できます。アップロードする画像が大きすぎる場合に、画質を保ちながら適切なサイズに変更することができます。',
     url: `${baseUrl}/image-resize`
   });

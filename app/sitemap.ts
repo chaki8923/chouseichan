@@ -117,7 +117,7 @@ async function getAllCategories(): Promise<CategoryData[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chouseichan.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.atumaruchan.com';
   
   // 主要なルートをsitemapに追加
   const routes = allRoutes.map(route => ({

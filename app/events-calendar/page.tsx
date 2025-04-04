@@ -4,21 +4,21 @@ import EventCalendar from './components/EventCalendar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'イベントカレンダー | 調整ちゃん',
+  title: 'イベントカレンダー | あつ丸ちゃん',
   description: '開催予定や確定したイベントをカレンダーで一覧できます。イベントの日程を簡単に把握して、参加しやすくなります。',
   openGraph: {
     title: 'イベントカレンダー | イベント日程を視覚的に管理',
-    description: '調整ちゃんで作成されたイベントを月別カレンダーで確認できます。開催が決まったイベントを探して参加しましょう。',
+    description: 'あつ丸ちゃんで作成されたイベントを月別カレンダーで確認できます。開催が決まったイベントを探して参加しましょう。',
     images: ['/images/events-calendar-og.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'イベントカレンダー | 調整ちゃん',
+    title: 'イベントカレンダー | あつ丸ちゃん',
     description: 'イベントの日程を視覚的にカレンダーで確認できます。日程調整から参加まで、シームレスなイベント体験を。',
     images: ['/images/events-calendar-og.jpg'],
   },
   alternates: {
-    canonical: 'https://www.chouseichan.com/events-calendar',
+    canonical: 'https://www.atumaruchan.com/events-calendar',
   },
 };
 
@@ -39,7 +39,7 @@ export default function EventsCalendarPage() {
             "@context": "https://schema.org",
             "@type": "WebPage",
             "name": "イベントカレンダー",
-            "description": "調整ちゃんで作成されたイベントを月別カレンダーで確認できます。",
+            "description": "あつ丸ちゃんで作成されたイベントを月別カレンダーで確認できます。",
             "breadcrumb": {
               "@type": "BreadcrumbList",
               "itemListElement": [
@@ -47,13 +47,13 @@ export default function EventsCalendarPage() {
                   "@type": "ListItem",
                   "position": 1,
                   "name": "ホーム",
-                  "item": "https://www.chouseichan.com"
+                  "item": "https://www.atumaruchan.com"
                 },
                 {
                   "@type": "ListItem",
                   "position": 2,
                   "name": "イベントカレンダー",
-                  "item": "https://www.chouseichan.com/events-calendar"
+                  "item": "https://www.atumaruchan.com/events-calendar"
                 }
               ]
             }

@@ -115,7 +115,7 @@ export async function GET(request: Request) {
           <p><strong>メモ:</strong> ${event.memo || '(なし)'}</p>
           <p><strong>スケジュール数:</strong> ${event._count.schedules}</p>
           <p><strong>回答者数:</strong> ${event.responsesCount}</p>
-          <p><strong>リンク:</strong> https://www.chouseichan.com/event?eventId=${event.id}</p>
+          <p><strong>リンク:</strong> https://www.atumaruchan.com/event?eventId=${event.id}</p>
         </div>
       `;
     });
@@ -126,7 +126,7 @@ export async function GET(request: Request) {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.REPORT_EMAIL_RECIPIENT,
-      subject: `[調整ちゃん] 昨日作成されたイベント一覧（${yesterday.toLocaleDateString('ja-JP')}）`,
+      subject: `[あつ丸ちゃん] 昨日作成されたイベント一覧（${yesterday.toLocaleDateString('ja-JP')}）`,
       html: emailContent
     };
     

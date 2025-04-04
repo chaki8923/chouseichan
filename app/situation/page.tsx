@@ -56,12 +56,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     const categoryName = categoryData?.name || '全カテゴリー';
 
     return {
-        title: `${categoryName} | 調整ちゃん`,
-        description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。GoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。`,
+        title: `${categoryName} | あつ丸ちゃん`,
+        description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！あつ丸ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。GoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。`,
         keywords: [ `${categoryName}`,"イベント", "幹事","スケジュール", "調整", "日程調整", "出欠管理", "AI", "日程提案"], 
         openGraph: {
-            title: `${categoryName} | 調整ちゃん`,
-            description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！調整ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。GoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。`,
+            title: `${categoryName} | あつ丸ちゃん`,
+            description: `${categoryName}の時にURLを共有するだけで簡単に日程調整可能！あつ丸ちゃんはGoogleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。GoogleカレンダーAPIを利用し、ユーザーの許可を得た上でイベントを作成・編集・削除する機能を提供します。友達や同僚とのスケジュール調整が簡単に。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。`,
         },
         alternates: {
             canonical: `/situation?categoryId=${categoryId}`,
@@ -71,10 +71,10 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
 // 構造化データを生成する関数
 function generateStructuredData(categoryName: string) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chouseichan.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.atumaruchan.com';
     
     return getWebPageStructuredData({
-        title: `${categoryName} | 調整ちゃん`,
+        title: `${categoryName} | あつ丸ちゃん`,
         description: `${categoryName}のイベント作成と予定調整ができます。`,
         url: `${baseUrl}/situation`
     });
@@ -114,7 +114,7 @@ export default async function Page({ searchParams }: PageProps) {
             {eyecatchUrl && (
                 <div className={styles.categoryHeader}>
                     <div className={styles.categoryHeaderOverlay}>
-                        <h1 className={styles.categoryHeaderTitle}>{categoryName}<span className={styles.categoryHeaderTitleSub}>の予定登録も調整ちゃんで2ステップ</span></h1>
+                        <h1 className={styles.categoryHeaderTitle}>{categoryName}<span className={styles.categoryHeaderTitleSub}>の予定登録もあつ丸ちゃんで2ステップ</span></h1>
                     </div>
                     <div className={styles.categoryHeaderImage}>
                         <Image 

@@ -69,7 +69,7 @@ const MaintenancePage: React.FC = () => {
           <div className="mb-6 text-center">
             <Image 
               src="/logo.png" 
-              alt="調整ちゃんロゴ" 
+              alt="あつ丸ちゃんロゴ" 
               width={150} 
               height={150} 
               className="mx-auto mb-4"

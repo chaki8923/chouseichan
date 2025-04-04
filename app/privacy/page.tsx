@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./index.css"
 
 export const metadata: Metadata = {
-    title: "プライバシーポリシー | 調整ちゃん",
+    title: "プライバシーポリシー | あつ丸ちゃん",
     description: "プライバシーポリシー",
     keywords: ["イベント", "幹事","スケジュール", "調整", "日程調整"],
     robots: "index, follow",
     twitter: {
-        title: "プライバシーポリシー | 調整ちゃん",
+        title: "プライバシーポリシー | あつ丸ちゃん",
       },
 };
 

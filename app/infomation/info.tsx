@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import "./index.css";
 
 export const metadata: Metadata = {
-    title: "お知らせ | 調整ちゃん",
+    title: "お知らせ | あつ丸ちゃん",
     description: "お知らせ",
     keywords: ["イベント", "スケジュール", "調整", "日程調整"],
     robots: "index, follow",

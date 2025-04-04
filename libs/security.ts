@@ -11,8 +11,8 @@ export function validateRequestOrigin(request: NextRequest): boolean {
   
   // 許可されたドメインのリスト（開発環境も含む）
   const allowedDomains = [
-    'https://www.chouseichan.com',
-    'https://chouseichan.com',
+    'https://www.atumaruchan.com',
+    'https://atumaruchan.com',
     'https://shukketuchan.vercel.app',
     'http://localhost:3000'
   ];
@@ -36,8 +36,8 @@ export function validateOriginHeader(request: NextRequest): boolean {
   
   // 許可されたドメインのリスト
   const allowedDomains = [
-    'https://www.chouseichan.com',
-    'https://chouseichan.com',
+    'https://www.atumaruchan.com',
+    'https://atumaruchan.com',
     'https://shukketuchan.vercel.app',
     'http://localhost:3000'
   ];

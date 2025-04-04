@@ -26,7 +26,7 @@ export default function Description() {
     return (
         <>
             <section className={styles.section}>
-                <h1>調整ちゃんとは?</h1>
+                <h1>あつ丸ちゃんとは?</h1>
                 <h2>誰でも2ステップでイベントを開催</h2>
                 <p>交流会や飲み会、勉強会などの予定を簡単に仲間と合わせられるサービスです！</p>
                 <p>イベントを作成して生成されたURLを仲間と共有するだけで簡単に出欠の確認が取れます。</p>
@@ -47,7 +47,7 @@ export default function Description() {
                     onClick={() => handleImageClick("./response.png")}
                 />
                 <h2>主役設定機能</h2>
-                <p>どれだけ参加する人が集まっても主役がいなければ意味はありません！調整ちゃんなら主役が参加できる日もすぐにわかります！</p>
+                <p>どれだけ参加する人が集まっても主役がいなければ意味はありません！あつ丸ちゃんなら主役が参加できる日もすぐにわかります！</p>
                 <img 
                     src="./main.png" 
                     alt="主役決定ボタン" 
@@ -69,7 +69,7 @@ export default function Description() {
                     onClick={() => handleImageClick("./suguwakaru.png")}
                 />
                 <h2>Googleカレンダーとの連携</h2>
-                <p>調整ちゃんは開催日が決定した後にGoogle連携をすることでGoogleカレンダーと連携することができます。ボタンを押すだけで開催日がGoogleカレンダーに登録されて、通知が来るのでとても便利です！もちろんGoogleと連携をしなくても使えます。</p>
+                <p>あつ丸ちゃんは開催日が決定した後にGoogle連携をすることでGoogleカレンダーと連携することができます。ボタンを押すだけで開催日がGoogleカレンダーに登録されて、通知が来るのでとても便利です！もちろんGoogleと連携をしなくても使えます。</p>
                 <img 
                     src="./google.png" 
                     alt="Googleカレンダーの連携もOK" 
@@ -85,7 +85,7 @@ export default function Description() {
                     onClick={() => handleImageClick("./kigen.png")}
                 />
                 <h2>お店選び投票機能</h2>
-                <p>こちらも幹事さんには嬉しい機能です！日程調整とお店選びをこの「調整ちゃん」の中だけで管理できます！</p>
+                <p>こちらも幹事さんには嬉しい機能です！日程調整とお店選びをこの「あつ丸ちゃん」の中だけで管理できます！</p>
                 <img 
                     src="./tohyo.png" 
                     alt="お店選びへのリンク" 

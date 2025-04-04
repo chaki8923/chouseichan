@@ -41,10 +41,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 
   return {
-    title: `${blogData.title} | 調整ちゃん`,
+    title: `${blogData.title} | あつ丸ちゃん`,
     description: `${blogData.meta}`,
     openGraph: {
-      title: `${blogData.title} | 調整ちゃん`,
+      title: `${blogData.title} | あつ丸ちゃん`,
       description: `${blogData.meta}に関する記事です。`,
     },
     alternates: {
@@ -61,7 +61,7 @@ function prepareBlogStructuredData(post: Props) {
     description: `${post.meta}`,
     image: post.eyecatch?.url,
     publishedAt: post.publishedAt,
-    author: '調整ちゃん',
+    author: 'あつ丸ちゃん',
   };
 }
 

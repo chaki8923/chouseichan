@@ -13,7 +13,7 @@ export const maintenanceInfo = {
   // メンテナンスの理由
   reason: process.env.NEXT_PUBLIC_MAINTENANCE_REASON || 'システムメンテナンス',
   // メンテナンス中の連絡先
-  contact: process.env.NEXT_PUBLIC_MAINTENANCE_CONTACT || 'support@chouseichan.com',
+  contact: process.env.NEXT_PUBLIC_MAINTENANCE_CONTACT || 'support@atumaruchan.com',
 };
 
 // 他の機能フラグもここに追加可能
