@@ -10,6 +10,10 @@ export const generateMetadata = (): Metadata => {
     // 既存のメタデータは layout.tsx から継承されるので、
     // 追加や上書きしたいものだけ定義
     title: "あつ丸ちゃん | 簡単日程調整",
+    robots: {
+      index: false,
+      follow: true
+    }
   };
 };
 
