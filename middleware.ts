@@ -52,7 +52,7 @@ export function middleware(request: NextRequest) {
   if (!isIpAllowed(ip)) {
     console.log(`アクセス拒否: ${ip} - 許可IPリスト: ${ALLOWED_IPS.join(', ')}`);
     return new NextResponse(
-      JSON.stringify({ error: 'アクセスが拒否されました' }),
+      JSON.stringify({ error: 'アクセスが拒否されました(IBJAPAN_Aでのみアクセスできます)' }),
       { 
         status: 403, 
         headers: { 'Content-Type': 'application/json' } 
