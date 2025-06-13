@@ -331,7 +331,7 @@ export async function GET(request: Request) {
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: process.env.REPORT_EMAIL_RECIPIENT,
-          subject: `[あつ丸ちゃん] 古いイベント削除レポート（${currentDate}）`,
+          subject: `[調整ちゃん] 古いイベント削除レポート（${currentDate}）`,
           html: emailContent
         };
         

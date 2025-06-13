@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
     <footer className={styles.modernFooter}>
       <div className={styles.footerContainer}>
         <div className={styles.footerSection}>
-          <h3 className={styles.footerHeading}>あつ丸ちゃん</h3>
+          <h3 className={styles.footerHeading}>調整ちゃん</h3>
           <p className={styles.footerDescription}>
             イベントの日程調整をもっと簡単に。
             <br />
@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
       </div>
       
       <div className={styles.footerBottom}>
-        <p className={styles.copyright}>© 2025 あつ丸ちゃん All Rights Reserved.</p>
+        <p className={styles.copyright}>© 2025 調整ちゃん All Rights Reserved.</p>
       </div>
     </footer>
   );

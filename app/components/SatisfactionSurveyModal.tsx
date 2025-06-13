@@ -97,14 +97,14 @@ const SatisfactionSurveyModal: React.FC<SatisfactionSurveyModalProps> = ({
             <div className={styles.logoContainer}>
               <Image 
                 src="/logo.png" 
-                alt="あつ丸ちゃん" 
+                alt="調整ちゃん" 
                 width={100} 
                 height={100} 
                 className={styles.logoImage}
               />
             </div>
             
-            <h2 className={styles.title}>あつ丸ちゃんの満足度を教えてください</h2>
+            <h2 className={styles.title}>調整ちゃんの満足度を教えてください</h2>
             <div className={styles.hearts}>
               <FiHeart className={styles.heart} />
               <FiHeart className={styles.heart} style={{ animationDelay: '0.3s' }} />
@@ -112,7 +112,7 @@ const SatisfactionSurveyModal: React.FC<SatisfactionSurveyModalProps> = ({
             </div>
             
             <div className={styles.ratingContainer}>
-              <p className={styles.ratingLabel}>あつ丸ちゃんのサービスを5段階で評価してください</p>
+              <p className={styles.ratingLabel}>調整ちゃんのサービスを5段階で評価してください</p>
               <StarRating
                 onChange={handleRatingChange}
                 initialRating={rating}
@@ -130,7 +130,7 @@ const SatisfactionSurveyModal: React.FC<SatisfactionSurveyModalProps> = ({
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 className={styles.commentInput}
-                placeholder="あつ丸ちゃんへのご意見やご感想をお聞かせください"
+                placeholder="調整ちゃんへのご意見やご感想をお聞かせください"
                 maxLength={500}
               />
             </div>
@@ -155,7 +155,7 @@ const SatisfactionSurveyModal: React.FC<SatisfactionSurveyModalProps> = ({
             <div className={styles.logoContainer}>
               <Image 
                 src="/logo.png" 
-                alt="あつ丸ちゃん" 
+                alt="調整ちゃん" 
                 width={120} 
                 height={120} 
                 className={styles.logoImageThankYou}

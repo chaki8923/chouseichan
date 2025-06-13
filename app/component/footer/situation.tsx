@@ -33,9 +33,9 @@ export default async function Situation() {
   return (
     <div className={styles.situationFooter}>
       <div className={styles.situationContainer}>
-        <h2 style={{backgroundColor: "transparent"}} className={styles.situationMainTitle}>あつ丸ちゃんの利用シーン</h2>
+        <h2 style={{backgroundColor: "transparent"}} className={styles.situationMainTitle}>調整ちゃんの利用シーン</h2>
         <p className={styles.situationDescription}>
-          様々なシーンで活用できるあつ丸ちゃん。あなたのニーズに合わせてお選びください。
+          様々なシーンで活用できる調整ちゃん。あなたのニーズに合わせてお選びください。
         </p>
         
         <div className={styles.categoryGrid}>

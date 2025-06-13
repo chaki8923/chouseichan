@@ -4,16 +4,16 @@ import EventCalendar from './components/EventCalendar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'イベントカレンダー | あつ丸ちゃん',
+  title: 'イベントカレンダー | 調整ちゃん',
   description: '開催予定や確定したイベントをカレンダーで一覧できます。イベントの日程を簡単に把握して、参加しやすくなります。',
   openGraph: {
     title: 'イベントカレンダー | イベント日程を視覚的に管理',
-    description: 'あつ丸ちゃんで作成されたイベントを月別カレンダーで確認できます。開催が決まったイベントを探して参加しましょう。',
+    description: '調整ちゃんで作成されたイベントを月別カレンダーで確認できます。開催が決まったイベントを探して参加しましょう。',
     images: ['/images/events-calendar-og.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'イベントカレンダー | あつ丸ちゃん',
+    title: 'イベントカレンダー | 調整ちゃん',
     description: 'イベントの日程を視覚的にカレンダーで確認できます。日程調整から参加まで、シームレスなイベント体験を。',
     images: ['/images/events-calendar-og.jpg'],
   },
@@ -39,7 +39,7 @@ export default function EventsCalendarPage() {
             "@context": "https://schema.org",
             "@type": "WebPage",
             "name": "イベントカレンダー",
-            "description": "あつ丸ちゃんで作成されたイベントを月別カレンダーで確認できます。",
+            "description": "調整ちゃんで作成されたイベントを月別カレンダーで確認できます。",
             "breadcrumb": {
               "@type": "BreadcrumbList",
               "itemListElement": [

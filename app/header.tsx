@@ -82,11 +82,11 @@ const Header: React.FC = () => {
                     <img 
                         ref={logoRef}
                         src="/logo.png" 
-                        alt="あつ丸ちゃんロゴ" 
+                        alt="調整ちゃんロゴ" 
                         className={`${styles.logoImage} ${styles.floatingLogo}`} 
                     />
                     <div className={styles.logoText}>
-                        <h1 className={styles.logoTitle}>あつ丸ちゃん</h1>
+                        <h1 className={styles.logoTitle}>調整ちゃん</h1>
                         <p className={styles.logoTagline}>プライベートでも仕事でも<br className={styles.spOnly} />2ステップで簡単日程調整！</p>
                     </div>
                 </Link>

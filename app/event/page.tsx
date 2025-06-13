@@ -36,17 +36,17 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.atumaruchan.com';
 
   return {
-    title: `${eventData.name} | あつ丸ちゃん`,
+    title: `${eventData.name} | 調整ちゃん`,
     description: eventData.memo || "イベントの詳細情報",
     openGraph: {
-      title: `${eventData.name} | あつ丸ちゃん`,
+      title: `${eventData.name} | 調整ちゃん`,
       description: eventData.memo || `${eventData.name}`,
       images: [
         {
           url: "/logo.png", // `public` フォルダの画像を使用
           width: 1200,
           height: 630,
-          alt: "あつ丸ちゃんロゴ",
+          alt: "調整ちゃんロゴ",
         },
       ],
       url: `${baseUrl}/event?eventId=${eventId}`,

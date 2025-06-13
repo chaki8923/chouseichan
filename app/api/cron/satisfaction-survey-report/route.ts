@@ -186,7 +186,7 @@ export async function GET(request: Request) {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.REPORT_EMAIL_RECIPIENT,
-      subject: `[あつ丸ちゃん] 昨日の満足度調査結果（${yesterday.toLocaleDateString('ja-JP')}）`,
+      subject: `[調整ちゃん] 昨日の満足度調査結果（${yesterday.toLocaleDateString('ja-JP')}）`,
       html: emailContent
     };
     

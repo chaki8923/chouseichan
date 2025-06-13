@@ -3,9 +3,9 @@ export const getDefaultWebsiteStructuredData = () => {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'あつ丸ちゃん',
+    name: '調整ちゃん',
     url: 'https://www.atumaruchan.com',
-    description: '「あつ丸ちゃん」はAIによる最適日程推薦機能を搭載。たった2ステップでイベント登録。Googleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。',
+    description: '「調整ちゃん」はAIによる最適日程推薦機能を搭載。たった2ステップでイベント登録。Googleカレンダーと連携し、ユーザーがスケジュールを簡単に管理できるサービスです。回答期限の設定、お店選び投票機能、主役設定機能など、幹事の人に役立つ機能がたくさんあります。イベントの画像もみんなで共有できて参加者も楽しめるサービスです。',
     applicationCategory: 'SchedulingApplication',
     operatingSystem: 'All',
     offers: {
@@ -44,17 +44,17 @@ export const getWebPageStructuredData = (page: any) => {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: page.title || 'あつ丸ちゃん',
-    description: page.description || 'あつ丸ちゃんのページです',
+    name: page.title || '調整ちゃん',
+    description: page.description || '調整ちゃんのページです',
     url: page.url || 'https://www.atumaruchan.com',
     isPartOf: {
       '@type': 'WebSite',
-      name: 'あつ丸ちゃん',
+      name: '調整ちゃん',
       url: 'https://www.atumaruchan.com'
     },
     publisher: {
       '@type': 'Organization',
-      name: 'あつ丸ちゃん',
+      name: '調整ちゃん',
       logo: {
         '@type': 'ImageObject',
         url: 'https://www.atumaruchan.com/logo.png'
@@ -70,7 +70,7 @@ export const getEventStructuredData = (event: any) => {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.title,
-    description: event.description || 'あつ丸ちゃんで作成されたイベント',
+    description: event.description || '調整ちゃんで作成されたイベント',
     startDate: event.startDate,
     endDate: event.endDate,
     location: {
@@ -95,17 +95,17 @@ export const getBlogStructuredData = (blog: any) => {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: blog.title,
-    description: blog.description || 'あつ丸ちゃんブログの記事',
+    description: blog.description || '調整ちゃんブログの記事',
     image: blog.image || '/logo.png',
     datePublished: blog.publishedAt,
     dateModified: blog.updatedAt || blog.publishedAt,
     author: {
       '@type': 'Person',
-      name: blog.author || 'あつ丸ちゃん'
+      name: blog.author || '調整ちゃん'
     },
     publisher: {
       '@type': 'Organization',
-      name: 'あつ丸ちゃん',
+      name: '調整ちゃん',
       logo: {
         '@type': 'ImageObject',
         url: 'https://www.atumaruchan.com/logo.png'
