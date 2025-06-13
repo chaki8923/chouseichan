@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // 許可するIPアドレスのリスト（/32は純粋なIPアドレスの表記なので除去）
-const ALLOWED_IPS = ['113.43.200.98','124.36.24.122/32'];
+const ALLOWED_IPS = ['113.43.200.98','124.36.24.122'];
 
 // IPアドレスが許可リストに含まれているかチェック
 function isIpAllowed(ip: string): boolean {
@@ -52,7 +52,7 @@ export function middleware(request: NextRequest) {
   if (!isIpAllowed(ip)) {
     console.log(`アクセス拒否: ${ip} - 許可IPリスト: ${ALLOWED_IPS.join(', ')}`);
     return new NextResponse(
-      JSON.stringify({ error: 'アクセスが拒否されました(IBJAPAN_Aでのみアクセスできます)' }),
+      JSON.stringify({ error: 'アクセスが拒否されました(IBJAPAN_A、IBJNETでのみアクセスできます)' }),
       { 
         status: 403, 
         headers: { 'Content-Type': 'application/json' } 
