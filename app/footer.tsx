@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
         <div className={styles.footerSection}>
           <h3 className={styles.footerHeading}>調整ちゃん</h3>
           <p className={styles.footerDescription}>
-            イベントの日程調整をもっと簡単に。
+            イベントの日程調整をもっと簡単に!
             <br />
             シンプルで使いやすい日程調整サービスです。
           </p>
